@@ -1,0 +1,126 @@
+from fastapi import Cookie, Depends, HTTPException, Request, status, Header, Response
+from sqlalchemy.orm import Session
+
+from db.connection import get_db_conn
+from schemas.auth_schemas import UserOut
+from models.core.users import User
+
+from .jwt_handler import (
+    decode_access_token,
+    verify_refresh_token,
+    create_tokens,
+    set_jwt_cookies,
+)
+
+
+def get_current_user(
+    request: Request,
+    response: Response,
+    access_token: str | None = Cookie(default=None),
+    refresh_token: str | None = Cookie(default=None),
+    db: Session = Depends(get_db_conn),
+    csrf_token: str | None = Cookie(default=None, alias="csrf_token"),
+    csrf_header: str | None = Header(default=None, alias="X-CSRF-Token"),
+) -> UserOut:
+    payload = None
+
+    # Try decoding access token first
+    if access_token:
+        try:
+            payload = decode_access_token(access_token)
+        except Exception as e:
+            print(f"Invalid access token: {e}")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Access token not found",
+        )
+
+    # If no valid access token, try refresh
+    if not payload and refresh_token:
+        try:
+            payload = verify_refresh_token(refresh_token)
+            user = db.get(User, payload.get("sub"))
+
+            if not user or not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Inactive user",
+                )
+
+            # Create new tokens
+            access, refresh = create_tokens(
+                user_id=user.id, role=user.role, mfa_verified=user.mfa_enabled
+            )
+            set_jwt_cookies(response, access, refresh)
+
+            print("Access token refreshed successfully")
+
+        except Exception as e:
+            print(f"Refresh token invalid: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid access and refresh token. Login again.",
+            )
+
+    elif not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired access token.",
+        )
+
+    # Fetch the user (works for both valid or refreshed tokens)
+    user = db.get(User, payload.get("sub"))
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive or non-existent user",
+        )
+
+    # 🔒 CSRF check (for unsafe methods only)
+    if request.method not in ("GET", "HEAD", "OPTIONS", "TRACE"):
+        if not csrf_token:
+            csrf_token = request.cookies.get("csrf_token")
+            print("INSIDE NOT FOUND CSRF")
+        if not csrf_token:
+            print(" NOPE NOT FOUND INSIDE NOT FOUND CSRF")
+
+        if not csrf_header:
+            print("INSIDE NOT FOUND CSRF HEADER")
+            csrf_header = request.headers.get("X-CSRF-Token")
+
+        if not csrf_header:
+            print(" NOPE NOT FOUND INSIDE NOT FOUND CSRF HEADER")
+
+        if not csrf_token or not csrf_header or csrf_token != csrf_header:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CSRF token missing or invalid",
+            )
+
+    return UserOut.model_validate(user)
+
+
+def require_moderator(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+    if current_user.role not in ["super_admin", "admin", "moderator"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"
+        )
+    return current_user
+
+
+def require_admin(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+    if current_user.role not in ["super_admin", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"
+        )
+    return current_user
+
+
+# def require_mfa_verified(
+#     user: User = Depends(get_current_user), token: str = Depends(oauth2_scheme)
+# ) -> User:
+#     payload = decode_token(token)
+#     if not payload.get("mfa_verified") and user.mfa_enabled:
+#         raise HTTPException(status_code=403, detail="MFA required")
+#     return user
