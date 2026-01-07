@@ -5,10 +5,14 @@ import type {
   UserWithDepartmentInfo,
   AllUsersOut,
   RegisterResponse,
-  AllUsersWithDepartments,
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";
-import { loginSuccess, updateUser, userLogout } from "../store/authSlice";
+import {
+  loginSuccess,
+  setIsAuthenticated,
+  updateUser,
+  userLogout,
+} from "../store/authSlice";
 import { rootApiSlice } from "@/store/rootApiSlice";
 
 export const authApiSlice = rootApiSlice.injectEndpoints({
@@ -51,7 +55,7 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
     }),
 
     // ---------------- GET ME ----------------
-    getMe: builder.query<AllUsersWithDepartments, void>({
+    getMe: builder.query<ApiResponse<UserWithDepartmentInfo>, void>({
       query: () => ({
         url: "auth/me",
         method: "GET",
@@ -62,12 +66,13 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
           dispatch(
             updateUser({
               user: {
-                ...data.user,
+                ...data.data.user,
               },
-              departments: data.departments ?? [],
+              departments: data.data.departments ?? [],
             })
           );
         } catch {
+          dispatch(setIsAuthenticated(false));
           // ignore errors
         }
       },

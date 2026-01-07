@@ -71,6 +71,7 @@ class User(Base, BaseMixin):
     )
     user_departments = relationship("DepartmentUsers", back_populates="user")
     comments = relationship("Comment", back_populates="author")
+    uploaded_evidences = relationship("ApplicationEvidence", back_populates="uploader")
 
     # ----------------------Functions---------------------------------
     def set_password(self, plain_password: str) -> None:

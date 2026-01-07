@@ -28,6 +28,7 @@ export const rootApiSlice = createApi({
   tagTypes: [
     "User",
     "Apps",
+    "AppDetails",
     "Checklists",
     "Controls",
     "Assignments",

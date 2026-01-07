@@ -10,6 +10,7 @@ from models import (
     Comment,
 )
 from schemas import department_schemas as d_schemas
+from schemas.auth_schemas import UserOut
 
 
 def create_new_department(payload: d_schemas.DepartmentCreate, db: Session):
@@ -239,25 +240,21 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             )
         )
 
+        cmnt_query = db.scalars(
+            select(Comment)
+            .where(
+                and_(Comment.application_id == app_id, Comment.department_id == dept_id)
+            )
+            .order_by(Comment.created_at.desc())
+        ).all()
+        comments = [d_schemas.CommentOut.model_validate(c) for c in cmnt_query]
+
         result = db.execute(stmt).first()
 
         if not result:
             raise HTTPException(status_code=404, detail="Department not found")
 
         dept, dept_status = result
-
-        stmt_comments = (
-            select(Comment)
-            .where(
-                Comment.department_id == dept_id,
-                Comment.application_id == app_id,
-            )
-            .order_by(Comment.created_at.desc())
-        )
-
-        comments = db.scalars(stmt_comments).all()
-
-        comments = [d_schemas.CommentOutNoDep.model_validate(cmt) for cmt in comments]
 
         return d_schemas.DepartmentInfo(
             id=dept.id,

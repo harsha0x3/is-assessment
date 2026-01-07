@@ -49,6 +49,7 @@ class Application(Base, BaseMixin):
     departments = relationship(
         "Department", secondary="application_departments", back_populates="applications"
     )
+    evidences = relationship("ApplicationEvidence", back_populates="application")
 
     def get_priority_for_user(self, user_id: str, db: Session) -> int:
         user_priority = (

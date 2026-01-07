@@ -28,12 +28,14 @@ class NewUserDepartmentAssign(BaseModel):
     role: str | None = None
 
 
-class CommentOutNoDep(BaseModel):
+class CommentOut(BaseModel):
     id: str
     content: str
     author_id: str
     application_id: str
     department_id: int
+
+    department: DepartmentOut
 
     author: UserOut
 
@@ -44,4 +46,4 @@ class CommentOutNoDep(BaseModel):
 
 
 class DepartmentInfo(AppDepartmentOut, BaseModel):
-    comments: list[CommentOutNoDep]
+    comments: list[CommentOut] = []

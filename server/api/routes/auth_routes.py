@@ -1,7 +1,6 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.controllers.auth_controller import (
@@ -12,7 +11,6 @@ from api.controllers.auth_controller import (
     update_user_profile,
     get_all_users,
 )
-from models import DepartmentUsers
 from db.connection import get_db_conn
 from schemas.auth_schemas import (
     LoginRequest,
@@ -151,12 +149,11 @@ def get_me(
                 department_description=dept.description,
             )
             user_depts_data.append(user_dept_info)
-        data = AllUsersWithDepartments(
-            departments=user_depts_data,
-            user=CompleteUserOut.model_validate(user),
+        result = UserWithDepartmentInfo(
+            departments=user_depts_data, user=UserOut.model_validate(user)
         )
 
-        return {"msg": "", "data": data}
+        return {"msg": "", "data": result}
 
     except Exception as e:
         raise HTTPException(

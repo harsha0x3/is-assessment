@@ -5,6 +5,16 @@ from sqlalchemy.orm import Session, selectinload
 from models import Application, Comment, ApplicationDepartments
 
 from schemas import comment_schemas as c_schemas
+from schemas.evidence_schemas import EvidenceOut
+from pydantic import BaseModel
+from .evidence_controller import get_s3_presigned_url
+import os
+
+ENV = os.getenv("ENV", "development")
+
+
+class CommentWithEvidences(c_schemas.CommentOut, BaseModel):
+    evidences: list[EvidenceOut] | None = None
 
 
 def create_comment(payload: c_schemas.CommentInput, db: Session):
@@ -38,7 +48,7 @@ def create_comment(payload: c_schemas.CommentInput, db: Session):
         db.add(new_comment)
         db.commit()
         db.refresh(new_comment)
-        return c_schemas.CommentOut.model_validate(new_comment)
+        return new_comment
 
     except HTTPException:
         raise
@@ -90,7 +100,36 @@ def get_comments_for_application(app_id: str, db: Session):
             .where(Comment.application_id == app_id)
             .order_by(Comment.created_at.desc())
         ).all()
-        return [c_schemas.CommentOut.model_validate(comment) for comment in comments]
+        result = [
+            CommentWithEvidences(
+                id=c.id,
+                content=c.content,
+                author_id=c.author_id,
+                application_id=c.application_id,
+                department_id=c.department_id,
+                department=c_schemas.DepartmentOut.model_validate(c.department),
+                author=c_schemas.UserOut.model_validate(c.author),
+                created_at=c.created_at,
+                updated_at=c.updated_at,
+                evidences=[
+                    EvidenceOut(
+                        id=e.id,
+                        application_id=e.application_id,
+                        uploader_id=e.uploader_id,
+                        evidence_path=get_s3_presigned_url(e.evidence_path)
+                        if ENV == "production"
+                        else e.evidence_path,
+                        severity=e.severity,
+                        comment_id=e.comment_id,
+                    )
+                    for e in c.evidences
+                ]
+                if c.evidences
+                else [],
+            )
+            for c in comments
+        ]
+        return result
 
     except Exception as e:
         raise HTTPException(
@@ -112,7 +151,36 @@ def get_comments_for_department(app_id: str, dept_id: int, db: Session):
             )
             .order_by(Comment.created_at.desc())
         ).all()
-        return [c_schemas.CommentOut.model_validate(comment) for comment in comments]
+        result = [
+            CommentWithEvidences(
+                id=c.id,
+                content=c.content,
+                author_id=c.author_id,
+                application_id=c.application_id,
+                department_id=c.department_id,
+                department=c_schemas.DepartmentOut.model_validate(c.department),
+                author=c_schemas.UserOut.model_validate(c.author),
+                created_at=c.created_at,
+                updated_at=c.updated_at,
+                evidences=[
+                    EvidenceOut(
+                        id=e.id,
+                        application_id=e.application_id,
+                        uploader_id=e.uploader_id,
+                        evidence_path=get_s3_presigned_url(e.evidence_path)
+                        if ENV == "production"
+                        else e.evidence_path,
+                        severity=e.severity,
+                        comment_id=e.comment_id,
+                    )
+                    for e in c.evidences
+                ]
+                if c.evidences
+                else [],
+            )
+            for c in comments
+        ]
+        return result
 
     except Exception as e:
         raise HTTPException(

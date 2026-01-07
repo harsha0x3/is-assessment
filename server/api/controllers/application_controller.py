@@ -118,7 +118,7 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             print("\nIN ELSE", stmt)
             apps = db.execute(stmt.order_by(sort_column)).scalars().unique().all()
 
-        apps_out = []
+        apps_out: list[NewAppListOut] = []
         for app in apps:
             depts_out = get_departments_by_application(app_id=app.id, db=db)
             data = NewAppListOut(

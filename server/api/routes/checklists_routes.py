@@ -27,7 +27,7 @@ from models import Checklist
 router = APIRouter(tags=["checklists"])
 
 
-@router.post("/applications/{app_id}/checklists", response_model=ChecklistOut)
+@router.post("/applications/{app_id}/checklists")
 async def create_new_checklist(
     payload: Annotated[ChecklistCreate, ""],
     app_id: Annotated[str, Path(title="App ID")],
@@ -65,7 +65,7 @@ async def get_app_checklists(
     )
 
 
-@router.patch("/checklists/{checklist_id}", response_model=ChecklistOut)
+@router.patch("/checklists/{checklist_id}")
 async def patch_checklist(
     payload: Annotated[ChecklistUpdate, "Payload for updating the checklist"],
     checklist_id: Annotated[str, Path(title="Checklist id to be updated")],

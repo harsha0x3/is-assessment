@@ -22,3 +22,4 @@ class Comment(Base, BaseMixin):
     author = relationship("User", back_populates="comments")
     application = relationship("Application", back_populates="comments")
     department = relationship("Department", back_populates="comments")
+    evidences = relationship("ApplicationEvidence", back_populates="comment")

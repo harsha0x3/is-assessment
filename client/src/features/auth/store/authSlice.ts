@@ -26,6 +26,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action: PayloadAction<UserWithDepartmentInfo>) => {
+      console.log("LOGIN SUCCESS PAYLOAD", action.payload);
       state.user = action.payload.user;
       state.departments = action.payload.departments;
       state.isAuthenticated = true;
@@ -35,6 +36,7 @@ const authSlice = createSlice({
     updateUser: (state, action: PayloadAction<UserWithDepartmentInfo>) => {
       state.user = action.payload.user;
       state.departments = action.payload.departments;
+      state.isAuthenticated = true;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     userLogout: (_state) => {
@@ -46,12 +48,23 @@ const authSlice = createSlice({
     setError: (state, action) => {
       state.error = action.payload;
     },
+    setIsAuthenticated: (state, action) => {
+      state.isAuthenticated = action.payload;
+    },
   },
 });
 
-export const { loginSuccess, userLogout, setIsLoading, setError, updateUser } =
-  authSlice.actions;
+export const {
+  loginSuccess,
+  userLogout,
+  setIsLoading,
+  setError,
+  updateUser,
+  setIsAuthenticated,
+} = authSlice.actions;
 export const selectAuth = (state: RootState) => state.auth;
 export const selectError = (state: RootState) => state.auth.error;
 export const selectIsLoading = (state: RootState) => state.auth.isLoading;
+export const selectIsAuthenticated = (state: RootState) =>
+  state.auth.isAuthenticated;
 export default authSlice.reducer;
