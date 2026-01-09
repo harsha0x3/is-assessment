@@ -27,6 +27,7 @@ from api.routes import (
     admin_inspect_routes,
     department_routes,
     comments_routes,
+    dashboard_routes,
 )
 
 
@@ -125,3 +126,4 @@ app.include_router(pre_assess_draft_routes.router)
 app.include_router(admin_inspect_routes.router)
 app.include_router(department_routes.router)
 app.include_router(comments_routes.router)
+app.include_router(dashboard_routes.router)

@@ -67,6 +67,20 @@ async def new_list_all_apps(
         ],
         Query(),
     ] = "name",
+    status: Annotated[
+        Literal[
+            "new_request",
+            "in_progress",
+            "pending",
+            "not_yet_started",
+            "completed",
+            "reopen",
+            "closed",
+            "cancelled",
+        ]
+        | None,
+        Query(),
+    ] = None,
 ):
     params = AppQueryParams(
         sort_by=sort_by,
@@ -75,6 +89,7 @@ async def new_list_all_apps(
         page=page,
         page_size=page_size,
         search_by=search_by,
+        status=status,
     )
     data = list_all_apps(
         db=db,

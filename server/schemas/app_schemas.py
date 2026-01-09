@@ -93,6 +93,7 @@ class ListApplicationsOut(BaseModel):
 class NewAppListOut(BaseModel):
     id: str
     name: str
+    description: str | None
     ticket_id: str | None = None
     vertical: str | None = None
     imitra_ticket_id: str | None = None
@@ -123,6 +124,19 @@ class AppQueryParams(BaseModel):
     ] = Field("name", description="The field you want to search by")
     page: int = 1
     page_size: int = 15
+    status: (
+        Literal[
+            "new_request",
+            "in_progress",
+            "pending",
+            "not_yet_started",
+            "completed",
+            "reopen",
+            "closed",
+            "cancelled",
+        ]
+        | None
+    ) = None
 
     @field_validator("sort_by")
     @classmethod

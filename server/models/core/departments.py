@@ -2,6 +2,7 @@ from sqlalchemy import String, Boolean, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.base import Base
 from datetime import datetime, timezone
+from sqlalchemy.ext.associationproxy import association_proxy
 
 
 class Department(Base):
@@ -27,6 +28,14 @@ class Department(Base):
         "Application", secondary="application_departments", back_populates="departments"
     )
 
-    users = relationship(
-        "User", secondary="department_users", back_populates="departments"
+    user_links = relationship(
+        "DepartmentUsers",
+        back_populates="department",
+        cascade="all, delete-orphan",
+    )
+
+    # Convenience read access
+    users = association_proxy(
+        "user_links",
+        "user",
     )

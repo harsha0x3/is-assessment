@@ -65,6 +65,38 @@
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
 
   --app-header-height: 3rem;
+
+  /* Violet — New Request */
+  --status-new-request-bg: hsl(303 90% 94%);
+  --status-new-request-fg: hsl(303, 85%, 45%);
+
+  /* Indigo — Not Yet Started */
+  --status-not-yet-started-bg: hsl(21, 87%, 94%);
+  --status-not-yet-started-fg: hsl(21, 94%, 38%);
+
+  /* Blue — In Progress */
+  --status-in-progress-bg: hsl(215 95% 94%);
+  --status-in-progress-fg: hsl(215 90% 45%);
+
+  /* Yellow — Pending */
+  --status-pending-bg: hsl(42 95% 90%);
+  --status-pending-fg: hsl(42 90% 42%);
+
+  /* Green — Completed */
+  --status-completed-bg: hsl(145 80% 92%);
+  --status-completed-fg: hsl(145 75% 38%);
+
+  /* Orange — Reopen */
+  --status-reopen-bg: hsl(28 95% 92%);
+  --status-reopen-fg: hsl(28 90% 45%);
+
+  /* Closed — Cool gray */
+  --status-closed-bg: hsl(220 10% 92%);
+  --status-closed-fg: hsl(220 10% 40%);
+
+  /* Cancelled — Warm gray (red undertone) */
+  --status-cancelled-bg: hsl(10 15% 92%);
+  --status-cancelled-fg: hsl(10, 91%, 31%);
 }
 
 .dark {
@@ -112,6 +144,30 @@
   --shadow-xl: 0 1px 3px 0px oklch(0 0 0 / 0.1),
     0 8px 10px -1px oklch(0 0 0 / 0.1);
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
+  /* 
+  --status-new-request-bg: hsl(270 50% 20%);
+  --status-new-request-fg: hsl(270 85% 75%);
+
+  --status-not-yet-started-bg: hsl(250 45% 20%);
+  --status-not-yet-started-fg: hsl(250 80% 75%);
+
+  --status-in-progress-bg: hsl(215 50% 20%);
+  --status-in-progress-fg: hsl(215 85% 75%);
+
+  --status-pending-bg: hsl(48 60% 20%);
+  --status-pending-fg: hsl(48 90% 70%);
+
+  --status-completed-bg: hsl(145 45% 20%);
+  --status-completed-fg: hsl(145 75% 65%);
+
+  --status-reopen-bg: hsl(28 55% 20%);
+  --status-reopen-fg: hsl(28 85% 70%);
+
+  --status-closed-bg: hsl(220 10% 20%);
+  --status-closed-fg: hsl(220 15% 65%);
+
+  --status-cancelled-bg: hsl(11, 82%, 32%);
+  --status-cancelled-fg: hsl(10 25% 65%); */
 }
 
 @theme inline {

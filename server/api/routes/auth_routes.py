@@ -56,7 +56,7 @@ async def register(
 
         user_depts_data: list[DepartmentInAuth] = []
         for usr_dept, dept in zip(
-            new_user_res.user_departments, new_user_res.departments
+            new_user_res.department_links, new_user_res.departments
         ):
             user_dept_info = DepartmentInAuth(
                 user_dept_id=usr_dept.id,
@@ -140,7 +140,7 @@ def get_me(
             )
         user_depts_data: list[DepartmentInAuth] = []
 
-        for usr_dept, dept in zip(user.user_departments, user.departments):
+        for usr_dept, dept in zip(user.department_links, user.departments):
             user_dept_info = DepartmentInAuth(
                 user_dept_id=usr_dept.id,
                 department_role=usr_dept.role,

@@ -23,8 +23,11 @@ import {
 const AppPagination: React.FC = () => {
   const { appPage, goToPage, totalApps, appPageSize } = useApplications();
   const totalPages: number = useMemo(() => {
-    return Math.ceil(totalApps ?? 0 / appPageSize);
+    return Math.ceil((totalApps ?? 0) / appPageSize);
   }, [totalApps]);
+  console.log(
+    `TOTAL APPS IN PAGINATION: ${totalApps} || TOTAL PAGES : ${totalPages} || PAGE SIZe - ${appPageSize}`
+  );
   return (
     <Pagination>
       <PaginationContent>

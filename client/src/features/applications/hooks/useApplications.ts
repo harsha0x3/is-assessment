@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { useListAllAppsQuery } from "@/features/applications/store/applicationsApiSlice";
+import type { AppStatuses } from "@/utils/globalTypes";
 
 export const useApplications = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,6 +22,7 @@ export const useApplications = () => {
     | "vertical"
     | "ticket_id";
   const appSearchValue = searchParams.get("appSearch") || "";
+  const appStatus = searchParams.get("appStatus") || undefined;
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [lastAppPage, setLastAppPage] = useState(appPage);
@@ -33,6 +35,7 @@ export const useApplications = () => {
       sort_order: appSortOrder,
       search: debouncedSearch || "",
       search_by: appSearchBy,
+      status: appStatus,
     },
     { refetchOnMountOrArgChange: true }
   );

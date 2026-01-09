@@ -5,6 +5,8 @@ import pyotp
 from sqlalchemy import JSON, Boolean, DateTime, Index, String
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.ext.associationproxy import association_proxy
+
 
 from db.base import Base, BaseMixin
 from services.auth.utils import (
@@ -69,9 +71,20 @@ class User(Base, BaseMixin):
     departments = relationship(
         "Department", secondary="department_users", back_populates="users"
     )
-    user_departments = relationship("DepartmentUsers", back_populates="user")
     comments = relationship("Comment", back_populates="author")
     uploaded_evidences = relationship("ApplicationEvidence", back_populates="uploader")
+
+    department_links = relationship(
+        "DepartmentUsers",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # READ-ONLY convenience access
+    departments = association_proxy(
+        "department_links",
+        "department",
+    )
 
     # ----------------------Functions---------------------------------
     def set_password(self, plain_password: str) -> None:

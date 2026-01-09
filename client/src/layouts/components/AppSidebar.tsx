@@ -12,7 +12,12 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutGridIcon, Users2Icon, type LucideIcon } from "lucide-react";
+import {
+  LayoutDashboardIcon,
+  LayoutGridIcon,
+  Users2Icon,
+  type LucideIcon,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
@@ -27,6 +32,13 @@ type SidebarData = {
 };
 
 const sidebarItems: SidebarData[] = [
+  {
+    title: "Dashboard",
+    path: "/dashboard",
+    isActive: false,
+    icon: LayoutDashboardIcon,
+    roles: ["admin", "moderator", "user"],
+  },
   {
     title: "Apps",
     path: "/applications",

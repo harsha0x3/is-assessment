@@ -14,8 +14,8 @@ class DepartmentUsers(Base, BaseMixin):
     )
     role: Mapped[str] = mapped_column(String(40), nullable=True)
 
-    # -- Relationships --
-    user = relationship("User", back_populates="user_departments")
+    department = relationship("Department", back_populates="user_links")
+    user = relationship("User", back_populates="department_links")
 
     # -- Table Constraints --
     __table_args__ = (

@@ -80,21 +80,16 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             .where(Application.is_active)
             .options(joinedload(Application.departments))
         )
-        total_count = db.scalar(select(func.count()).select_from(stmt.subquery()))
         sort_column = getattr(Application, params.sort_by)
-        if params.sort_order == "desc":
-            sort_column = desc(sort_column)
-        else:
-            sort_column = asc(sort_column)
 
+        if params.status:
+            stmt = stmt.where(Application.status == params.status)
+
+        # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
-            print("FOUND SEARCH Q", params.search)
-            print("FOUND SEARCH BY", params.search_by)
             search_value = f"%{params.search}%"
             search_column = getattr(Application, params.search_by, None)
-            if search_column is not None and params.search_by != "ticket_id":
-                stmt = stmt.where(search_column.ilike(search_value))
-                print(stmt)
+
             if params.search_by == "ticket_id":
                 stmt = stmt.where(
                     or_(
@@ -102,6 +97,17 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
                         Application.imitra_ticket_id.ilike(search_value),
                     )
                 )
+            elif search_column is not None:
+                stmt = stmt.where(search_column.ilike(search_value))
+
+        # ✅ TOTAL COUNT (AFTER ALL FILTERS)
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total_count = db.scalar(count_stmt)
+
+        if params.sort_order == "desc":
+            sort_column = desc(sort_column)
+        else:
+            sort_column = asc(sort_column)
 
         if params.page >= 1:
             apps = (
@@ -124,6 +130,7 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             data = NewAppListOut(
                 id=app.id,
                 name=app.name,
+                description=app.description,
                 vertical=app.vertical,
                 ticket_id=app.ticket_id,
                 imitra_ticket_id=app.imitra_ticket_id,

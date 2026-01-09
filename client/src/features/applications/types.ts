@@ -1,3 +1,4 @@
+import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "../departments/types";
 
 // app_schemas.ts
@@ -63,11 +64,12 @@ export interface ApplicationUpdate {
 export interface NewAppListOut {
   id: string;
   name: string;
+  description?: string;
   ticket_id?: string | null;
   vertical?: string | null;
   imitra_ticket_id?: string | null;
   is_completed: boolean;
-  status: string;
+  status: AppStatuses;
   priority?: number;
   app_priority?: number | null;
   started_at?: string | null;
@@ -90,6 +92,7 @@ export interface AppQueryParams {
     | "ticket_id";
   page?: number;
   page_size?: number;
+  status?: string;
 }
 
 // ---------- OLD -----------

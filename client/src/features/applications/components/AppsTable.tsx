@@ -22,6 +22,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AppDeptData } from "@/features/departments/components/AppDepartmentDialog";
 import { useNavigate } from "react-router-dom";
+import DescriptionCell from "@/components/ui/description-cell";
+import { parseDate, parseStatus } from "@/utils/helpers";
+import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
+import type { AppStatuses } from "@/utils/globalTypes";
 const AppsTable: React.FC = () => {
   const AppDepartmentDialog = lazy(
     () => import("@/features/departments/components/AppDepartmentDialog")
@@ -32,8 +36,6 @@ const AppsTable: React.FC = () => {
     useGetAllDepartmentsQuery();
   const [showDeptDialog, setShowDeptDialog] = useState(false);
   const [deptDialogProps, setDeptDialogProps] = useState<AppDeptData | null>();
-  const [selectedAppId, setSelectedAppId] = useState<string>();
-  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState<boolean>();
   const navigate = useNavigate();
   const colHelper = createColumnHelper<NewAppListOut>();
 
@@ -116,8 +118,6 @@ const AppsTable: React.FC = () => {
               variant="link"
               className="p-0 h-auto text-left"
               onClick={() => {
-                setSelectedAppId(row.original.id);
-                setIsAppDrawerOpen(true);
                 navigate(`/applications/details/${row.original.id}/overview`);
               }}
             >
@@ -127,27 +127,71 @@ const AppsTable: React.FC = () => {
             </Button>
           ),
         }),
-        colHelper.accessor("vertical", {
-          header: "Vertical",
-          maxSize: 350,
+
+        colHelper.accessor("description", {
+          header: "Description",
+          maxSize: 400,
           minSize: 250,
           cell: (info) => {
-            return <span>{info.getValue()}</span>;
+            const content: string = info.getValue() ?? "-";
+            return <DescriptionCell content={content} />;
           },
         }),
 
-        ...deptCols,
-
-        colHelper.accessor("imitra_ticket_id", {
-          header: "I Mitra Ticket",
-          maxSize: 180,
-          minSize: 120,
-          cell: (info) => <span>{info.getValue()}</span>,
+        colHelper.accessor("vertical", {
+          header: "Vertical",
+          maxSize: 150,
+          minSize: 200,
+          cell: (info) => {
+            return <span>{info.getValue()}</span>;
+          },
         }),
         colHelper.accessor("status", {
           header: "Status",
           maxSize: 180,
           minSize: 100,
+          cell: (info) => {
+            const status: AppStatuses = info.getValue();
+            return (
+              <div className="text-center w-full">
+                <Badge
+                  className="capitalize"
+                  style={{
+                    backgroundColor: STATUS_COLOR_MAP_BG[status],
+                    color: STATUS_COLOR_MAP_FG[status],
+                  }}
+                >
+                  {parseStatus(status)}
+                </Badge>
+              </div>
+            );
+          },
+        }),
+        colHelper.accessor("started_at", {
+          header: "Start Date",
+          maxSize: 100,
+          minSize: 80,
+          cell: (info) => {
+            const startDate = parseDate(info.getValue());
+            return <div className="text-center w-full">{startDate}</div>;
+          },
+        }),
+        colHelper.accessor("completed_at", {
+          header: "End Date",
+          maxSize: 100,
+          minSize: 80,
+          cell: (info) => {
+            const endDate = parseDate(info.getValue());
+            return <div className="text-center w-full">{endDate}</div>;
+          },
+        }),
+
+        // ...deptCols,
+
+        colHelper.accessor("imitra_ticket_id", {
+          header: "I Mitra Ticket",
+          maxSize: 180,
+          minSize: 120,
           cell: (info) => <span>{info.getValue()}</span>,
         }),
       ];
@@ -161,7 +205,7 @@ const AppsTable: React.FC = () => {
     columnResizeMode: "onChange",
   });
   return (
-    <div className="w-full h-[calc(100vh-var(--app-header-height)-3.5rem)] overflow-x-auto overflow-y-auto border rounded-md">
+    <div className="w-full h-full overflow-x-auto overflow-y-auto border rounded-md">
       {showDeptDialog && deptDialogProps && (
         <Suspense fallback={<div>Loading department dialog</div>}>
           <AppDepartmentDialog
@@ -230,7 +274,10 @@ const AppsTable: React.FC = () => {
                 className={`max-h-40 whitespace-normal wrap-break-word`}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={`whitespace-normal wrap-break-word`}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

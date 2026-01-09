@@ -20,6 +20,9 @@ function App() {
   const AppOverview = lazy(
     () => import("./features/applications/components/AppOverview")
   );
+  const DashboardPage = lazy(
+    () => import("./features/dashboard/pages/DashboardPage")
+  );
 
   return (
     <>
@@ -35,6 +38,20 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<ProtectedLayout />}>
             <Route path="" element={<RootLayout />}>
+              <Route
+                path="dashboard"
+                element={
+                  <Suspense
+                    fallback={
+                      <div>
+                        <Loader className="animate-spin" />
+                      </div>
+                    }
+                  >
+                    <DashboardPage />
+                  </Suspense>
+                }
+              />
               <Route path="applications" element={<ApplicationsLayout />}>
                 <Route path="" element={<AppDrawer />}>
                   <Route path="new" element={<AppOverview />} />

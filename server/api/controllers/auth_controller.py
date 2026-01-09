@@ -95,14 +95,12 @@ def login_user(
     # print(f"[Res - log] ")
     try:
         user = db.scalar(
-            select(User)
-            .where(
+            select(User).where(
                 or_(
                     User.username == log_user.email_or_username,
                     User.email == log_user.email_or_username,
                 )
             )
-            .options(joinedload(User.departments))
         )
 
         if not user:
@@ -127,7 +125,7 @@ def login_user(
                 raise HTTPException(status_code=401, detail="Invalid MFA code")
 
         user_depts: list[DepartmentInAuth] = []
-        for usr_dept, dept in zip(user.user_departments, user.departments):
+        for usr_dept, dept in zip(user.department_links, user.departments):
             user_dept_info = DepartmentInAuth(
                 user_dept_id=usr_dept.id,
                 department_role=usr_dept.role,
@@ -233,9 +231,7 @@ def update_user_profile(
         db.commit()
         db.refresh(editing_user)
         user_depts: list[DepartmentInAuth] = []
-        for usr_dept, dept in zip(
-            editing_user.user_departments, editing_user.departments
-        ):
+        for usr_dept, dept in zip(editing_user.departments, editing_user.departments):
             user_dept_info = DepartmentInAuth(
                 user_dept_id=usr_dept.id,
                 department_role=usr_dept.role,
@@ -259,13 +255,7 @@ def update_user_profile(
 
 def get_all_users(db: Session):
     try:
-        users = (
-            db.scalars(
-                select(User).where(User.is_active).options(joinedload(User.departments))
-            )
-            .unique()
-            .all()
-        )
+        users = db.scalars(select(User).where(User.is_active)).unique().all()
         total_users = db.scalar(select(func.count(User.id)).where(User.is_active))
 
         # for user, user_dept, dept in users:
@@ -289,7 +279,7 @@ def get_all_users(db: Session):
         result = []
         for user in users:
             user_depts: list[DepartmentInAuth] = []
-            for usr_dept, dept in zip(user.user_departments, user.departments):
+            for usr_dept, dept in zip(user.department_links, user.departments):
                 user_dept_info = DepartmentInAuth(
                     user_dept_id=usr_dept.id,
                     department_role=usr_dept.role,
