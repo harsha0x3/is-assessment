@@ -4,13 +4,10 @@ import React from "react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboardIcon,
@@ -22,6 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
 import Hint from "@/components/ui/hint";
+import { ISLogo } from "@/components/ui/IsLogo";
 
 type SidebarData = {
   title: string;
@@ -68,9 +66,14 @@ const AppSidebar: React.FC = ({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarTrigger className="-ml-1" />
+      <SidebarHeader className="flex flex-row items-center gap-2 px-2">
+        <ISLogo className="h-8 w-8 shrink-0" />
+
+        <span className="font-bold text-lg whitespace-nowrap group-data-[collapsible=icon]:hidden">
+          IS Assessments
+        </span>
       </SidebarHeader>
+
       <SidebarContent className="px-2">
         <SidebarMenu>
           {sidebarItems.map((item) => {

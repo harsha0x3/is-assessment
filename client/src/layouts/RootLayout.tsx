@@ -22,7 +22,7 @@ const RootLayout: React.FC = () => {
         <SidebarInset className="min-w-0 flex flex-col h-screen">
           <header className="border-b flex h-(--app-header-height) shrink-0 items-center gap-2">
             <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger className="" />
               <Separator orientation="vertical" className="mr-2 h-4" />
             </div>
             {headerTitle}
