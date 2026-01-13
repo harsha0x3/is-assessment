@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface HintProps {
-  label: string;
+  label: string | React.ReactNode;
   children: React.ReactNode;
   side?: "top" | "right" | "left" | "bottom";
   align?: "start" | "center" | "end";

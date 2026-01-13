@@ -21,12 +21,12 @@ import {
 } from "@/components/ui/select";
 
 const AppPagination: React.FC = () => {
-  const { appPage, goToPage, totalApps, appPageSize } = useApplications();
+  const { appPage, goToPage, filteredApps, appPageSize } = useApplications();
   const totalPages: number = useMemo(() => {
-    return Math.ceil((totalApps ?? 0) / appPageSize);
-  }, [totalApps]);
+    return Math.ceil((filteredApps ?? 0) / appPageSize);
+  }, [filteredApps]);
   console.log(
-    `TOTAL APPS IN PAGINATION: ${totalApps} || TOTAL PAGES : ${totalPages} || PAGE SIZe - ${appPageSize}`
+    `TOTAL APPS IN PAGINATION: ${filteredApps} || TOTAL PAGES : ${totalPages} || PAGE SIZe - ${appPageSize}`
   );
   return (
     <Pagination>

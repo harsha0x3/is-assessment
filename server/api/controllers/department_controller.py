@@ -271,7 +271,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error getting department info",
+            detail={"msg": "Error getting department info", "err_stack": str(e)},
         )
 
 
@@ -279,7 +279,7 @@ def change_department_app_status(
     app_id: str, dept_id: int, status_val: str, db: Session
 ):
     try:
-        allowed_statuses = {"pending", "in-progress", "completed", "rejected"}
+        allowed_statuses = {"pending", "in_progress", "completed", "rejected"}
         if status_val not in allowed_statuses:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -322,7 +322,7 @@ def change_department_app_status(
             app.status = "completed"
             app.is_completed = True
         elif app.status == "completed":
-            app.status = "in-progress"
+            app.status = "in_progress"
             app.is_completed = False
 
         db.commit()

@@ -31,7 +31,7 @@ class ChecklistUpdate(BaseModel):
 
 
 class EvaluateChecklist(BaseModel):
-    status: str = "in-progress"
+    status: str = "in_progress"
     comment: str | None = None
 
 

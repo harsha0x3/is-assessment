@@ -1,6 +1,6 @@
 import type { AppStatuses } from "./globalTypes";
 
-export const parseStatus = (status: AppStatuses) => {
+export const parseStatus = (status: string) => {
   return status.replaceAll("_", " ");
 };
 

@@ -4,17 +4,12 @@ import type { AuthState, UserWithDepartmentInfo } from "../types";
 import type { RootState } from "@/store/rootStore";
 
 const initialState: AuthState = {
-  user: {
-    id: "",
-    username: "",
-    email: "",
-    first_name: "",
-    last_name: "",
-    role: "",
-
-    created_at: "",
-    updated_at: "",
-  },
+  id: "",
+  full_name: "",
+  email: "",
+  role: "",
+  created_at: null,
+  updated_at: null,
   departments: [],
   isAuthenticated: false,
   isLoading: false,
@@ -27,14 +22,24 @@ const authSlice = createSlice({
   reducers: {
     loginSuccess: (state, action: PayloadAction<UserWithDepartmentInfo>) => {
       console.log("LOGIN SUCCESS PAYLOAD", action.payload);
-      state.user = action.payload.user;
+      state.id = action.payload.id;
+      state.full_name = action.payload.full_name;
+      state.email = action.payload.email;
+      state.role = action.payload.role;
+      state.created_at = action.payload.created_at;
+      state.updated_at = action.payload.updated_at;
       state.departments = action.payload.departments;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
     },
     updateUser: (state, action: PayloadAction<UserWithDepartmentInfo>) => {
-      state.user = action.payload.user;
+      state.id = action.payload.id;
+      state.full_name = action.payload.full_name;
+      state.email = action.payload.email;
+      state.role = action.payload.role;
+      state.created_at = action.payload.created_at;
+      state.updated_at = action.payload.updated_at;
       state.departments = action.payload.departments;
       state.isAuthenticated = true;
     },

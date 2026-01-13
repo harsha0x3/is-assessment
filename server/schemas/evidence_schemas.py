@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from .comment_schemas import CommentOut
+from datetime import datetime
 
 
 class CreateEvidenceRequest(BaseModel):
@@ -15,10 +16,10 @@ class CreateEvidenceSchema(CreateEvidenceRequest, BaseModel):
 
 class EvidenceUploader(BaseModel):
     id: str
-    username: str
+    full_name: str
     email: str
-    first_name: str
-    last_name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EvidenceOut(BaseModel):
@@ -27,7 +28,9 @@ class EvidenceOut(BaseModel):
     uploader_id: str
     evidence_path: str
     severity: str
-    comment_id: str
+    comment_id: str | None
+    uploader: EvidenceUploader
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

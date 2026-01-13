@@ -7,3 +7,20 @@ export type AppStatuses =
   | "reopen"
   | "closed"
   | "cancelled";
+
+export type DeptStatuses =
+  | "yet_to_connect"
+  | "in_progress"
+  | "cleared"
+  | "closed"
+  | "cancelled";
+
+export type AppStatusOption = {
+  value: AppStatuses;
+  label: string;
+};
+
+export type DeptStatusOption = {
+  value: DeptStatuses;
+  label: string;
+};

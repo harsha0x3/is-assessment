@@ -17,17 +17,12 @@ from services.extensions.rate_limiter import limiter
 # from db.events import checklist_complete_update
 from api.routes import (
     application_routes,
-    assignment_routes,
     auth_routes,
-    checklists_routes,
-    control_routes,
-    pre_assess_draft_routes,
-    responses_routes,
-    pre_assessment_routes,
-    admin_inspect_routes,
     department_routes,
     comments_routes,
     dashboard_routes,
+    file_serving,
+    user_management_routes,
 )
 
 
@@ -117,13 +112,8 @@ async def health_check(request: Request):
 
 app.include_router(auth_routes.router)
 app.include_router(application_routes.router)
-app.include_router(checklists_routes.router)
-app.include_router(assignment_routes.router)
-app.include_router(control_routes.router)
-app.include_router(responses_routes.router)
-app.include_router(pre_assessment_routes.router)
-app.include_router(pre_assess_draft_routes.router)
-app.include_router(admin_inspect_routes.router)
 app.include_router(department_routes.router)
 app.include_router(comments_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(file_serving.router)
+app.include_router(user_management_routes.router)

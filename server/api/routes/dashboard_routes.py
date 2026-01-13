@@ -9,10 +9,9 @@ from typing import Annotated
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
-@router.get("/overall")
-def get_dashboard_stats(
+@router.get("/stats")
+def dashboard_stats(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
-    data = dc.get_dashboard_stats(db=db)
-    return {"msg": "Application stats fetched", "data": data}
+    return dc.get_dashboard_status_stats(db)

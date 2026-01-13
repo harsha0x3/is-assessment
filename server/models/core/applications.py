@@ -29,13 +29,15 @@ class Application(Base, BaseMixin):
     ticket_id: Mapped[str] = mapped_column(
         String(40), ForeignKey("submissions.id"), unique=False, nullable=True
     )
-    status: Mapped[str] = mapped_column(String(40), default="pending")
+    status: Mapped[str] = mapped_column(String(40), default="new_request")
     titan_spoc: Mapped[str] = mapped_column(String(100), nullable=True)
     imitra_ticket_id: Mapped[str] = mapped_column(String(40), nullable=True)
 
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+    app_url: Mapped[str] = mapped_column(String(888), nullable=True)
 
     # -- Relationships --
     creator = relationship(

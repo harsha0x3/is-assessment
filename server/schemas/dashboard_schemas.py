@@ -1,17 +1,39 @@
 from pydantic import BaseModel
 
 
-class AppStatuses(BaseModel):
-    in_progress: int
-    not_yet_started: int
-    pending: int
-    closed: int
-    completed: int
-    new_request: int
-    cancelled: int
-    reopen: int
+# ---------- Common ----------
 
 
-class DashboardStats(BaseModel):
-    app_statuses: AppStatuses
+class StatusCountItem(BaseModel):
+    status: str  # "in_progress"
+    count: int
+
+
+# ---------- Application-level stats ----------
+
+
+class ApplicationStats(BaseModel):
     total_apps: int
+    status_chart: list[StatusCountItem]
+
+
+# ---------- Department-level stats ----------
+
+
+class DepartmentStatusItem(BaseModel):
+    status: str
+    count: int
+
+
+class DepartmentStatsItem(BaseModel):
+    department: str  # "finance"
+    statuses: list[DepartmentStatusItem]
+
+
+class DepartmentStatsResponse(BaseModel):
+    departments: list[DepartmentStatsItem]
+
+
+class DashboardStatsResponse(BaseModel):
+    application_stats: ApplicationStats
+    department_stats: DepartmentStatsResponse

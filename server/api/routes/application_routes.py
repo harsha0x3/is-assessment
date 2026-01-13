@@ -1,6 +1,17 @@
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status, Query
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    HTTPException,
+    Path,
+    status,
+    Query,
+    File,
+    UploadFile,
+    Form,
+)
 from sqlalchemy.orm import Session
 from models import Application
 from pydantic import BaseModel
@@ -12,7 +23,6 @@ from api.controllers.application_controller import (
     restore_app,
     update_app,
     get_trashed_apps,
-    get_app_stats,
     list_apps,
     get_app_details,
     list_all_apps,
@@ -21,13 +31,17 @@ from api.controllers.application_controller import (
 from db.connection import get_db_conn
 from schemas.app_schemas import (
     ApplicationCreate,
-    ApplicationOut,
     ApplicationUpdate,
     AppQueryParams,
 )
 from schemas.auth_schemas import UserOut
 from schemas.crud_schemas import PriorityVal
 from services.auth.deps import get_current_user, require_admin
+from api.controllers import evidence_controller as e_ctrl
+import os
+from schemas import evidence_schemas as e_schemas
+
+ENV = os.getenv("ENV")
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -68,20 +82,11 @@ async def new_list_all_apps(
         Query(),
     ] = "name",
     status: Annotated[
-        Literal[
-            "new_request",
-            "in_progress",
-            "pending",
-            "not_yet_started",
-            "completed",
-            "reopen",
-            "closed",
-            "cancelled",
-        ]
-        | None,
+        str | None,
         Query(),
     ] = None,
 ):
+    status_list = status.split(",") if status else []
     params = AppQueryParams(
         sort_by=sort_by,
         sort_order=sort_order,
@@ -89,7 +94,7 @@ async def new_list_all_apps(
         page=page,
         page_size=page_size,
         search_by=search_by,
-        status=status,
+        status=status_list,
     )
     data = list_all_apps(
         db=db,
@@ -122,7 +127,7 @@ async def update_application(
     if current_user.role not in ["admin", "moderator"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have to update the application {current_user.username}",
+            detail=f"You don't have to update the application {current_user.full_name}",
         )
     data = update_app(payload, app_id, db, current_user)
     return {"msg": "", "data": data}
@@ -157,7 +162,7 @@ async def delete_application(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.username}",
+            detail=f"You are not authorised {current_user.full_name}",
         )
     data = delete_app(app_id, db, current_user)
     return {"msg": "", "data": data}
@@ -173,7 +178,7 @@ async def restore_app_from_trash(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.username}",
+            detail=f"You are not authorised {current_user.full_name}",
         )
     data = restore_app(app_id=app_id, db=db)
     return {"msg": "", "data": data}
@@ -187,18 +192,9 @@ async def get_apps_in_trash(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.username}",
+            detail=f"You are not authorised {current_user.full_name}",
         )
     data = get_trashed_apps(db=db)
-    return {"msg": "", "data": data}
-
-
-@router.get("/stats")
-def application_stats(
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-):
-    data = get_app_stats(current_user=current_user, db=db)
     return {"msg": "", "data": data}
 
 
@@ -306,3 +302,75 @@ async def get_applications_with_details(
     )
     data = list_apps_with_details(db=db, user=current_user, params=params)
     return {"msg": "", "data": data}
+
+
+@router.post("/{app_id}/evidences")
+async def add_application_evidences(
+    app_id: Annotated[str, Path(...)],
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(require_admin)],
+    severity: Annotated[str | None, Form()] = None,
+    evidence_files: Annotated[list[UploadFile] | None, File()] = None,
+):
+    try:
+        if not evidence_files:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No files found to upload",
+            )
+        app = db.get(Application, app_id)
+        if not app:
+            raise HTTPException(
+                status_code=status.HTTP_400,
+                detail="Application you are uploading evidence to is not found",
+            )
+        save_evidence = (
+            e_ctrl.save_evidence_file_s3
+            if ENV == "production"
+            else e_ctrl.save_evidence_file_local
+        )
+        failed = []
+        success = []
+
+        for file in evidence_files:
+            try:
+                file_path = await save_evidence(file=file, app_name=app.name)
+                evidence_payload = e_schemas.CreateEvidenceSchema(
+                    uploader_id=current_user.id,
+                    evidence_path=file_path,
+                    severity=severity or "medium",
+                    application_id=app_id,
+                )
+                await e_ctrl.add_evidence(payload=evidence_payload, db=db)
+                success.append(file.filename)
+            except Exception as e:
+                failed.append(f"Failed to add file. Error: {str(e)}")
+        return {
+            "msg": "Evidences uploaded",
+            "data": {"success": success, "failed": failed},
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"msg": "Error adding evidences", "err_stack": str(e)},
+        )
+
+
+@router.get("/{app_id}/evidences")
+async def get_application_evidences(
+    app_id: Annotated[str, Path(...)],
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(require_admin)],
+):
+    try:
+        result = e_ctrl.get_application_evidences(app_id=app_id, db=db)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"msg": "Error getting application evidences", "err_stack": str(e)},
+        )

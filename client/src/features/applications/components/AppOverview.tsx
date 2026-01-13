@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   useCreateApplicationMutation,
   useGetApplicationDetailsQuery,
@@ -14,12 +14,7 @@ import type {
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+
 import {
   Field,
   FieldError,
@@ -38,6 +33,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AppStatusOptions,
+  STATUS_COLOR_MAP_BG,
+  STATUS_COLOR_MAP_FG,
+} from "@/utils/globalValues";
+import { Separator } from "@/components/ui/separator";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -67,18 +69,23 @@ const applicationDefaultValues: ApplicationOut = {
   started_at: null,
   completed_at: null,
   due_date: null,
+
+  imitra_ticket_id: null,
+  titan_spoc: null,
+  app_url: null,
 };
 
-const AppOverview: React.FC = () => {
+const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
+  onNewAppSuccess,
+}) => {
   const { appId } = useParams();
-  const location = useLocation();
 
   const { data: appDetails } = useGetApplicationDetailsQuery(appId as string, {
     skip: !appId,
   });
-  const [updateAppMutation, { isLoading: isUpdating }] =
+  const [updateAppMutation, { isLoading: isUpdating, error: editAppErr }] =
     useUpdateApplicationMutation();
-  const [addAppMutation, { isLoading: isAdding }] =
+  const [addAppMutation, { isLoading: isAdding, error: newAppErr }] =
     useCreateApplicationMutation();
 
   const { control, reset, handleSubmit } = useForm<ApplicationOut>({
@@ -88,16 +95,12 @@ const AppOverview: React.FC = () => {
   const currentUserInfo = useSelector(selectAuth);
 
   const [isEditing, setIsEditing] = useState(false);
-  const isAdmin = currentUserInfo.user.role === "admin";
-  const isNew = location.pathname.includes("new");
+  const isAdmin = currentUserInfo.role === "admin";
+  const isNew = !appId && isAdmin;
 
   useEffect(() => {
     reset(appDetails?.data || {});
   }, [appDetails, reset]);
-
-  useEffect(() => {
-    console.log("APP DET", appDetails);
-  }, [appDetails]);
 
   const handleSaveEdit = async (payload: ApplicationUpdate) => {
     try {
@@ -116,7 +119,7 @@ const AppOverview: React.FC = () => {
         {
           loading: "Saving Changes...",
           success: "Changes saved successfully!",
-          error: "Failed to save changes",
+          error: getApiErrorMessage(editAppErr) ?? "Failed to save changes",
         }
       );
     } catch (err) {
@@ -134,9 +137,10 @@ const AppOverview: React.FC = () => {
         {
           loading: "Creating new app...",
           success: `App ${payload.name} created successfully!`,
-          error: "Failed to create new app",
+          error: getApiErrorMessage(newAppErr) ?? "Failed to create new app",
         }
       );
+      onNewAppSuccess?.();
     } catch (err) {
       const errMSg = getApiErrorMessage(err);
       toast.error(errMSg ?? "Failed to save changes");
@@ -156,39 +160,35 @@ const AppOverview: React.FC = () => {
   return (
     <form
       id="application-details"
-      className="flex flex-col min-h-0 h-full"
+      className="flex flex-col min-h-0 h-full w-full"
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="h-full min-h-0">
-        <Card className="flex flex-col h-full min-h-0 gap-2 pb-3">
-          <div className="flex-1 h-full overflow-auto">
-            <CardHeader>
-              <div className="">
-                {/* App Name */}
-                <Controller
-                  name="name"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="gap-2">
-                      <FieldLabel htmlFor="app-name">Name</FieldLabel>
-                      <Input
-                        {...field}
-                        required
-                        readOnly={!(isNew || isEditing)}
-                        id="app-name"
-                        aria-invalid={fieldState.invalid}
-                        placeholder="Application name"
-                        autoComplete="off"
-                      />
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  )}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="flex flex-col h-full min-h-0 gap-2">
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="pr-3 space-y-4 pb-5">
+              {/* App Name */}
+              <Controller
+                name="name"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="gap-2">
+                    <FieldLabel htmlFor="app-name">Name</FieldLabel>
+                    <Input
+                      {...field}
+                      required
+                      readOnly={!(isNew || isEditing)}
+                      id="app-name"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Application name"
+                      autoComplete="off"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
               {/* Description */}
               <Controller
                 name="description"
@@ -206,6 +206,7 @@ const AppOverview: React.FC = () => {
                       aria-invalid={fieldState.invalid}
                       placeholder="Describe application in brief"
                       autoComplete="off"
+                      className="max-h-36"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -213,50 +214,22 @@ const AppOverview: React.FC = () => {
                   </Field>
                 )}
               />
-              {/* App priority */}
+              {/* app url */}
               <Controller
-                name="app_priority"
+                name="app_url"
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="app-priority">Priority</FieldLabel>
-                    <Select
-                      disabled={!isEditing}
-                      value={
-                        field.value != null ? String(field.value) : undefined
-                      }
-                      onValueChange={(value) => field.onChange(Number(value))}
-                    >
-                      <SelectTrigger id="app-priority" className="">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Low</SelectItem>
-                        <SelectItem value="2">Medium</SelectItem>
-                        <SelectItem value="3">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* Owner Name */}
-              <Controller
-                name="owner_name"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="owner-name">Owner</FieldLabel>
+                    <FieldLabel htmlFor="app-url">Application URL</FieldLabel>
                     <Input
                       {...field}
                       value={field.value ?? ""}
                       readOnly={!(isNew || isEditing)}
-                      id="owner-name"
+                      id="app-url"
                       aria-invalid={fieldState.invalid}
-                      placeholder="Owner of application"
+                      placeholder="URL of the application"
                       autoComplete="off"
+                      className="max-h-36"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -264,166 +237,363 @@ const AppOverview: React.FC = () => {
                   </Field>
                 )}
               />
-              {/* Vendor */}
-              <Controller
-                name="vendor_company"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="vendor-company">Vendor</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="vendor-company"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Vendor company"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* App status */}
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="app-status">Status</FieldLabel>
+                      <Select
+                        disabled={!(isEditing || isNew)}
+                        value={
+                          field.value != null ? String(field.value) : undefined
+                        }
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <SelectTrigger
+                          id="app-status"
+                          className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
+                          style={{
+                            backgroundColor: field.value
+                              ? STATUS_COLOR_MAP_BG[field.value]
+                              : undefined,
+                            color: field.value
+                              ? STATUS_COLOR_MAP_FG[field.value]
+                              : undefined,
+                          }}
+                        >
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent className="">
+                          {AppStatusOptions.map((s, idx) => {
+                            return (
+                              <>
+                                <SelectItem
+                                  value={s.value}
+                                  style={{
+                                    color: STATUS_COLOR_MAP_FG[s.value],
+                                  }}
+                                  className=""
+                                >
+                                  {s.label}
+                                </SelectItem>
+                                {idx !== AppStatusOptions.length && (
+                                  <Separator />
+                                )}
+                              </>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* App priority */}
+                <Controller
+                  name="app_priority"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="app-priority">Priority</FieldLabel>
+                      <Select
+                        disabled={!(isEditing || isNew)}
+                        value={
+                          field.value != null ? String(field.value) : undefined
+                        }
+                        onValueChange={(value) => field.onChange(Number(value))}
+                      >
+                        <SelectTrigger
+                          id="app-priority"
+                          className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
+                        >
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Low</SelectItem>
+                          <Separator />
+
+                          <SelectItem value="2">Medium</SelectItem>
+                          <Separator />
+
+                          <SelectItem value="3">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* Owner Name */}
+                <Controller
+                  name="owner_name"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="owner-name">Owner</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="owner-name"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Owner of application"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* Vendor */}
+                <Controller
+                  name="vendor_company"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="vendor-company">Vendor</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="vendor-company"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Vendor company"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* Vertical */}
+                <Controller
+                  name="vertical"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="vertical">Vertical</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="vertical"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Vertical"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Titan SPOC */}
+                <Controller
+                  name="titan_spoc"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="titan_spoc">Titan SPOC</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="titan_spoc"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Titan SPOC"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Titan SPOC */}
+                <Controller
+                  name="imitra_ticket_id"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="imitra_ticket_id">
+                        IMitra Ticket
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="imitra_ticket_id"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="IMitra Ticket ID"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Started On */}
+                <Controller
+                  name="started_at"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="started_at">Start Date</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        type="date"
+                        id="started_at"
+                        readOnly={!(isNew || isEditing)}
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Application Technology"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Ended On */}
+                {appDetails?.data && (
+                  <Controller
+                    name="completed_at"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Field
+                        data-invalid={fieldState.invalid}
+                        className="gap-2"
+                      >
+                        <FieldLabel htmlFor="completed_at">End Date</FieldLabel>
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
+                          type="date"
+                          id="completed_at"
+                          readOnly={!(isNew || isEditing)}
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Application Technology"
+                          autoComplete="off"
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
                     )}
-                  </Field>
+                  />
                 )}
-              />
-              {/* Vertical */}
-              <Controller
-                name="vertical"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="vertical">Vertical</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="vertical"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Vendor Company"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* Environment */}
-              <Controller
-                name="environment"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="environment">Environment</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="environment"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Environment"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* Region */}
-              <Controller
-                name="region"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="region">Region</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="region"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Region"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* App Tech */}
-              <Controller
-                name="app_tech"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="app_tech">Technology</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="app_tech"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Application Technology"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* Started On */}
-              <Controller
-                name="started_at"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="started_at">Started on</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      type="date"
-                      id="started_at"
-                      readOnly={!(isNew || isEditing)}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Application Technology"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              {/* Infra Host */}
-              <Controller
-                name="infra_host"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
-                    <FieldLabel htmlFor="infra_host">Infra Host</FieldLabel>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      readOnly={!(isNew || isEditing)}
-                      id="infra_host"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Infra Host"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </CardContent>
-          </div>
-          <CardFooter className="rounded-md bg-accent py-2 mx-1">
+
+                {/* Environment */}
+                <Controller
+                  name="environment"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="environment">Environment</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="environment"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Environment"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* Region */}
+                <Controller
+                  name="region"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="region">Region</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="region"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Region"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* App Tech */}
+                <Controller
+                  name="app_tech"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="app_tech">Technology</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="app_tech"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Application Technology"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Infra Host */}
+                <Controller
+                  name="infra_host"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="infra_host">Infra Host</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="infra_host"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Infra Host"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </div>
+            </div>
+          </ScrollArea>
+          <div className="rounded-md bg-accent py-2 mx-1">
             <div className="flex items-center gap-3 justify-between">
-              {!isNew && currentUserInfo.user.role === "admin" && (
+              {!isNew && currentUserInfo.role === "admin" && (
                 <div
                   className="group inline-flex items-center gap-2"
                   data-state={isEditing ? "checked" : "unchecked"}
@@ -468,8 +638,8 @@ const AppOverview: React.FC = () => {
                 </Field>
               )}
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </FieldGroup>
     </form>
   );

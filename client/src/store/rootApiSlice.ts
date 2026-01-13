@@ -41,6 +41,7 @@ export const rootApiSlice = createApi({
     "Departments",
     "Comments",
     "DepartmentInfo",
+    "Evidences",
   ],
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

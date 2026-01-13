@@ -4,9 +4,11 @@ import type {
   ApplicationUpdate,
   NewAppListOut,
   AppQueryParams,
+  AppStatusStats,
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";
 import { rootApiSlice } from "@/store/rootApiSlice";
+import type { EvidenceOut } from "@/features/evidences/types";
 
 export const applicationsApiSlice = rootApiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,11 +21,16 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: (result) => [{ type: "Apps", id: result?.data.id }],
+      invalidatesTags: ["Apps"],
     }),
 
     listAllApps: builder.query<
-      ApiResponse<{ apps: NewAppListOut[]; total_count: number }>,
+      ApiResponse<{
+        apps: NewAppListOut[];
+        total_count: number;
+        filtered_count: number;
+        app_stats: AppStatusStats;
+      }>,
       AppQueryParams | void
     >({
       query: (params) => ({
@@ -108,6 +115,26 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
         { type: "AppDetails", id: "LIST" },
       ],
     }),
+
+    addAppEvidence: builder.mutation<
+      ApiResponse<unknown>,
+      { appId: string; payload: FormData }
+    >({
+      query: ({ appId, payload }) => ({
+        url: `/applications/${appId}/evidences`,
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Evidences"],
+    }),
+
+    getAppEvidences: builder.query<
+      ApiResponse<EvidenceOut[]>,
+      { appId: string }
+    >({
+      query: ({ appId }) => `/applications/${appId}/evidences`,
+      providesTags: ["Evidences"],
+    }),
   }),
 });
 
@@ -117,6 +144,8 @@ export const {
   useGetApplicationDetailsQuery,
   useUpdateApplicationMutation,
   useUpdateApplicationStatusMutation,
+  useGetAppEvidencesQuery,
+  useAddAppEvidenceMutation,
 } = applicationsApiSlice;
 
 export default applicationsApiSlice;

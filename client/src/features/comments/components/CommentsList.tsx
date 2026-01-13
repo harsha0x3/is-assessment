@@ -14,6 +14,8 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader, PlusIcon } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import type { CommentOut } from "../types";
+import { useSelector } from "react-redux";
+import { selectAuth } from "@/features/auth/store/authSlice";
 
 const CommentList: React.FC<{
   appId: string;
@@ -30,13 +32,16 @@ const CommentList: React.FC<{
       },
       { skip: commentsData !== undefined }
     );
+  const currentUserInfo = useSelector(selectAuth);
 
   const [addNewComment, { isLoading: isCreating }] = useCreateCommentMutation();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleAddNewComment = async () => {
     try {
-      await addNewComment({ payload: { content: newComment }, appId, deptId });
+      const payload = new FormData();
+      payload.append("content", newComment);
+      await addNewComment({ payload, appId, deptId });
       setIsNewComment(false);
       setNewComment("");
     } catch (err) {
@@ -115,7 +120,7 @@ const CommentList: React.FC<{
         commentsToShow.length === 0 && (
           <p className="text-sm text-muted-foreground">No comments yet.</p>
         )}
-      <div className="space-y-2">
+      <div className={`space-y-2`}>
         {commentsToShow &&
           Array.isArray(commentsToShow) &&
           commentsToShow.map((comment) => (

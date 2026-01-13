@@ -41,7 +41,7 @@ async def create_new_assessment(
         if current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not authorised for this action {current_user.username}",
+                detail=f"Not authorised for this action {current_user.full_name}",
             )
 
         return create_assessement(payload=payload, db=db)
@@ -73,7 +73,7 @@ async def create_new_section(
         if current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not authorised for this action {current_user.username}",
+                detail=f"Not authorised for this action {current_user.full_name}",
             )
 
         return add_sections(payload=payload, assessment_id=assessment_id, db=db)
@@ -106,7 +106,7 @@ async def create_new_questions(
         if current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not authorised for this action {current_user.username}",
+                detail=f"Not authorised for this action {current_user.full_name}",
             )
 
         return add_questions(payload=payload, section_id=section_id, db=db)
@@ -208,7 +208,7 @@ async def evaluate_pre_assessment_sub(
         if current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not authorised for this action {current_user.username}",
+                detail=f"Not authorised for this action {current_user.full_name}",
             )
         return await evaluate_pre_assessment(
             submission_id=submission_id, db=db, user=current_user, payload=payload

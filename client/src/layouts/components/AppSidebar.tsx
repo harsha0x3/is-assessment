@@ -66,7 +66,6 @@ const AppSidebar: React.FC = ({
 
   const currentUserInfo = useSelector(selectAuth);
 
-  console.log("CURRENT USER INFO", currentUserInfo);
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -75,7 +74,7 @@ const AppSidebar: React.FC = ({
       <SidebarContent className="px-2">
         <SidebarMenu>
           {sidebarItems.map((item) => {
-            if (item.roles.includes(currentUserInfo.user.role)) {
+            if (item.roles.includes(currentUserInfo.role)) {
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton

@@ -24,9 +24,7 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: (result) => [
-        { type: "AllUsers", id: result?.data.user.id },
-      ],
+      invalidatesTags: (result) => [{ type: "AllUsers", id: result?.data.id }],
     }),
 
     // ---------------- LOGIN ----------------
@@ -63,38 +61,13 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(
-            updateUser({
-              user: {
-                ...data.data.user,
-              },
-              departments: data.data.departments ?? [],
-            })
-          );
+          dispatch(updateUser(data?.data));
         } catch {
           dispatch(setIsAuthenticated(false));
           // ignore errors
         }
       },
       providesTags: ["User"],
-    }),
-
-    // ---------------- GET ALL USERS (ADMIN) ----------------
-    getAllUsers: builder.query<ApiResponse<AllUsersOut[]>, void>({
-      query: () => ({
-        url: "auth/all",
-        method: "GET",
-      }),
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.data.map((user) => ({
-                type: "AllUsers" as const,
-                id: user.id,
-              })),
-              { type: "AllUsers" as const, id: "LIST" },
-            ]
-          : [{ type: "AllUsers" as const, id: "LIST" }],
     }),
 
     // ---------------- UPDATE PROFILE ----------------
@@ -135,7 +108,6 @@ export const {
   useLoginMutation,
   useRefreshTokenMutation,
   useGetMeQuery,
-  useGetAllUsersQuery,
   useUpdateProfileMutation,
   useLogoutMutation,
 } = authApiSlice;

@@ -1,48 +1,42 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+//src/layouts/ProtectedLayout.tsx
+
+import React, { useEffect } from "react";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useRefreshTokenMutation } from "@/features/auth/store/authApiSlice";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import type { RootState } from "@/store/rootStore";
-const ProtectedLayout = () => {
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
+import {
+  selectIsAuthenticated,
+  selectIsLoading,
+} from "@/features/auth/store/authSlice";
+import { Loader } from "lucide-react";
 
-  const [refreshAuth, { isLoading: isRefreshing }] = useRefreshTokenMutation();
-  const [authChecked, setAuthChecked] = useState(false);
+const ProtectedLayout: React.FC = () => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isLoading = useSelector(selectIsLoading);
+
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Run refresh ONCE
+  const fromPath = location.state?.from?.pathname || "/dashboard";
+  const fromSearch = location.state?.from?.search || "";
+
   useEffect(() => {
-    const check = async () => {
-      try {
-        await refreshAuth().unwrap();
-      } catch {
-        // ignore
-      } finally {
-        setAuthChecked(true);
-      }
-    };
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location }, replace: true });
+      console.log("NOT LOGGED IN");
+      return;
+    }
+  }, [isAuthenticated]);
 
-    check();
-  }, []);
-
-  // 🔥 If refresh not completed yet → stay on loading state
-  if (!authChecked || isRefreshing) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent">
+        <Loader className="w-8 h-8" />
       </div>
     );
   }
 
-  // 🔥 THIS LOG WILL NOW RUN
-  console.log("IS AUTH:", isAuthenticated);
-
-  // Only redirect *after* auth check is done
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={"/login"} state={{ from: location }} replace />;
   }
 
   return <Outlet />;

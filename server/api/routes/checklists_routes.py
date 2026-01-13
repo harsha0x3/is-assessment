@@ -75,7 +75,7 @@ async def patch_checklist(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You can't access to update {current_user.username}",
+            detail=f"You can't access to update {current_user.full_name}",
         )
 
     return update_checklist(payload, checklist_id, db, current_user=current_user)
@@ -90,7 +90,7 @@ async def delete_checklist(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You can't access to update {current_user.username}",
+            detail=f"You can't access to update {current_user.full_name}",
         )
     return remove_checklist(checklist_id, db)
 
@@ -105,7 +105,7 @@ async def submit_checklist(
     Endpoint to submit a checklist.
     """
     return update_checklist_status(
-        checklist_id=checklist_id, db=db, checklist_status="in-progress"
+        checklist_id=checklist_id, db=db, checklist_status="in_progress"
     )
 
 

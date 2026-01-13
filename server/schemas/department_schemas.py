@@ -31,13 +31,13 @@ class NewUserDepartmentAssign(BaseModel):
 class CommentOut(BaseModel):
     id: str
     content: str
-    author_id: str
+    author_id: str | None
     application_id: str
     department_id: int
 
     department: DepartmentOut
 
-    author: UserOut
+    author: UserOut | None
 
     created_at: datetime | None = None
     updated_at: datetime | None = None

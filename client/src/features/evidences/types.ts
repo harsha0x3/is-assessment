@@ -41,6 +41,8 @@ export interface EvidenceOut {
   evidence_path: string;
   severity: string;
   comment_id: string;
+  uploader: EvidenceUploader;
+  created_at: string;
 }
 
 /**

@@ -274,14 +274,7 @@ async def submit_answers(
             #     reciepient=user,
             #     message=f"We have recieved your submission on ID {new_submission.id}. Please wait until our team evaluates your submission.",
             # )
-            admin = UserOut(
-                id="ad",
-                username="is_assessment_team",
-                email=os.getenv("RECIEVER_ADMIN", ""),
-                role="admin",
-                first_name="IS Assessment",
-                last_name="Team",
-            )
+
             # await send_email(
             #     subject="Assessment Submission recieved",
             #     reciepient=admin,
@@ -454,7 +447,7 @@ def get_assessment_responses(submission_id: str, db: Session, user: UserOut):
         if submission.user_id != user.id and user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"You are not authorised {user.username}",
+                detail=f"You are not authorised {user.full_name}",
             )
 
         result = [AnswerOut.model_validate(ans) for ans in submission.answers]

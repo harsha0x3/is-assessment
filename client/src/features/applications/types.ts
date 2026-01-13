@@ -17,6 +17,10 @@ export interface ApplicationCreate {
   started_at?: string | null;
   completed_at?: string | null;
   due_date?: string | null;
+  imitra_ticket_id?: string | null;
+  titan_spoc?: string | null;
+
+  app_url?: string | null;
 }
 
 export interface ApplicationOut {
@@ -37,11 +41,15 @@ export interface ApplicationOut {
   updated_at?: string | null;
   owner_id?: string | null;
   ticket_id?: string | null;
-  status?: string;
+  status?: AppStatuses;
   app_priority?: number;
   started_at?: string | null;
   completed_at?: string | null;
   due_date?: string | null;
+
+  imitra_ticket_id?: string | null;
+  titan_spoc?: string | null;
+  app_url?: string | null;
 }
 
 export interface ApplicationUpdate {
@@ -53,12 +61,16 @@ export interface ApplicationUpdate {
   vendor_company?: string | null;
   infra_host?: string | null;
   app_tech?: string | null;
-  priority?: number | null;
+  app_priority?: number;
+  priority?: number;
   vertical?: string | null;
-  app_priority?: number | null;
   started_at?: string | null;
   completed_at?: string | null;
   due_date?: string | null;
+  imitra_ticket_id?: string | null;
+  titan_spoc?: string | null;
+
+  app_url?: string | null;
 }
 
 export interface NewAppListOut {
@@ -92,7 +104,18 @@ export interface AppQueryParams {
     | "ticket_id";
   page?: number;
   page_size?: number;
-  status?: string;
+  status?: string[];
+}
+
+export interface AppStatusStats {
+  in_progress: number;
+  not_yet_started: number;
+  pending: number;
+  closed: number;
+  new_request: number;
+  cancelled: number;
+  completed: number;
+  reopen: number;
 }
 
 // ---------- OLD -----------
