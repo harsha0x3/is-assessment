@@ -1,48 +1,61 @@
 import React, { useMemo } from "react";
-import { useGetOverallStatsQuery } from "../store/dashboardApiSlice";
-import type { AppStatusStats, DashboardStats, DonutData } from "../types";
+import { useGetDashboardStatsQuery } from "../store/dashboardApiSlice";
 import StatusDonut from "../components/StatusDonut";
+import DepartmentStatusCard from "../components/DepartmentStatusCard";
+import { buildDonutData } from "@/lib/chartHelpers";
 import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const DashboardPage = () => {
-  const { data, isLoading, error } = useGetOverallStatsQuery();
+  const { data, isLoading, error } = useGetDashboardStatsQuery();
 
-  const buildDonutData = (stats: DashboardStats): DonutData[] => {
-    const total = stats.total_apps;
+  const appDonutData = useMemo(() => {
+    if (!data) return [];
 
-    return Object.entries(stats.app_statuses).map(([status, count]) => ({
-      name: status as keyof AppStatusStats,
-      count,
-      value: total > 0 ? +((count / total) * 100).toFixed(1) : 0,
-    }));
-  };
-
-  const charData: { donutData: DonutData[] } | undefined = useMemo(() => {
-    if (data) {
-      const donutData = buildDonutData(data.data);
-      return {
-        donutData,
-      };
-    }
+    const { status_chart, total_apps } = data.application_stats;
+    return buildDonutData(status_chart, total_apps);
   }, [data]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <Loader className="animate-spin" /> Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p>{getApiErrorMessage(error) ?? "Error fetching stats"}</p>;
+  }
+
+  if (!data) return null;
+
   return (
-    <div className="p-2">
-      {isLoading ? (
-        <div>
-          <Loader className="animate-spin" /> Loading ....
-        </div>
-      ) : error ? (
-        <p>{getApiErrorMessage(error) ?? "Error Fetching Statistics"}</p>
-      ) : charData && data ? (
-        <StatusDonut
-          data={charData.donutData}
-          total_count={data?.data.total_apps}
-        />
-      ) : (
-        <div>Loading</div>
-      )}
+    <div className="space-y-6 p-2 h-full overflow-auto">
+      {/* ---------- Application-wide stats ---------- */}
+      <StatusDonut
+        data={appDonutData}
+        total_count={data.application_stats.total_apps}
+      />
+
+      {/* ---------- Department-wise stats ---------- */}
+      <Card className="px-0">
+        <CardHeader className="px-0">
+          <CardTitle className="text-center">
+            Department Wise Completions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-flow-col auto-cols-[380px] overflow-x-auto">
+          {data.department_stats.departments.map((dept) => (
+            <DepartmentStatusCard
+              key={dept.department}
+              department={dept.department}
+              statuses={dept.statuses}
+            />
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 };

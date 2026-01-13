@@ -49,7 +49,7 @@ async def create_control(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
     return add_controls(payload, checklist_id=checklist_id, db=db)
 
@@ -95,7 +95,7 @@ async def patch_control(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
     return update_control(payload, control_id, db)
 
@@ -109,7 +109,7 @@ async def delete_control(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
     payload = ControlRemove(control_id=control_id)
     return remove_controls(payload, db)
@@ -124,7 +124,7 @@ async def importing_controls(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
     return import_controls(
         target_checklist_id=request.target_checklist_id,
@@ -146,7 +146,7 @@ async def upload_controls_file(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
 
     if not input_file:

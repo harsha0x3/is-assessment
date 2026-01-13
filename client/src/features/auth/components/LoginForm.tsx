@@ -23,17 +23,19 @@ import { Label } from "@/components/ui/label";
 import { Loader, Lock, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "./PasswordInput";
+import { useNavigate } from "react-router-dom";
 const LoginForm: React.FC = () => {
+  const navigate = useNavigate();
   const auth = useSelector(selectAuth);
   const dispatch = useDispatch();
   const { control, register, handleSubmit, reset } = useForm<LoginRequest>({
     defaultValues: {
-      email_or_username: "",
+      email: "",
       password: "",
       mfa_code: "",
     },
   });
-  const emailOrUsername = useWatch({ control, name: "email_or_username" });
+  const emailOrUsername = useWatch({ control, name: "email" });
   const password = useWatch({ control, name: "password" });
 
   const [login, { isLoading }] = useLoginMutation();
@@ -45,6 +47,8 @@ const LoginForm: React.FC = () => {
         dispatch(loginSuccess(result.data));
         reset();
       }
+      navigate("/dashboard");
+      return;
     } catch (err: unknown) {
       if ((err as FetchBaseQueryError)?.data) {
         const apiError = (err as FetchBaseQueryError).data as {
@@ -78,7 +82,7 @@ const LoginForm: React.FC = () => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                {...register("email_or_username", { required: true })}
+                {...register("email", { required: true })}
                 placeholder="Enter email or username"
                 className="pl-10"
               />

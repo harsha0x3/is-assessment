@@ -8,14 +8,21 @@ class Comment(Base, BaseMixin):
     __tablename__ = "comments"
 
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=True)
     author_id: Mapped[str] = mapped_column(
-        String(40), ForeignKey("users.id"), nullable=False
+        String(40),
+        ForeignKey("users.id", ondelete="set null", onupdate="cascade"),
+        nullable=True,
     )
     application_id: Mapped[str] = mapped_column(
-        String(40), ForeignKey("applications.id"), nullable=False
+        String(40),
+        ForeignKey("applications.id", ondelete="cascade", onupdate="cascade"),
+        nullable=False,
     )
     department_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("departments.id"), nullable=False
+        Integer,
+        ForeignKey("departments.id", ondelete="cascade", onupdate="cascade"),
+        nullable=False,
     )
     # -- Relationships --
 

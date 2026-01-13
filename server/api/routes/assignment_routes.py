@@ -22,7 +22,7 @@ async def user_assignment(
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have the permission. {current_user.username}",
+            detail=f"You don't have the permission. {current_user.full_name}",
         )
     return assign_users(
         payload=users, checklist_id=checklist_id, db=db, current_user=current_user

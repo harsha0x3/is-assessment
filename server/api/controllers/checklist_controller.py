@@ -335,7 +335,7 @@ def update_checklist_status(
             checklist.status = "pending"
             checklist.is_completed = False
         elif responses_count < control_count:
-            checklist.status = "in-progress"
+            checklist.status = "in_progress"
             checklist.is_completed = False
         else:
             checklist.status = "completed"

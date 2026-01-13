@@ -8,11 +8,10 @@ import type { DonutData } from "../types";
 import { PieChart, Pie, Cell, Label } from "recharts";
 import { donutChartConfig } from "@/lib/chartConfig";
 import { parseStatus } from "@/utils/helpers";
-import type { AppStatuses } from "@/utils/globalTypes";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 
 const StatusCard: React.FC<{
-  data: { name: AppStatuses; count: number; percent: number };
+  data: { name: string; count: number; percent: number };
 }> = ({ data }) => {
   return (
     <div className="flex flex-col gap-0.5 border px-2 py-1 rounded-md shadow-card">

@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { useListAllAppsQuery } from "@/features/applications/store/applicationsApiSlice";
-import type { AppStatuses } from "@/utils/globalTypes";
 
 export const useApplications = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,7 +21,11 @@ export const useApplications = () => {
     | "vertical"
     | "ticket_id";
   const appSearchValue = searchParams.get("appSearch") || "";
-  const appStatus = searchParams.get("appStatus") || undefined;
+  const appStatus = searchParams.get("appStatus");
+
+  const appStatusList = appStatus
+    ? appStatus.split(",").filter(Boolean)
+    : undefined;
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [lastAppPage, setLastAppPage] = useState(appPage);
@@ -35,12 +38,14 @@ export const useApplications = () => {
       sort_order: appSortOrder,
       search: debouncedSearch || "",
       search_by: appSearchBy,
-      status: appStatus,
+      status: appStatusList,
     },
     { refetchOnMountOrArgChange: true }
   );
 
   const totalApps = useMemo(() => data?.data?.total_count, [data]);
+  const filteredApps = useMemo(() => data?.data?.filtered_count, [data]);
+  const appStatusStats = useMemo(() => data?.data?.app_stats, [data]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -88,6 +93,8 @@ export const useApplications = () => {
     updateSearchParams,
     data,
     totalApps,
+    filteredApps,
+    appStatusStats,
     isLoading,
     isSuccess,
     debouncedSearch,

@@ -11,9 +11,12 @@ const AppDepartments: React.FC = () => {
   return (
     <div className="w-full">
       {appDepts?.data && (
-        <Tabs className="gap-4 " defaultValue={appDepts?.data[0].id.toString()}>
+        <Tabs
+          className="gap-4 text-center"
+          defaultValue={appDepts?.data[0].id.toString()}
+        >
           <div className="overflow-auto">
-            <TabsList className="bg-background gap-1 border p-1 overflow-auto">
+            <TabsList className="bg-background gap-1 border text-left p-1 overflow-auto">
               {appDepts.data.map((dept) => (
                 <TabsTrigger
                   key={dept.id}
@@ -26,7 +29,11 @@ const AppDepartments: React.FC = () => {
             </TabsList>
           </div>
           {appDepts.data.map((dept) => (
-            <TabsContent key={dept.id} value={dept.id.toString()}>
+            <TabsContent
+              className="text-left"
+              key={dept.id}
+              value={dept.id.toString()}
+            >
               <DepartmentInfo deptId={dept.id} appId={appId ?? ""} />
             </TabsContent>
           ))}

@@ -106,26 +106,12 @@ def get_comments_for_application(app_id: str, db: Session):
                 content=c.content,
                 author_id=c.author_id,
                 application_id=c.application_id,
+                status=c.status,
                 department_id=c.department_id,
                 department=c_schemas.DepartmentOut.model_validate(c.department),
                 author=c_schemas.UserOut.model_validate(c.author),
                 created_at=c.created_at,
                 updated_at=c.updated_at,
-                evidences=[
-                    EvidenceOut(
-                        id=e.id,
-                        application_id=e.application_id,
-                        uploader_id=e.uploader_id,
-                        evidence_path=get_s3_presigned_url(e.evidence_path)
-                        if ENV == "production"
-                        else e.evidence_path,
-                        severity=e.severity,
-                        comment_id=e.comment_id,
-                    )
-                    for e in c.evidences
-                ]
-                if c.evidences
-                else [],
             )
             for c in comments
         ]
@@ -160,23 +146,9 @@ def get_comments_for_department(app_id: str, dept_id: int, db: Session):
                 department_id=c.department_id,
                 department=c_schemas.DepartmentOut.model_validate(c.department),
                 author=c_schemas.UserOut.model_validate(c.author),
+                status=c.status,
                 created_at=c.created_at,
                 updated_at=c.updated_at,
-                evidences=[
-                    EvidenceOut(
-                        id=e.id,
-                        application_id=e.application_id,
-                        uploader_id=e.uploader_id,
-                        evidence_path=get_s3_presigned_url(e.evidence_path)
-                        if ENV == "production"
-                        else e.evidence_path,
-                        severity=e.severity,
-                        comment_id=e.comment_id,
-                    )
-                    for e in c.evidences
-                ]
-                if c.evidences
-                else [],
             )
             for c in comments
         ]
@@ -185,5 +157,5 @@ def get_comments_for_department(app_id: str, dept_id: int, db: Session):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching comments: {str(e)}",
+            detail={"msg": "Error fetching comments", "err_stack": str(e)},
         )

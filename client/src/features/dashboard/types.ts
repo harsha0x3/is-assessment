@@ -1,22 +1,34 @@
-export interface AppStatusStats {
-  in_progress: number;
-  not_yet_started: number;
-  pending: number;
-  closed: number;
-  new_request: number;
-  cancelled: number;
-  completed: number;
-  reopen: number;
+// types.ts
+
+export interface StatusCountItem {
+  status: string;
+  count: number;
 }
 
-export interface DashboardStats {
+export interface ApplicationStats {
   total_apps: number;
-  app_statuses: AppStatusStats;
+  status_chart: StatusCountItem[];
+}
+
+export interface DepartmentStatusItem {
+  status: string;
+  count: number;
+}
+
+export interface DepartmentStatsItem {
+  department: string; // "finance"
+  statuses: DepartmentStatusItem[];
+}
+
+export interface DashboardStatsResponse {
+  application_stats: ApplicationStats;
+  department_stats: {
+    departments: DepartmentStatsItem[];
+  };
 }
 
 export interface DonutData {
-  name: keyof AppStatusStats;
+  name: string;
   value: number; // percentage
   count: number; // raw count
-  [key: string]: number | string;
 }

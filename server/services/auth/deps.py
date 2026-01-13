@@ -11,6 +11,7 @@ from .jwt_handler import (
     create_tokens,
     set_jwt_cookies,
 )
+from .csrf_handler import set_csrf_cookie
 
 
 def get_current_user(
@@ -53,6 +54,7 @@ def get_current_user(
                 user_id=user.id, role=user.role, mfa_verified=user.mfa_enabled
             )
             set_jwt_cookies(response, access, refresh)
+            set_csrf_cookie(response=response)
 
             print("Access token refreshed successfully")
 

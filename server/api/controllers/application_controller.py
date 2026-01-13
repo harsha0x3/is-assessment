@@ -17,6 +17,7 @@ from schemas.app_schemas import (
     ChecklistOut,
     NewAppListOut,
     AppQueryParams,
+    AppStatuses,
 )
 from schemas.auth_schemas import UserOut
 from .department_controller import get_departments_by_application
@@ -72,6 +73,50 @@ def create_app(
         )
 
 
+def get_app_stats(db: Session):
+    try:
+        normalized_status = func.replace(
+            func.replace(
+                func.lower(Application.status),
+                " ",
+                "_",
+            ),
+            "-",
+            "_",
+        )
+
+        rows = db.execute(
+            select(
+                normalized_status.label("status"), func.count().label("status_count")
+            )
+            .where(Application.is_active)
+            .group_by(normalized_status)
+        ).all()
+
+        app_statuses = {row.status: int(row.status_count) for row in rows}
+
+        result = AppStatuses(
+            in_progress=app_statuses.get("in_progress") or 0,
+            not_yet_started=app_statuses.get("not_yet_started") or 0,
+            pending=app_statuses.get("pending") or 0,
+            closed=app_statuses.get("closed") or 0,
+            new_request=app_statuses.get("new_request") or 0,
+            cancelled=app_statuses.get("cancelled") or 0,
+            completed=app_statuses.get("completed") or 0,
+            reopen=app_statuses.get("reopen") or 0,
+        )
+
+        print("Results:", result)
+
+        return result
+    except Exception as e:
+        print("rror Fetching overall statistics", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error Fetching overall statistics.",
+        )
+
+
 def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
     try:
         stmt = (
@@ -80,10 +125,15 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             .where(Application.is_active)
             .options(joinedload(Application.departments))
         )
+
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total_count = db.scalar(count_stmt)
+
         sort_column = getattr(Application, params.sort_by)
 
         if params.status:
-            stmt = stmt.where(Application.status == params.status)
+            print("STATUS LIST", params.status)
+            stmt = stmt.where(Application.status.in_(params.status))
 
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
@@ -100,9 +150,8 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             elif search_column is not None:
                 stmt = stmt.where(search_column.ilike(search_value))
 
-        # ✅ TOTAL COUNT (AFTER ALL FILTERS)
-        count_stmt = select(func.count()).select_from(stmt.subquery())
-        total_count = db.scalar(count_stmt)
+        filtered_count_stmt = select(func.count()).select_from(stmt.subquery())
+        filtered_count = db.scalar(filtered_count_stmt)
 
         if params.sort_order == "desc":
             sort_column = desc(sort_column)
@@ -143,9 +192,14 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
                 departments=depts_out,
             )
             apps_out.append(data)
+
+        app_stats = get_app_stats(db=db)
+
         return {
             "apps": apps_out,
             "total_count": total_count,
+            "filtered_count": filtered_count,
+            "app_stats": app_stats,
         }
 
     except HTTPException:
@@ -443,13 +497,13 @@ def update_app_status(app_id: str, db: Session):
             return {"msg": f"App {app.name} marked pending (no checklists)"}
 
         completed = [c.is_completed for c in checklists]
-        in_prog = [c.status == "in-progress" for c in checklists]
+        in_prog = [c.status == "in_progress" for c in checklists]
 
         if all(completed):
             app.status = "completed"
             app.is_completed = True
         elif any(completed) or any(in_prog):
-            app.status = "in-progress"
+            app.status = "in_progress"
             app.is_completed = False
         else:
             app.status = "pending"
@@ -475,7 +529,7 @@ def delete_app(app_id: str, db: Session, current_user: UserOut):
         if current_user.role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"You are not authorised to deleted {current_user.username}",
+                detail=f"You are not authorised to deleted {current_user.full_name}",
             )
         app = db.scalar(select(Application).where(Application.id == app_id))
         if not app:
@@ -592,20 +646,3 @@ def get_trashed_apps(db: Session):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching trashed apps {str(e)}",
         )
-
-
-def get_app_stats(current_user: UserOut, db: Session):
-    stmt = select(Application).where(Application.is_active)
-
-    if current_user.role not in ["admin", "moderator"]:
-        # join checklists and assignments to filter by user_id
-        stmt = (
-            stmt.join(Application.checklists)
-            .join(Checklist.assignments)
-            .where(ChecklistAssignment.user_id == current_user.id)
-        )
-
-    total_count = db.scalar(select(func.count()).select_from(stmt.subquery()))
-    completed_apps = db.scalar(stmt.where(Application.is_completed))
-
-    return {"total_apps": total_count, "completed_apps": completed_apps}

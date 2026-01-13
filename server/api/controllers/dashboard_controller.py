@@ -1,56 +1,134 @@
-from models import Application
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from collections import defaultdict
+from api.constants.statuses import ALL_APP_STATUSES, ALL_DEPT_STATUSES
+
+from models import Application, Department, ApplicationDepartments
 from schemas import dashboard_schemas as ds
 
 
-def get_dashboard_stats(db: Session):
-    try:
-        normalized_status = func.replace(
-            func.replace(
-                func.lower(Application.status),
-                " ",
-                "_",
-            ),
-            "-",
-            "_",
-        )
+# ---------- helpers ----------
 
+
+def normalize_key(value: str) -> str:
+    return value.lower().replace(" ", "_").replace("-", "_")
+
+
+def humanize(value: str) -> str:
+    return value.replace("_", " ").title()
+
+
+# ---------- Application status stats ----------
+
+
+def get_app_status_stats(db: Session) -> ds.ApplicationStats:
+    try:
         rows = db.execute(
             select(
-                normalized_status.label("status"), func.count().label("status_count")
+                Application.status.label("status"),
+                func.count().label("status_count"),
             )
             .where(Application.is_active)
-            .group_by(normalized_status)
+            .group_by(Application.status)
         ).all()
 
-        app_statuses = {row.status: int(row.status_count) for row in rows}
+        db_counts = {normalize_key(row.status): int(row.status_count) for row in rows}
 
-        total_apps = db.scalar(
-            select(func.count(Application.id)).where(Application.is_active)
+        status_chart = [
+            ds.StatusCountItem(
+                status=status,
+                count=db_counts.get(status, 0),
+            )
+            for status in ALL_APP_STATUSES
+        ]
+
+        total_apps = (
+            db.scalar(select(func.count(Application.id)).where(Application.is_active))
+            or 0
         )
 
-        result = ds.DashboardStats(
-            total_apps=total_apps or 0,
-            app_statuses=ds.AppStatuses(
-                in_progress=app_statuses.get("in_progress") or 0,
-                not_yet_started=app_statuses.get("not_yet_started") or 0,
-                pending=app_statuses.get("pending") or 0,
-                closed=app_statuses.get("closed") or 0,
-                new_request=app_statuses.get("new_request") or 0,
-                cancelled=app_statuses.get("cancelled") or 0,
-                completed=app_statuses.get("completed") or 0,
-                reopen=app_statuses.get("reopen") or 0,
-            ),
+        print(
+            ds.ApplicationStats(
+                total_apps=total_apps,
+                status_chart=status_chart,
+            ).model_dump()
         )
 
-        print("Results:", result)
+        return ds.ApplicationStats(
+            total_apps=total_apps,
+            status_chart=status_chart,
+        )
 
-        return result
     except Exception as e:
-        print("rror Fetching overall statistics", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error Fetching overall statistics.",
+            detail="Error fetching application status statistics",
+        )
+
+
+# ---------- Department-wise status stats ----------
+
+
+def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
+    try:
+        rows = db.execute(
+            select(
+                Department.name.label("department"),
+                ApplicationDepartments.status.label("status"),
+                func.count().label("status_count"),
+            )
+            .join(
+                ApplicationDepartments,
+                ApplicationDepartments.department_id == Department.id,
+            )
+            .group_by(
+                Department.name,
+                ApplicationDepartments.status,
+            )
+        ).all()
+        raw: dict[str, dict[str, int]] = defaultdict(dict)
+        for row in rows:
+            raw[row.department][normalize_key(row.status)] = int(row.status_count)
+
+        departments = []
+        for dept, status_map in raw.items():
+            departments.append(
+                ds.DepartmentStatsItem(
+                    department=normalize_key(dept),
+                    statuses=[
+                        ds.DepartmentStatusItem(
+                            status=status,
+                            count=status_map.get(status, 0),
+                        )
+                        for status in ALL_DEPT_STATUSES
+                    ],
+                )
+            )
+
+        return ds.DepartmentStatsResponse(departments=departments)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching department status statistics",
+        )
+
+
+def get_dashboard_status_stats(db: Session):
+    try:
+        app_stats = get_app_status_stats(db=db)
+        dept_stats = get_department_status_stats(db=db)
+        result = ds.DashboardStatsResponse(
+            application_stats=app_stats, department_stats=dept_stats
+        )
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting status charts",
         )

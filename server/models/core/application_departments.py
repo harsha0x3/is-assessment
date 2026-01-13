@@ -12,7 +12,7 @@ class ApplicationDepartments(Base, BaseMixin):
     department_id: Mapped[str] = mapped_column(
         Integer, ForeignKey("departments.id"), nullable=False
     )
-    status: Mapped[str] = mapped_column(String(40), default="pending")
+    status: Mapped[str] = mapped_column(String(40), default="yet_to_connect")
 
     # -- Relationships --
 

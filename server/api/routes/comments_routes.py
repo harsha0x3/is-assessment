@@ -54,11 +54,11 @@ async def create_comment(
                 DepartmentUsers.department_id == dept_id,
             )
         )
-        if not is_author_valid:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to add comment.",
-            )
+        # if not is_author_valid:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_403_FORBIDDEN,
+        #         detail="Access denied to add comment.",
+        #     )
 
         new_comment = c_schemas.CommentInput(
             author_id=current_user.id,
@@ -111,6 +111,7 @@ async def create_comment(
         data = comment_ctrl.CommentWithEvidences(
             id=comment.id,
             content=comment.content,
+            status=comment.status,
             author_id=comment.author_id,
             application_id=comment.application_id,
             department_id=comment.department_id,
@@ -118,21 +119,6 @@ async def create_comment(
             author=c_schemas.UserOut.model_validate(comment.author),
             created_at=comment.created_at,
             updated_at=comment.updated_at,
-            evidences=[
-                comment_ctrl.EvidenceOut(
-                    id=e.id,
-                    application_id=e.application_id,
-                    uploader_id=e.uploader_id,
-                    evidence_path=(
-                        comment_ctrl.get_s3_presigned_url(e.evidence_path)
-                        if ENV == "production"
-                        else e.evidence_path
-                    ),
-                    severity=e.severity,
-                    comment_id=comment.id,
-                )
-                for e in comment.evidences
-            ],
         )
 
         return {"msg": "Comment created successfully", "data": data}

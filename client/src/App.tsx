@@ -7,12 +7,15 @@ import { lazy, Suspense } from "react";
 import { Loader } from "lucide-react";
 import { useGetMeQuery } from "./features/auth/store/authApiSlice";
 import ApplicationsLayout from "./layouts/ApplicationsLayout";
-import AppDrawer from "./features/applications/components/AppDrawer";
+import AppInfoDialog from "./features/applications/components/AppInfoDialog";
 
 function App() {
   const { data: _data } = useGetMeQuery();
   const ApplicationsPage = lazy(
     () => import("./features/applications/pages/ApplicationsPage")
+  );
+  const UserManagementPage = lazy(
+    () => import("./features/user_management/pages/UserManagementPage")
   );
   const AppDepartments = lazy(
     () => import("./features/departments/components/AppDepartments")
@@ -22,6 +25,9 @@ function App() {
   );
   const DashboardPage = lazy(
     () => import("./features/dashboard/pages/DashboardPage")
+  );
+  const EvidencesTab = lazy(
+    () => import("./features/evidences/components/EvidencesTab")
   );
 
   return (
@@ -53,8 +59,7 @@ function App() {
                 }
               />
               <Route path="applications" element={<ApplicationsLayout />}>
-                <Route path="" element={<AppDrawer />}>
-                  <Route path="new" element={<AppOverview />} />
+                <Route path="" element={<AppInfoDialog />}>
                   <Route path="details/:appId" element={<Outlet />}>
                     <Route
                       path="overview"
@@ -84,6 +89,20 @@ function App() {
                         </Suspense>
                       }
                     />
+                    <Route
+                      path="evidences"
+                      element={
+                        <Suspense
+                          fallback={
+                            <div>
+                              <Loader className="animate-spin" />
+                            </div>
+                          }
+                        >
+                          <EvidencesTab />
+                        </Suspense>
+                      }
+                    />
                   </Route>
                 </Route>
               </Route>
@@ -92,7 +111,7 @@ function App() {
                 path="users/all"
                 element={
                   <Suspense fallback={<Loader className="animate-spin" />}>
-                    <div>All users</div>
+                    <UserManagementPage />
                   </Suspense>
                 }
               />

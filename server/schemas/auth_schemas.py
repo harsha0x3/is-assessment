@@ -6,9 +6,7 @@ from datetime import datetime
 
 class AllUsersOut(BaseModel):
     id: str
-    username: str
-    first_name: str | None
-    last_name: str | None
+    full_name: str
     role: str
     mfa_secret: str | None
     mfa_recovery_codes: list[str] | None
@@ -27,10 +25,8 @@ class DepartmentInAuth(BaseModel):
 
 class CompleteUserOut(BaseModel):
     id: str
-    username: str
+    full_name: str
     email: str
-    first_name: str | None
-    last_name: str | None
     role: str
     mfa_secret: str | None
     mfa_recovery_codes: list[str] | None
@@ -41,17 +37,14 @@ class CompleteUserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AllUsersWithDepartments(BaseModel):
-    user: CompleteUserOut
+class AllUsersWithDepartments(CompleteUserOut, BaseModel):
     departments: list[DepartmentInAuth] | list
 
 
 class UserOut(BaseModel):
     id: str
-    username: str
+    full_name: str
     email: str
-    first_name: str
-    last_name: str | None = None
     role: str
 
     created_at: datetime | None = None
@@ -62,9 +55,8 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserWithDepartmentInfo(BaseModel):
+class UserWithDepartmentInfo(UserOut, BaseModel):
     departments: list[DepartmentInAuth] | list
-    user: UserOut
 
 
 class UserWithDepartments(UserOut, BaseModel):
@@ -78,11 +70,10 @@ class RoleEnum(str, Enum):
 
 
 class RegisterPayload(BaseModel):
-    username: str
+    full_name: str
     email: EmailStr
     password: str
-    first_name: str | None
-    last_name: str | None
+
     role: RoleEnum = RoleEnum.user
     enable_mfa: bool = False
 
@@ -91,24 +82,20 @@ class RegisterRequest(RegisterPayload, BaseModel):
     department_ids: list[int]
 
 
-class RegisterResponse(BaseModel):
-    user: CompleteUserOut
+class RegisterResponse(CompleteUserOut, BaseModel):
     departments: list[DepartmentInAuth] | list
 
 
 class UserUpdateRequest(BaseModel):
-    username: str | None = None
+    full_name: str | None = None
     email: EmailStr | None = None
-    password: str | None = None
-    first_name: str | None = None
-    last_name: str | None = None
     role: RoleEnum | None = RoleEnum.user
     enable_mfa: bool = True
     department_ids: list[int] | None = None
 
 
 class LoginRequest(BaseModel):
-    email_or_username: EmailStr | str
+    email: EmailStr | str
     password: str
     mfa_code: str | None = None
 

@@ -12,7 +12,7 @@ const commentsApiSlice = rootApiSlice.injectEndpoints({
     // ➤ Create Comment
     createComment: builder.mutation<
       ApiResponse<CommentsWithEvidences>,
-      { appId: string; deptId: number; payload: NewCommentRequest }
+      { appId: string; deptId: number; payload: FormData }
     >({
       query: ({ appId, deptId, payload }) => ({
         url: `/comments/application/${appId}/department/${deptId}`,

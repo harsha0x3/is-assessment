@@ -20,9 +20,15 @@ class ApplicationCreate(BaseModel):
     priority: int = 2
     vertical: str | None = None
 
+    status: str | None = None
+    imitra_ticket_id: str | None = None
+    titan_spoc: str | None = None
+
     started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
+
+    app_url: str | None
 
 
 class ApplicationOut(BaseModel):
@@ -44,12 +50,15 @@ class ApplicationOut(BaseModel):
     owner_id: str | None = None
     ticket_id: str | None = None
     status: str = "pending"
+    imitra_ticket_id: str | None
+    titan_spoc: str | None
 
     app_priority: int | None = None
 
     started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
+    app_url: str | None
 
     # Automatically convert UTC -> Asia/Kolkata
 
@@ -69,9 +78,14 @@ class ApplicationUpdate(BaseModel):
     vertical: str | None = None
     app_priority: int | None = None
 
+    status: str | None = None
+    imitra_ticket_id: str | None = None
+    titan_spoc: str | None = None
+
     started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
+    app_url: str | None
 
 
 class ListApplicationsOut(BaseModel):
@@ -124,19 +138,7 @@ class AppQueryParams(BaseModel):
     ] = Field("name", description="The field you want to search by")
     page: int = 1
     page_size: int = 15
-    status: (
-        Literal[
-            "new_request",
-            "in_progress",
-            "pending",
-            "not_yet_started",
-            "completed",
-            "reopen",
-            "closed",
-            "cancelled",
-        ]
-        | None
-    ) = None
+    status: list[str] | None = None
 
     @field_validator("sort_by")
     @classmethod
@@ -145,3 +147,14 @@ class AppQueryParams(BaseModel):
         if v not in valid_fields:
             raise ValueError(f"sort_by must be one of {valid_fields}")
         return v
+
+
+class AppStatuses(BaseModel):
+    in_progress: int
+    not_yet_started: int
+    pending: int
+    closed: int
+    completed: int
+    new_request: int
+    cancelled: int
+    reopen: int

@@ -1,4 +1,5 @@
 // department_schemas.ts
+import type { DeptStatuses } from "@/utils/globalTypes";
 import type { UserOut } from "../auth/types";
 
 export interface DepartmentCreate {
@@ -15,7 +16,7 @@ export interface DepartmentOut {
 }
 
 export interface AppDepartmentOut extends DepartmentOut {
-  status: string;
+  status: DeptStatuses;
 }
 
 export interface NewUserDepartmentAssign {

@@ -1,21 +1,22 @@
 import React, { useEffect } from "react";
 import LoginForm from "../components/LoginForm";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../store/authSlice";
-import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const navigate = useNavigate();
-  useEffect(() => {
-    console.log("IS AUTH IN LOGIN PAGE", isAuthenticated);
-  }, [isAuthenticated]);
+  const location = useLocation();
+  const fromPath = location.state?.from?.pathname || "/dashboard";
+  const fromSearch = location.state?.from?.search || "";
+  const from = `${fromPath}${fromSearch}`;
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/applications");
-      return;
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate, from]);
+
   return (
     <div className="mt-24 space-y-10 w-full">
       <h1 className="text-2xl text-center font-bold">IS-Assessments Manager</h1>

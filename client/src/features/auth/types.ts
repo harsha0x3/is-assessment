@@ -1,10 +1,11 @@
 // src\features\auth\types.ts
+
+export type RoleEnum = "admin" | "moderator" | "user";
+
 // ---------- BASE MODELS ----------
 export interface AllUsersOut {
   id: string;
-  username: string;
-  first_name: string | null;
-  last_name: string | null;
+  full_name: string;
   role: string;
   mfa_secret: string | null;
   mfa_recovery_codes: string[] | null;
@@ -16,45 +17,37 @@ export interface DepartmentInAuth {
   department_role: string | null;
   department_id: number;
   department_name: string;
-  department_description?: string | null;
+  department_description: string | null;
 }
 
 export interface CompleteUserOut {
   id: string;
+  full_name: string;
   email: string;
-  username: string;
-  first_name: string;
-  last_name: string | null;
   role: string;
   mfa_secret: string | null;
   mfa_recovery_codes: string[] | null;
 
-  created_at?: string | null; // datetime as ISO string
-  updated_at?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
-export interface AllUsersWithDepartments {
-  user: CompleteUserOut;
-  departments: DepartmentInAuth[] | [];
+export interface AllUsersWithDepartments extends CompleteUserOut {
+  departments: DepartmentInAuth[];
 }
-
-export type RegisterResponse = AllUsersWithDepartments;
 
 export interface UserOut {
   id: string;
-  username: string;
+  full_name: string;
   email: string;
-  first_name: string;
-  last_name?: string | null;
   role: string;
 
-  created_at?: string | null;
-  updated_at?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
-export interface UserWithDepartmentInfo {
-  departments: DepartmentInAuth[] | [];
-  user: UserOut;
+export interface UserWithDepartmentInfo extends UserOut {
+  departments: DepartmentInAuth[];
 }
 
 export interface AuthState extends UserWithDepartmentInfo {
@@ -66,14 +59,19 @@ export interface UserWithDepartments extends UserOut {
   department_ids: number[];
 }
 
+export interface AuthState extends UserWithDepartmentInfo {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
 // ---------- REGISTER & UPDATE ----------
 export interface RegisterPayload {
-  username: string;
+  full_name: string;
   email: string;
   password: string;
-  first_name: string | null;
-  last_name: string | null;
-  role?: "admin" | "super_admin" | "moderator" | "user" | null;
+
+  role?: RoleEnum;
   enable_mfa?: boolean;
 }
 
@@ -81,22 +79,29 @@ export interface RegisterRequest extends RegisterPayload {
   department_ids: number[];
 }
 
+export interface RegisterResponse extends CompleteUserOut {
+  departments: DepartmentInAuth[];
+}
+
 export interface UserUpdateRequest {
-  username?: string | null;
+  full_name?: string | null;
   email?: string | null;
-  password?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  role?: "admin" | "super_admin" | "moderator" | "user" | null;
+  role?: RoleEnum | null;
   enable_mfa?: boolean;
   department_ids?: number[] | null;
 }
 
 // ---------- AUTH ----------
 export interface LoginRequest {
-  email_or_username: string;
+  email: string;
   password: string;
   mfa_code?: string | null;
+}
+
+export interface LoginResponse {
+  requires_mfa: boolean;
+  challenge_token?: string | null;
+  tokens?: Tokens | null;
 }
 
 export interface Tokens {
