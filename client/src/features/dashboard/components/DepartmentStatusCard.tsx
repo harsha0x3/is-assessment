@@ -3,7 +3,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
   ResponsiveContainer,
   Cell,
 } from "recharts";
@@ -16,6 +15,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import type { AppStatuses } from "@/utils/globalTypes";
 
 const chartConfig: ChartConfig = {
   count: {
@@ -62,7 +62,7 @@ const DepartmentStatusCard: React.FC<Props> = ({ department, statuses }) => {
                 {statuses.map((entry) => (
                   <Cell
                     key={entry.status}
-                    fill={STATUS_COLOR_MAP_FG[entry.status]}
+                    fill={STATUS_COLOR_MAP_FG[entry.status as AppStatuses]}
                   />
                 ))}
               </Bar>

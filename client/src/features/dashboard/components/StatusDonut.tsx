@@ -9,6 +9,7 @@ import { PieChart, Pie, Cell, Label } from "recharts";
 import { donutChartConfig } from "@/lib/chartConfig";
 import { parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
+import type { AppStatuses } from "@/utils/globalTypes";
 
 const StatusCard: React.FC<{
   data: { name: string; count: number; percent: number };
@@ -20,7 +21,9 @@ const StatusCard: React.FC<{
 
         <span
           className="w-4 h-4 rounded-sm border"
-          style={{ backgroundColor: STATUS_COLOR_MAP_FG[data.name] }}
+          style={{
+            backgroundColor: STATUS_COLOR_MAP_FG[data.name as AppStatuses],
+          }}
         />
       </p>
       <span className="text-lg font-medium">{data.count}</span>

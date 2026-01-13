@@ -11,9 +11,7 @@ import AppInfoDialog from "./features/applications/components/AppInfoDialog";
 
 function App() {
   const { data: _data } = useGetMeQuery();
-  const ApplicationsPage = lazy(
-    () => import("./features/applications/pages/ApplicationsPage")
-  );
+
   const UserManagementPage = lazy(
     () => import("./features/user_management/pages/UserManagementPage")
   );

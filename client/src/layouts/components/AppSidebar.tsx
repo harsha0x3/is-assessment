@@ -19,7 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
 import Hint from "@/components/ui/hint";
-import { ISLogo } from "@/components/ui/IsLogo";
+import { ISLogo } from "@/components/ui/ISLogo";
 
 type SidebarData = {
   title: string;

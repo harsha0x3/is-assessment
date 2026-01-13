@@ -3,7 +3,6 @@ import type {
   RegisterRequest,
   UserUpdateRequest,
   UserWithDepartmentInfo,
-  AllUsersOut,
   RegisterResponse,
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";

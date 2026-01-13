@@ -188,11 +188,6 @@ const AppsTable: React.FC = () => {
           cell: ({ getValue }) => {
             const depts: AppDepartmentOut[] = getValue();
 
-            const counts = depts.reduce((acc, d) => {
-              acc[d.status] = (acc[d.status] || 0) + 1;
-              return acc;
-            }, {} as Record<string, number>);
-
             const shortenDept = (dept: string) => {
               switch (dept) {
                 case "iam":

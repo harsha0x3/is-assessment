@@ -1,6 +1,6 @@
 // src/features/user_management/components/UsersTable.tsx
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   type ColumnDef,
   flexRender,

@@ -7,7 +7,7 @@ import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const DashboardPage = () => {
+const DashboardPage: React.FC = () => {
   const { data, isLoading, error } = useGetDashboardStatsQuery();
 
   const appDonutData = useMemo(() => {

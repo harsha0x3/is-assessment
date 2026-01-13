@@ -44,6 +44,5 @@ export const rootApiSlice = createApi({
     "Evidences",
   ],
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  endpoints: (builder) => ({}),
+  endpoints: () => ({}),
 });

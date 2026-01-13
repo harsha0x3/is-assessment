@@ -1,5 +1,4 @@
 import { rootApiSlice } from "@/store/rootApiSlice";
-import type { ApiResponse } from "@/store/rootTypes";
 import type { DashboardStatsResponse } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({

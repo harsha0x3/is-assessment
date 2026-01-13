@@ -3,14 +3,25 @@ import { useGetDepartmentsByApplicationQuery } from "../store/departmentsApiSlic
 import { useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DepartmentInfo from "./DepartmentInfo";
+import { Loader } from "lucide-react";
+import { getApiErrorMessage } from "@/utils/handleApiError";
 
 const AppDepartments: React.FC = () => {
   const { appId } = useParams();
-  const { data: appDepts, isLoading: isLoadingDepts } =
-    useGetDepartmentsByApplicationQuery(appId || "", { skip: !appId });
+  const {
+    data: appDepts,
+    isLoading: isLoadingDepts,
+    error,
+  } = useGetDepartmentsByApplicationQuery(appId || "", { skip: !appId });
   return (
     <div className="w-full">
-      {appDepts?.data && (
+      {isLoadingDepts ? (
+        <div>
+          <Loader className="animate-spin h-5 w-5" />
+        </div>
+      ) : error ? (
+        <p>{getApiErrorMessage(error) ?? "Error finding departments"}</p>
+      ) : appDepts?.data ? (
         <Tabs
           className="gap-4 text-center"
           defaultValue={appDepts?.data[0].id.toString()}
@@ -38,6 +49,8 @@ const AppDepartments: React.FC = () => {
             </TabsContent>
           ))}
         </Tabs>
+      ) : (
+        <p>No Departments found</p>
       )}
     </div>
   );

@@ -71,11 +71,7 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
           <div className="flex justify-between items-center gap-2">
             <div className="flex items-center justify-between w-full gap-2">
               <div className="flex items-center justify-between text-muted-foreground gap-2">
-                <p className="">
-                  {comment.author?.last_name
-                    ? `${comment.author?.first_name} ${comment.author?.last_name}`
-                    : comment.author?.first_name}
-                </p>
+                <p className="">{comment.author?.full_name}</p>
               </div>
               <p className="text-xs text-muted-foreground">{created}</p>
             </div>

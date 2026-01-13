@@ -14,8 +14,8 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader, PlusIcon } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import type { CommentOut } from "../types";
-import { useSelector } from "react-redux";
-import { selectAuth } from "@/features/auth/store/authSlice";
+// import { useSelector } from "react-redux";
+// import { selectAuth } from "@/features/auth/store/authSlice";
 
 const CommentList: React.FC<{
   appId: string;
@@ -32,7 +32,7 @@ const CommentList: React.FC<{
       },
       { skip: commentsData !== undefined }
     );
-  const currentUserInfo = useSelector(selectAuth);
+  // const currentUserInfo = useSelector(selectAuth);
 
   const [addNewComment, { isLoading: isCreating }] = useCreateCommentMutation();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);

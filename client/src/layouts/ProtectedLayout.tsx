@@ -16,9 +16,6 @@ const ProtectedLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fromPath = location.state?.from?.pathname || "/dashboard";
-  const fromSearch = location.state?.from?.search || "";
-
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", { state: { from: location }, replace: true });
