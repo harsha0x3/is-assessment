@@ -4,6 +4,9 @@ import type {
   UserUpdateRequest,
   UserWithDepartmentInfo,
   RegisterResponse,
+  PasswordResetRequest,
+  PasswordResetPayload,
+  PasswordResetResponse,
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";
 import {
@@ -99,6 +102,30 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
         dispatch(userLogout());
       },
     }),
+
+    // ---------- PASSWORD RESET REQUEST ----------
+    requestPasswordReset: builder.mutation<
+      ApiResponse<null>,
+      PasswordResetRequest
+    >({
+      query: (payload) => ({
+        url: "auth/password-reset/request",
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
+    // ---------- PASSWORD RESET ----------
+    resetPassword: builder.mutation<
+      ApiResponse<PasswordResetResponse>,
+      PasswordResetPayload
+    >({
+      query: (payload) => ({
+        url: "auth/password-reset",
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -109,4 +136,6 @@ export const {
   useGetMeQuery,
   useUpdateProfileMutation,
   useLogoutMutation,
+  useRequestPasswordResetMutation,
+  useResetPasswordMutation,
 } = authApiSlice;

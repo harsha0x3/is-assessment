@@ -16,8 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { UserDetailsDialog } from "./UserDetailsDialog";
 import type { AllUsersWithDepartments } from "@/features/auth/types";
+import UserDetailsDialog from "./UserDetailsDialog";
 
 interface Props {
   users: AllUsersWithDepartments[];
@@ -66,7 +66,13 @@ export function UsersTable({ users }: Props) {
         header: "Departments",
         minSize: 120,
         maxSize: 150,
-        cell: ({ row }) => <span>{row.original.departments.length}</span>,
+        cell: ({ row }) => (
+          <ul className="text-sm list-disc ml-5">
+            {row.original.departments.map((d) => (
+              <li key={d.department_id}>{d.department_name}</li>
+            ))}
+          </ul>
+        ),
       },
       {
         id: "actions",
@@ -87,7 +93,7 @@ export function UsersTable({ users }: Props) {
         ),
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -118,7 +124,7 @@ export function UsersTable({ users }: Props) {
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -146,7 +152,7 @@ export function UsersTable({ users }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

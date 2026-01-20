@@ -5,6 +5,8 @@ import { rootApiSlice } from "./rootApiSlice";
 import authReducer from "@/features/auth/store/authSlice";
 const nodeEnv = import.meta.env.VITE_NODE_ENV;
 
+const isDev: boolean = nodeEnv === "development";
+
 const rootStore = configureStore({
   reducer: {
     auth: authReducer,
@@ -12,7 +14,7 @@ const rootStore = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(rootApiSlice.middleware),
-  devTools: nodeEnv === "developement",
+  devTools: isDev,
 });
 
 export type RootState = ReturnType<typeof rootStore.getState>;

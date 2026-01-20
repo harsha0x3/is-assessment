@@ -74,6 +74,7 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
     try:
         rows = db.execute(
             select(
+                Department.id.label("dept_id"),
                 Department.name.label("department"),
                 ApplicationDepartments.status.label("status"),
                 func.count().label("status_count"),
@@ -83,23 +84,38 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
                 ApplicationDepartments.department_id == Department.id,
             )
             .group_by(
+                Department.id,
                 Department.name,
                 ApplicationDepartments.status,
             )
         ).all()
-        raw: dict[str, dict[str, int]] = defaultdict(dict)
+
+        raw: dict[str, dict] = {}
+
         for row in rows:
-            raw[row.department][normalize_key(row.status)] = int(row.status_count)
+            dept_key = normalize_key(row.department)
+
+            if dept_key not in raw:
+                raw[dept_key] = {
+                    "dept_id": row.dept_id,
+                    "statuses": defaultdict(int),
+                }
+
+            raw[dept_key]["statuses"][normalize_key(row.status)] += int(
+                row.status_count
+            )
 
         departments = []
-        for dept, status_map in raw.items():
+
+        for dept, data in raw.items():
             departments.append(
                 ds.DepartmentStatsItem(
-                    department=normalize_key(dept),
+                    department_id=data["dept_id"],
+                    department=dept,
                     statuses=[
                         ds.DepartmentStatusItem(
                             status=status,
-                            count=status_map.get(status, 0),
+                            count=data["statuses"].get(status, 0),
                         )
                         for status in ALL_DEPT_STATUSES
                     ],
@@ -108,7 +124,7 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
 
         return ds.DepartmentStatsResponse(departments=departments)
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching department status statistics",

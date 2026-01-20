@@ -21,6 +21,7 @@ from models.core import (
     comments,
     department_users,
     app_evidences,
+    otps,
 )
 
 from models.pre_assessment import (

@@ -85,8 +85,11 @@ async def new_list_all_apps(
         str | None,
         Query(),
     ] = None,
+    dept_filter_id: Annotated[int | None, Query()] = None,
+    dept_status: Annotated[str | None, Query()] = None,
 ):
     status_list = status.split(",") if status else []
+    dept_status_list = dept_status.split(",") if dept_status else []
     params = AppQueryParams(
         sort_by=sort_by,
         sort_order=sort_order,
@@ -95,10 +98,11 @@ async def new_list_all_apps(
         page_size=page_size,
         search_by=search_by,
         status=status_list,
+        dept_filter_id=dept_filter_id,
+        dept_status=dept_status_list,
     )
     data = list_all_apps(
         db=db,
-        user=current_user,
         params=params,
     )
     return {"msg": "Applications fetched successfully", "data": data}
@@ -135,7 +139,16 @@ async def update_application(
 
 class StatusVal(BaseModel):
     status_val: Annotated[
-        Literal["pending", "completed", "cancelled", "in_progress"], ""
+        Literal[
+            "new_request",
+            "in_progress",
+            "not_yet_started",
+            "completed",
+            "reopen",
+            "closed",
+            "cancelled",
+        ],
+        "",
     ]
 
 

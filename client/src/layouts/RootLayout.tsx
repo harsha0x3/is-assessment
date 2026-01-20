@@ -13,8 +13,10 @@ const RootLayout: React.FC = () => {
   const headerTitle = location.pathname.includes("applications")
     ? "Applications"
     : location.pathname.includes("dashboard")
-    ? "Dashboard"
-    : "Is Assessment";
+      ? "Dashboard"
+      : location.pathname.includes("users")
+        ? "User Management"
+        : "InfoSec Assessment";
   return (
     <div className="w-full h-full overflow-hidden">
       <SidebarProvider>

@@ -79,6 +79,9 @@ def get_current_user(
             detail="Inactive or non-existent user",
         )
 
+    if user.must_change_password:
+        raise HTTPException(status_code=403, detail="PASSWORD_RESET_REQUIRED")
+
     # 🔒 CSRF check (for unsafe methods only)
     if request.method not in ("GET", "HEAD", "OPTIONS", "TRACE"):
         if not csrf_token:

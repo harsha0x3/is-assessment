@@ -18,7 +18,6 @@ from db.connection import get_db_conn
 from services.auth.deps import get_current_user
 from schemas.auth_schemas import UserOut
 from schemas import comment_schemas as c_schemas
-from models import DepartmentUsers
 from api.controllers.evidence_controller import (
     save_evidence_file_local,
     save_evidence_file_s3,
@@ -26,6 +25,7 @@ from api.controllers.evidence_controller import (
 )
 from schemas.evidence_schemas import CreateEvidenceSchema
 import os
+from services.auth.permissions import is_user_of_dept
 
 ENV = os.getenv("ENV", "development")
 
@@ -48,17 +48,14 @@ async def create_comment(
 ):
     try:
         # Authorization
-        is_author_valid = db.scalar(
-            select(DepartmentUsers).where(
-                DepartmentUsers.user_id == current_user.id,
-                DepartmentUsers.department_id == dept_id,
-            )
+        is_author_valid = is_user_of_dept(
+            dept_id=dept_id, user_id=current_user.id, db=db
         )
-        # if not is_author_valid:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_403_FORBIDDEN,
-        #         detail="Access denied to add comment.",
-        #     )
+        if not is_author_valid:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied to add comment.",
+            )
 
         new_comment = c_schemas.CommentInput(
             author_id=current_user.id,

@@ -5,6 +5,7 @@ from typing import Literal
 from datetime import datetime
 from .department_schemas import AppDepartmentOut
 from .checklist_schemas import ChecklistOut
+from .comment_schemas import CommentOut
 
 
 class ApplicationCreate(BaseModel):
@@ -115,12 +116,13 @@ class NewAppListOut(BaseModel):
     status: str
     priority: int = 2
     app_priority: int | None = None
+    app_url: str | None
 
     started_at: datetime | None = None
     completed_at: datetime | None = None
-    due_date: datetime | None = None
-
+    vendor_company: str | None = None
     departments: list[AppDepartmentOut] | None = None
+    latest_comment: CommentOut | None
 
 
 class AppQueryParams(BaseModel):
@@ -139,6 +141,8 @@ class AppQueryParams(BaseModel):
     page: int = 1
     page_size: int = 15
     status: list[str] | None = None
+    dept_filter_id: int | None = None
+    dept_status: list[str] | None = None
 
     @field_validator("sort_by")
     @classmethod
@@ -152,7 +156,6 @@ class AppQueryParams(BaseModel):
 class AppStatuses(BaseModel):
     in_progress: int
     not_yet_started: int
-    pending: int
     closed: int
     completed: int
     new_request: int

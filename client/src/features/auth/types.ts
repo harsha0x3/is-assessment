@@ -69,7 +69,6 @@ export interface AuthState extends UserWithDepartmentInfo {
 export interface RegisterPayload {
   full_name: string;
   email: string;
-  password: string;
 
   role?: RoleEnum;
   enable_mfa?: boolean;
@@ -122,4 +121,19 @@ export interface MFARecoveryVerifyRequest {
 export interface MFASetupVerifyResponse {
   enabled: boolean;
   recovery_codes: string[];
+}
+
+// ---------- PASSWORD RESET ----------
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetPayload {
+  email: string;
+  otp: string;
+  new_password: string;
+}
+
+export interface PasswordResetResponse {
+  msg: string;
 }

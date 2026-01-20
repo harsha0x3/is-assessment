@@ -1,7 +1,6 @@
 export type AppStatuses =
   | "new_request"
   | "in_progress"
-  | "pending"
   | "not_yet_started"
   | "completed"
   | "reopen"
@@ -13,7 +12,7 @@ export type DeptStatuses =
   | "in_progress"
   | "cleared"
   | "closed"
-  | "cancelled";
+  | "hold";
 
 export type AppStatusOption = {
   value: AppStatuses;

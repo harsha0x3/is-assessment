@@ -10,7 +10,6 @@ from models import (
     Comment,
 )
 from schemas import department_schemas as d_schemas
-from schemas.auth_schemas import UserOut
 
 
 def create_new_department(payload: d_schemas.DepartmentCreate, db: Session):
@@ -127,7 +126,7 @@ def get_departments_by_application(app_id: str, db: Session):
                 description=dep.description,
                 created_at=dep.created_at,
                 updated_at=dep.updated_at,
-                status=status,  # 👈 coming from ApplicationDepartments
+                status=status,
             )
             for dep, status in results
         ]
@@ -279,13 +278,6 @@ def change_department_app_status(
     app_id: str, dept_id: int, status_val: str, db: Session
 ):
     try:
-        allowed_statuses = {"pending", "in_progress", "completed", "rejected"}
-        if status_val not in allowed_statuses:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid status value",
-            )
-
         dept_app = db.scalar(
             select(ApplicationDepartments).where(
                 ApplicationDepartments.application_id == app_id,
@@ -318,7 +310,7 @@ def change_department_app_status(
                 detail="Application not found",
             )
 
-        if all(d.status == "completed" for d in dept_apps):
+        if all(d.status == "cleared" for d in dept_apps):
             app.status = "completed"
             app.is_completed = True
         elif app.status == "completed":

@@ -26,6 +26,7 @@ class DepartmentStatusItem(BaseModel):
 
 
 class DepartmentStatsItem(BaseModel):
+    department_id: int
     department: str  # "finance"
     statuses: list[DepartmentStatusItem]
 

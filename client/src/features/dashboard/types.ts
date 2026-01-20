@@ -16,6 +16,7 @@ export interface DepartmentStatusItem {
 }
 
 export interface DepartmentStatsItem {
+  department_id: number;
   department: string; // "finance"
   statuses: DepartmentStatusItem[];
 }

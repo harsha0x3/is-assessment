@@ -1,13 +1,12 @@
 # controllers\comments_controller.py
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, desc
 from sqlalchemy.orm import Session, selectinload
 from models import Application, Comment, ApplicationDepartments
 
 from schemas import comment_schemas as c_schemas
 from schemas.evidence_schemas import EvidenceOut
 from pydantic import BaseModel
-from .evidence_controller import get_s3_presigned_url
 import os
 
 ENV = os.getenv("ENV", "development")
@@ -15,6 +14,18 @@ ENV = os.getenv("ENV", "development")
 
 class CommentWithEvidences(c_schemas.CommentOut, BaseModel):
     evidences: list[EvidenceOut] | None = None
+
+
+def get_latest_app_dept_comment(app_id: str, dept_id: int, db: Session):
+    latest_comment = db.scalar(
+        select(Comment)
+        .where(and_(Comment.application_id == app_id))
+        .order_by(desc(Comment.created_at))
+        .limit(1)
+    )
+    return (
+        c_schemas.CommentOut.model_validate(latest_comment) if latest_comment else None
+    )
 
 
 def create_comment(payload: c_schemas.CommentInput, db: Session):

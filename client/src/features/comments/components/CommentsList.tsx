@@ -14,8 +14,8 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader, PlusIcon } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import type { CommentOut } from "../types";
-// import { useSelector } from "react-redux";
-// import { selectAuth } from "@/features/auth/store/authSlice";
+import { useSelector } from "react-redux";
+import { selectAuth, selectUserDepts } from "@/features/auth/store/authSlice";
 
 const CommentList: React.FC<{
   appId: string;
@@ -30,9 +30,9 @@ const CommentList: React.FC<{
         appId,
         deptId,
       },
-      { skip: commentsData !== undefined }
+      { skip: commentsData !== undefined },
     );
-  // const currentUserInfo = useSelector(selectAuth);
+  const userDepts = useSelector(selectUserDepts);
 
   const [addNewComment, { isLoading: isCreating }] = useCreateCommentMutation();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -41,10 +41,11 @@ const CommentList: React.FC<{
     try {
       const payload = new FormData();
       payload.append("content", newComment);
-      await addNewComment({ payload, appId, deptId });
+      await addNewComment({ payload, appId, deptId }).unwrap();
       setIsNewComment(false);
       setNewComment("");
     } catch (err) {
+      console.log("ERROR IN ADDING COMMENT", err);
       const errMsg: string =
         getApiErrorMessage(err) ?? "Error adding new comment";
       toast.error(errMsg);
@@ -72,7 +73,7 @@ const CommentList: React.FC<{
     <div>
       <div className="flex w-full items-center gap-2 pb-2">
         <h2 className="text-lg font-semibold px-3">Comments</h2>
-        {!isNewComment && (
+        {userDepts.includes(deptId) && !isNewComment && (
           <Hint label="New Comment">
             <Button
               variant="outline"

@@ -5,17 +5,19 @@ import {
   YAxis,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseStatus } from "@/utils/helpers";
+import { parseDept, parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+  // ChartTooltip,
+  // ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import type { AppStatuses } from "@/utils/globalTypes";
+import { useNavigate } from "react-router-dom";
 
 const chartConfig: ChartConfig = {
   count: {
@@ -28,21 +30,27 @@ const chartConfig: ChartConfig = {
         label: parseStatus(status),
         color,
       },
-    ])
+    ]),
   ),
 };
 
 interface Props {
   department: string;
   statuses: { status: string; count: number }[];
+  deptId: number;
 }
 
-const DepartmentStatusCard: React.FC<Props> = ({ department, statuses }) => {
+const DepartmentStatusCard: React.FC<Props> = ({
+  department,
+  statuses,
+  deptId,
+}) => {
+  const navigate = useNavigate();
   return (
     <Card className="h-full px-0 w-md">
       <CardHeader className="pb-2 px-0">
         <CardTitle className="text-sm font-medium text-center capitalize">
-          {parseStatus(department)}
+          {parseDept(department)}
         </CardTitle>
       </CardHeader>
 
@@ -52,19 +60,39 @@ const DepartmentStatusCard: React.FC<Props> = ({ department, statuses }) => {
             <BarChart data={statuses}>
               <XAxis
                 dataKey="status"
-                tickFormatter={parseStatus}
+                tickFormatter={(value) =>
+                  parseStatus(value)
+                    .toLowerCase()
+                    .replace(/^\w/, (c) => c.toUpperCase())
+                }
                 tick={{ fontSize: 9 }}
                 interval={0}
               />
-              <YAxis allowDecimals={false} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="count" barSize={20} radius={[4, 4, 0, 0]}>
+              <YAxis allowDecimals={false} domain={[0, "dataMax + 2"]} />
+              {/* <ChartTooltip content={<div>Show Details</div>} /> */}
+
+              <Bar
+                dataKey="count"
+                barSize={20}
+                radius={[4, 4, 0, 0]}
+                className="hover:cursor-pointer"
+                onClick={(data) => {
+                  navigate(
+                    `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}`,
+                  );
+                }}
+              >
                 {statuses.map((entry) => (
                   <Cell
                     key={entry.status}
                     fill={STATUS_COLOR_MAP_FG[entry.status as AppStatuses]}
                   />
                 ))}
+                <LabelList
+                  dataKey="count"
+                  position="top"
+                  style={{ fontSize: 10 }}
+                />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

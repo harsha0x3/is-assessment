@@ -25,18 +25,23 @@ import {
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
 import type { DeptStatuses } from "@/utils/globalTypes";
+import { useSelector } from "react-redux";
+import { selectUserDepts } from "@/features/auth/store/authSlice";
+import { useParams } from "react-router-dom";
+import { parseStatus } from "@/utils/helpers";
 
-const DepartmentInfo: React.FC<{ deptId: number; appId: string }> = ({
-  deptId,
-  appId,
-}) => {
+const DepartmentInfo: React.FC = () => {
+  const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
+  const deptIdNumber = Number(deptId);
+
   const { data, isLoading, error } = useGetDepartmentInfoQuery(
-    { appId, deptId },
-    { skip: !(!!deptId && !!appId) || appId.trim() === "" }
+    { appId: appId!, deptId: deptIdNumber },
+    { skip: !(!!deptId && !!appId) || appId?.trim() === "" },
   );
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [statusValue, setStatusValue] = useState<DeptStatuses>();
   const [prevStatus, setPrevStatusVal] = useState<DeptStatuses>();
+  const userDepts = useSelector(selectUserDepts);
 
   useEffect(() => {
     if (data?.data?.status) {
@@ -47,6 +52,14 @@ const DepartmentInfo: React.FC<{ deptId: number; appId: string }> = ({
   const [updateDepartmentStatus, { isLoading: isUpdatingStatus }] =
     useUpdateDepartmentStatusMutation();
 
+  if (!appId || !deptId) {
+    return (
+      <div className="border rounded p-3">
+        <p>Application Id and Department Id Not found.</p>
+      </div>
+    );
+  }
+
   const handleStatusSave = async () => {
     if (statusValue === data?.data.status) {
       setIsEditingStatus(false);
@@ -56,7 +69,7 @@ const DepartmentInfo: React.FC<{ deptId: number; appId: string }> = ({
     try {
       await updateDepartmentStatus({
         appId,
-        deptId,
+        deptId: deptIdNumber,
         payload: { status_val: statusValue ?? "" },
       }).unwrap();
 
@@ -97,20 +110,25 @@ const DepartmentInfo: React.FC<{ deptId: number; appId: string }> = ({
                       color: STATUS_COLOR_MAP_FG[data.data.status],
                       backgroundColor: STATUS_COLOR_MAP_BG[data.data.status],
                     }}
+                    className="capitalize"
                   >
-                    {data.data.status}
+                    {parseStatus(data.data.status)}
                   </Badge>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setIsEditingStatus(true);
-                      setPrevStatusVal(statusValue);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  {userDepts.includes(deptIdNumber) && (
+                    <Hint label="Update status">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsEditingStatus(true);
+                          setPrevStatusVal(statusValue);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Hint>
+                  )}
                 </>
               ) : (
                 <div className="flex items-center gap-2">
@@ -199,7 +217,7 @@ const DepartmentInfo: React.FC<{ deptId: number; appId: string }> = ({
         ) : data?.data ? (
           <CommentList
             appId={appId}
-            deptId={deptId}
+            deptId={deptIdNumber}
             commentsData={data.data.comments}
           />
         ) : (

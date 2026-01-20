@@ -18,7 +18,7 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
             email=payload.email,
             role=payload.role,
         )
-        new_user.set_password(payload.password)
+        new_user.set_password(payload.email)
         if payload.enable_mfa:
             _recovery_codes = new_user.enable_mfa()
             _mfa_uri = new_user.get_mfa_uri()
@@ -31,9 +31,30 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
             for dept_id in payload.department_ids
         ]
         db.add_all(new_usr_associations)
+        db.flush()
+        db.commit()
         db.refresh(new_user)
 
-        return a_schemas.RegisterResponse.model_validate(new_user)
+        user_depts: list[a_schemas.DepartmentInAuth] = [
+            a_schemas.DepartmentInAuth(
+                user_dept_id=link.id,
+                department_role=link.role,
+                department_id=link.department.id,
+                department_name=link.department.name,
+                department_description=link.department.description,
+            )
+            for link in new_user.department_links
+        ]
+
+        return a_schemas.UserWithDepartmentInfo(
+            id=new_user.id,
+            full_name=new_user.full_name,
+            email=new_user.email,
+            role=new_user.role,
+            created_at=new_user.created_at,
+            updated_at=new_user.updated_at,
+            departments=user_depts,
+        )
 
     except HTTPException:
         raise
@@ -41,7 +62,7 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"msg": "User create successfully", "err_stack": str(e)},
+            detail={"msg": "Error in creating new user", "err_stack": str(e)},
         )
 
 

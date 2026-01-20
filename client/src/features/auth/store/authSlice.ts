@@ -1,5 +1,5 @@
 // src\features\auth\store\authSlice.ts
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, current, type PayloadAction } from "@reduxjs/toolkit";
 import type { AuthState, UserWithDepartmentInfo } from "../types";
 import type { RootState } from "@/store/rootStore";
 
@@ -70,6 +70,9 @@ export const {
 export const selectAuth = (state: RootState) => state.auth;
 export const selectError = (state: RootState) => state.auth.error;
 export const selectIsLoading = (state: RootState) => state.auth.isLoading;
+export const selectUserDepts = (state: RootState) =>
+  state.auth.departments.map((dept) => dept.department_id);
+
 export const selectIsAuthenticated = (state: RootState) =>
   state.auth.isAuthenticated;
 export default authSlice.reducer;

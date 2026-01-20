@@ -19,6 +19,7 @@ from schemas.app_schemas import (
     AppQueryParams,
     AppStatuses,
 )
+from .comments_controller import get_latest_app_dept_comment
 from schemas.auth_schemas import UserOut
 from .department_controller import get_departments_by_application
 from typing import Any
@@ -98,7 +99,6 @@ def get_app_stats(db: Session):
         result = AppStatuses(
             in_progress=app_statuses.get("in_progress") or 0,
             not_yet_started=app_statuses.get("not_yet_started") or 0,
-            pending=app_statuses.get("pending") or 0,
             closed=app_statuses.get("closed") or 0,
             new_request=app_statuses.get("new_request") or 0,
             cancelled=app_statuses.get("cancelled") or 0,
@@ -117,7 +117,7 @@ def get_app_stats(db: Session):
         )
 
 
-def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
+def list_all_apps(db: Session, params: AppQueryParams):
     try:
         stmt = (
             select(Application)
@@ -131,9 +131,22 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
 
         sort_column = getattr(Application, params.sort_by)
 
-        if params.status:
+        if params.status and len(params.status) > 0:
             print("STATUS LIST", params.status)
             stmt = stmt.where(Application.status.in_(params.status))
+
+        latest_comment = None
+
+        if params.dept_filter_id and params.dept_status and len(params.dept_status) > 0:
+            stmt = stmt.join(
+                ApplicationDepartments,
+                ApplicationDepartments.application_id == Application.id,
+            ).where(
+                and_(
+                    ApplicationDepartments.department_id == params.dept_filter_id,
+                    ApplicationDepartments.status.in_(params.dept_status),
+                )
+            )
 
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
@@ -175,6 +188,10 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
 
         apps_out: list[NewAppListOut] = []
         for app in apps:
+            if params.dept_filter_id:
+                latest_comment = get_latest_app_dept_comment(
+                    app_id=app.id, dept_id=params.dept_filter_id, db=db
+                )
             depts_out = get_departments_by_application(app_id=app.id, db=db)
             data = NewAppListOut(
                 id=app.id,
@@ -188,8 +205,10 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
                 app_priority=app.app_priority,
                 started_at=app.created_at,
                 completed_at=app.completed_at,
-                due_date=app.due_date,
                 departments=depts_out,
+                app_url=app.app_url,
+                vendor_company=app.vendor_company,
+                latest_comment=latest_comment,
             )
             apps_out.append(data)
 
@@ -210,6 +229,9 @@ def list_all_apps(db: Session, user: UserOut, params: AppQueryParams):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching applications.",
         )
+
+
+# def dept_wise_list_apps(db: Session, params: )
 
 
 def update_app(

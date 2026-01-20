@@ -1,5 +1,6 @@
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "../departments/types";
+import type { CommentOut } from "../comments/types";
 
 // app_schemas.ts
 export interface ApplicationCreate {
@@ -86,8 +87,10 @@ export interface NewAppListOut {
   app_priority?: number | null;
   started_at?: string | null;
   completed_at?: string | null;
-  due_date?: string | null;
+  app_url?: string;
+  vendor_company?: string;
   departments?: AppDepartmentOut[] | null;
+  latest_comment?: CommentOut;
 }
 
 export interface AppQueryParams {
@@ -105,12 +108,13 @@ export interface AppQueryParams {
   page?: number;
   page_size?: number;
   status?: string[];
+  dept_filter_id?: string;
+  dept_status?: string;
 }
 
 export interface AppStatusStats {
   in_progress: number;
   not_yet_started: number;
-  pending: number;
   closed: number;
   new_request: number;
   cancelled: number;

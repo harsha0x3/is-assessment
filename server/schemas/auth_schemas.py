@@ -72,7 +72,6 @@ class RoleEnum(str, Enum):
 class RegisterPayload(BaseModel):
     full_name: str
     email: EmailStr
-    password: str
 
     role: RoleEnum = RoleEnum.user
     enable_mfa: bool = False
@@ -110,6 +109,21 @@ class LoginResponse(BaseModel):
     requires_mfa: bool
     challenge_token: str | None = None
     tokens: Tokens | None | None
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordPayload(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
+
+class OTPEmailPaylod(UserOut, BaseModel):
+    otp: str
+    expires_in: datetime
 
 
 class MFAVerifyRequest(BaseModel):

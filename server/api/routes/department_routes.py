@@ -8,6 +8,9 @@ from services.auth.deps import require_moderator, require_admin
 from schemas.auth_schemas import UserOut
 from typing import Annotated
 from pydantic import BaseModel
+from services.auth.permissions import is_user_of_dept
+from fastapi import HTTPException, status
+
 
 router = APIRouter(prefix="/departments", tags=["departments"])
 
@@ -110,10 +113,23 @@ def update_department_status(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(require_moderator)],
 ):
-    data = dept_ctrl.change_department_app_status(
-        app_id=app_id,
-        dept_id=dept_id,
-        status_val=payload.status_val,
-        db=db,
-    )
-    return {"msg": "Department status updated successfully", "data": data}
+    try:
+        if not is_user_of_dept(dept_id=dept_id, user_id=current_user.id, db=db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access Denied to update status",
+            )
+        data = dept_ctrl.change_department_app_status(
+            app_id=app_id,
+            dept_id=dept_id,
+            status_val=payload.status_val,
+            db=db,
+        )
+        return {"msg": "Department status updated successfully", "data": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error in up[dating department status",
+        )

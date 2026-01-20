@@ -6,6 +6,8 @@ import type {
   AllUsersWithDepartments,
   UserWithDepartmentInfo,
   UserUpdateRequest,
+  RegisterResponse,
+  RegisterRequest,
 } from "@/features/auth/types";
 
 export interface AllUsersResponse {
@@ -27,6 +29,18 @@ const userManagementApiSlice = rootApiSlice.injectEndpoints({
       providesTags: ["AllUsers"],
     }),
 
+    createUser: builder.mutation<
+      ApiResponse<RegisterResponse>,
+      { payload: RegisterRequest }
+    >({
+      query: ({ payload }) => ({
+        url: "/user-management/register",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["AllUsers"],
+    }),
+
     // ➤ Update user profile
     updateUserProfile: builder.mutation<
       ApiResponse<UserWithDepartmentInfo>,
@@ -46,6 +60,7 @@ export const {
   useGetAllUsersQuery,
   useGetMeQuery,
   useUpdateUserProfileMutation,
+  useCreateUserMutation,
 } = userManagementApiSlice;
 
 export default userManagementApiSlice;

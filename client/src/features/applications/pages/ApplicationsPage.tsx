@@ -7,10 +7,12 @@ import useApplications from "../hooks/useApplications";
 import AppsTable from "../components/AppsTable";
 import { Button } from "@/components/ui/button";
 import StatusProgressBar from "../components/StatusProgressBar";
+import { useSearchParams } from "react-router-dom";
+import { parseDept } from "@/utils/helpers";
 
 const ApplicationsPage: React.FC = () => {
   const NewAppDialog = lazy(
-    () => import("@/features/applications/components/NewAppDialog")
+    () => import("@/features/applications/components/NewAppDialog"),
   );
 
   const {
@@ -25,20 +27,11 @@ const ApplicationsPage: React.FC = () => {
     debouncedSearch,
   } = useApplications();
   const [openNewApp, setIsopenNewApp] = useState<boolean>(false);
-  if (!filteredApps || filteredApps === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">No applications found</p>
-    );
-  }
-
-  if (!filteredApps || filteredApps === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">No applications found</p>
-    );
-  }
 
   const start = (appPage - 1) * appPageSize + 1;
   const end = Math.min(start + appPageSize - 1, filteredApps);
+  const [searchParams] = useSearchParams();
+  const departmentView = searchParams.get("view");
 
   const isFiltered = debouncedSearch || totalApps !== filteredApps;
 
@@ -81,8 +74,14 @@ const ApplicationsPage: React.FC = () => {
 
             <AppFilters />
           </div>
-          <div className="flex items-center">
-            <p className="text-sm text-muted-foreground">
+          {departmentView && (
+            <p>
+              <span className="text-muted-foreground">Department:</span>{" "}
+              {parseDept(departmentView)}
+            </p>
+          )}
+          <div className="flex items-center ">
+            <p className="text-sm text-muted-foreground md:whitespace-nowrap">
               Showing{" "}
               <span className="font-medium text-foreground">
                 {start}–{end}
@@ -91,16 +90,19 @@ const ApplicationsPage: React.FC = () => {
               <span className="font-medium text-foreground">
                 {filteredApps}
               </span>{" "}
+              applications
               {isFiltered && (
                 <>
-                  (Filtered from{" "}
+                  {" "}
+                  (filtered from{" "}
                   <span className="font-medium text-foreground">
                     {totalApps}
-                  </span>{" "}
-                  Total)
+                  </span>
+                  )
                 </>
               )}
             </p>
+
             <AppPagination />
           </div>
         </div>

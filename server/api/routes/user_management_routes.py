@@ -12,7 +12,6 @@ from schemas.auth_schemas import (
     RegisterRequest,
     UserUpdateRequest,
     UserOut,
-    UserWithDepartmentInfo,
 )
 from api.controllers import user_management_controller as usr_ctrl
 
@@ -25,7 +24,7 @@ async def register(
     db: Annotated[Session, Depends(get_db_conn)],
     response: Annotated[Response, "response to pass down to set cookies"],
     current_user: Annotated[
-        UserOut, Depends(get_current_user), "Fetching logged in user details"
+        UserOut, Depends(require_admin), "Fetching logged in user details"
     ],
 ) -> Annotated[
     dict[str, Any], "Registers users and returns mfa uri and registration status"

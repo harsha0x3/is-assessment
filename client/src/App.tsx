@@ -8,24 +8,25 @@ import { Loader } from "lucide-react";
 import { useGetMeQuery } from "./features/auth/store/authApiSlice";
 import ApplicationsLayout from "./layouts/ApplicationsLayout";
 import AppInfoDialog from "./features/applications/components/AppInfoDialog";
+import DepartmentInfo from "./features/departments/components/DepartmentInfo";
 
 function App() {
   const { data: _data } = useGetMeQuery();
 
   const UserManagementPage = lazy(
-    () => import("./features/user_management/pages/UserManagementPage")
+    () => import("./features/user_management/pages/UserManagementPage"),
   );
   const AppDepartments = lazy(
-    () => import("./features/departments/components/AppDepartments")
+    () => import("./features/departments/components/AppDepartments"),
   );
   const AppOverview = lazy(
-    () => import("./features/applications/components/AppOverview")
+    () => import("./features/applications/components/AppOverview"),
   );
   const DashboardPage = lazy(
-    () => import("./features/dashboard/pages/DashboardPage")
+    () => import("./features/dashboard/pages/DashboardPage"),
   );
   const EvidencesTab = lazy(
-    () => import("./features/evidences/components/EvidencesTab")
+    () => import("./features/evidences/components/EvidencesTab"),
   );
 
   return (
@@ -86,7 +87,9 @@ function App() {
                           <AppDepartments />
                         </Suspense>
                       }
-                    />
+                    >
+                      <Route path=":deptId" element={<DepartmentInfo />} />
+                    </Route>
                     <Route
                       path="evidences"
                       element={

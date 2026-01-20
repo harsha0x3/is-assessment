@@ -9,6 +9,7 @@ import type {
 import type { ApiResponse } from "@/store/rootTypes";
 import { rootApiSlice } from "@/store/rootApiSlice";
 import type { EvidenceOut } from "@/features/evidences/types";
+import type { AppStatuses } from "@/utils/globalTypes";
 
 export const applicationsApiSlice = rootApiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -84,8 +85,8 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
                 if (draft?.data) {
                   Object.assign(draft.data, data.data);
                 }
-              }
-            )
+              },
+            ),
           );
         } catch {}
       },
@@ -101,7 +102,7 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
       ApiResponse<ApplicationOut>,
       {
         appId: string;
-        status_val: "pending" | "completed" | "cancelled" | "in_progress";
+        status_val: AppStatuses;
       }
     >({
       query: ({ appId, status_val }) => ({

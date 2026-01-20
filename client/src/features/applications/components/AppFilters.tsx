@@ -14,26 +14,25 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SlidersHorizontalIcon } from "lucide-react";
+import { Check, SlidersHorizontalIcon } from "lucide-react";
 
 const AppFilters: React.FC = () => {
-  const { updateSearchParams } = useApplications();
+  const { updateSearchParams, appSearchBy, appSortBy, appSortOrder } =
+    useApplications();
 
   const validSearchBys = [
     { name: "Name" },
     { ticket_id: "Ticket ID" },
     { environment: "Environment" },
-    { region: "Region" },
-    { owner_name: "Owner Name" },
     { vendor_company: "Vendor Company" },
     { vertical: "Vertical" },
   ];
 
   const validSortBys = [
-    { updated_at: "Updated Date" },
     { name: "Name" },
-    { created_at: "Created Date" },
-    // { priority: "Priority" },
+    { created_at: "Start Date" },
+    { updated_at: "Updated Date" },
+    { app_priority: "Priority" },
   ];
 
   return (
@@ -59,6 +58,8 @@ const AppFilters: React.FC = () => {
                       data-value={val}
                       onClick={() => updateSearchParams({ appSearchBy: val })}
                     >
+                      {appSearchBy == val && <Check />}
+
                       {label}
                     </DropdownMenuItem>
                   );
@@ -78,6 +79,7 @@ const AppFilters: React.FC = () => {
                     updateSearchParams({ appSortOrder: "asc", appPage: 1 })
                   }
                 >
+                  {appSortOrder == "asc" && <Check />}
                   Ascending
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -86,6 +88,7 @@ const AppFilters: React.FC = () => {
                     updateSearchParams({ appSortOrder: "desc", appPage: 1 })
                   }
                 >
+                  {appSortOrder == "desc" && <Check />}
                   Descending
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
@@ -106,6 +109,8 @@ const AppFilters: React.FC = () => {
                         updateSearchParams({ appSortBy: val, appPage: 1 })
                       }
                     >
+                      {appSortBy == val && <Check />}
+
                       {label}
                     </DropdownMenuItem>
                   );

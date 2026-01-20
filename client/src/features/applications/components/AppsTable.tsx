@@ -19,27 +19,264 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { AppDeptData } from "@/features/departments/components/AppDepartmentDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import DescriptionCell from "@/components/ui/description-cell";
 import { parseDate, parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
-import { StatusHeaderFilter } from "./AppsTableHeaders";
+import {
+  AppStatusHeaderFilter,
+  DeptStatusHeaderFilter,
+} from "./AppsTableHeaders";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
 import { Dot, Loader } from "lucide-react";
+// import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
 
 const AppsTable: React.FC = () => {
-  const AppDepartmentDialog = lazy(
-    () => import("@/features/departments/components/AppDepartmentDialog")
-  );
-
   const { data: appsData, isLoading: isAppsLoading } = useApplications();
-  const [showDeptDialog, setShowDeptDialog] = useState(false);
-  const [deptDialogProps, setDeptDialogProps] = useState<AppDeptData | null>();
+  // const { data: departments, isLoading: isLoadingDepts } =
+  //   useGetAllDepartmentsQuery();
   const navigate = useNavigate();
   const colHelper = createColumnHelper<NewAppListOut>();
+  const [searchParams] = useSearchParams();
+  const departmentView = searchParams.get("view");
+  type DeptKey =
+    | "vapt"
+    | "tprm"
+    | "security_controls"
+    | "iam"
+    | "soc_integration";
+
+  const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
+    vapt: [
+      colHelper.display({
+        id: "vapt_status",
+        minSize: 140,
+        maxSize: 140,
+        header: () => {
+          return <DeptStatusHeaderFilter deptName="VAPT" />;
+        },
+        cell: ({ row }) => {
+          const dept = row.original.departments?.find(
+            (d) => d.name.toLowerCase() == "vapt",
+          );
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className="capitalize"
+                style={{
+                  backgroundColor:
+                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
+                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
+                }}
+              >
+                {parseStatus(dept?.status ?? "yet_to_connect")}
+              </Badge>
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("app_url", {
+        header: "App URL",
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
+    ],
+
+    tprm: [
+      colHelper.accessor("vendor_company", {
+        header: "Vendor",
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
+      colHelper.display({
+        id: "tprm_status",
+        minSize: 140,
+        maxSize: 140,
+        header: () => {
+          return <DeptStatusHeaderFilter deptName="TPRM" />;
+        },
+        cell: ({ row }) => {
+          const dept = row.original.departments?.find(
+            (d) => d.name.toLowerCase() == "tprm",
+          );
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className="capitalize"
+                style={{
+                  backgroundColor:
+                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
+                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
+                }}
+              >
+                {parseStatus(dept?.status ?? "yet_to_connect")}
+              </Badge>
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
+
+    security_controls: [
+      colHelper.display({
+        id: "security_controls_status",
+        minSize: 140,
+        maxSize: 140,
+        header: () => {
+          return <DeptStatusHeaderFilter deptName="Security Controls" />;
+        },
+
+        cell: ({ row }) => {
+          const dept = row.original.departments?.find(
+            (d) => d.name.toLowerCase() == "security controls",
+          );
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className="capitalize"
+                style={{
+                  backgroundColor:
+                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
+                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
+                }}
+              >
+                {parseStatus(dept?.status ?? "yet_to_connect")}
+              </Badge>
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
+    iam: [
+      colHelper.display({
+        id: "iam_status",
+        minSize: 140,
+        maxSize: 140,
+        header: () => {
+          return <DeptStatusHeaderFilter deptName="IAM" />;
+        },
+
+        cell: ({ row }) => {
+          const dept = row.original.departments?.find(
+            (d) => d.name.toLowerCase() == "iam",
+          );
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className="capitalize"
+                style={{
+                  backgroundColor:
+                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
+                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
+                }}
+              >
+                {parseStatus(dept?.status ?? "yet_to_connect")}
+              </Badge>
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
+    soc_integration: [
+      colHelper.display({
+        id: "soc_status",
+        minSize: 140,
+        maxSize: 140,
+        header: () => {
+          return <DeptStatusHeaderFilter deptName="SOC" />;
+        },
+
+        cell: ({ row }) => {
+          const dept = row.original.departments?.find(
+            (d) => d.name.toLowerCase() == "soc integration",
+          );
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className="capitalize"
+                style={{
+                  backgroundColor:
+                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
+                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
+                }}
+              >
+                {parseStatus(dept?.status ?? "yet_to_connect")}
+              </Badge>
+            </div>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
+  };
 
   // const deptCols = useMemo<ColumnDef<NewAppListOut, any>[]>(() => {
   //   if (!Array.isArray(departments?.data)) {
@@ -53,7 +290,7 @@ const AppsTable: React.FC = () => {
   //         minSize: 120,
   //         cell: ({ row }) => {
   //           const appDept = row.original.departments?.find(
-  //             (d) => d.name === dept.name
+  //             (d) => d.name === dept.name,
   //           );
   //           if (!appDept) return "-";
   //           return (
@@ -62,30 +299,15 @@ const AppsTable: React.FC = () => {
   //                 variant="ghost"
   //                 size="sm"
   //                 className={`group/dept`}
-  //                 onClick={() => {
-  //                   setShowDeptDialog(true);
-  //                   setDeptDialogProps({
-  //                     deptId: appDept.id,
-  //                     appId: row.original.id,
-  //                     appName: row.original.name,
-  //                     deptName: appDept.name,
-  //                   });
-  //                 }}
   //                 asChild
   //               >
   //                 <Badge
   //                   variant="outline"
-  //                   className={`relative overflow-hidden text-xs ${
-  //                     appDept.status === "pending"
-  //                       ? "bg-amber-300/35 text-amber-600"
-  //                       : appDept.status === "in-progress"
-  //                       ? "bg-blue-300/35 text-blue-600"
-  //                       : appDept.status === "completed"
-  //                       ? "bg-green-300/35 text-green-600"
-  //                       : appDept.status === "rejected"
-  //                       ? "bg-red-300/35 text-red-600"
-  //                       : ""
-  //                   }`}
+  //                   className={`relative overflow-hidden text-xs`}
+  //                   style={{
+  //                     backgroundColor: STATUS_COLOR_MAP_BG[appDept.status],
+  //                     color: STATUS_COLOR_MAP_FG[appDept.status],
+  //                   }}
   //                 >
   //                   {/* Default text */}
   //                   <span className="block transition-opacity duration-200 group-hover/dept:opacity-0">
@@ -102,86 +324,103 @@ const AppsTable: React.FC = () => {
   //             </div>
   //           );
   //         },
-  //       })
+  //       }),
   //     );
   //   }
   //   return [];
   // }, [departments, isLoadingDepts]);
 
-  const columns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
-    if (!isAppsLoading) {
+  const baseColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
+    return [
+      colHelper.accessor("name", {
+        header: "Name",
+        minSize: 280,
+        maxSize: 550,
+        cell: ({ row, getValue }) => (
+          <Button
+            variant="link"
+            className="p-0 h-auto text-left"
+            onClick={() => {
+              navigate(`/applications/details/${row.original.id}/overview`, {
+                state: { appName: row.original.name },
+              });
+            }}
+          >
+            <span className="whitespace-normal wrap-break-word">
+              {getValue()}
+            </span>
+          </Button>
+        ),
+      }),
+
+      colHelper.accessor("description", {
+        header: "Description",
+        maxSize: 400,
+        minSize: 220,
+        cell: (info) => {
+          const content: string = info.getValue() ?? "-";
+          return <DescriptionCell content={content} />;
+        },
+      }),
+
+      colHelper.accessor("vertical", {
+        header: "Vertical",
+        maxSize: 180,
+        minSize: 120,
+        cell: (info) => {
+          return <span>{info.getValue()}</span>;
+        },
+      }),
+
+      ...(!departmentView
+        ? [
+            colHelper.accessor("started_at", {
+              header: "Start Date",
+              maxSize: 100,
+              minSize: 80,
+              cell: (info) => {
+                const startDate = parseDate(info.getValue());
+                return <div className=" w-full">{startDate}</div>;
+              },
+            }),
+            colHelper.accessor("status", {
+              header: () => <AppStatusHeaderFilter />,
+              maxSize: 140,
+              minSize: 80,
+              cell: (info) => {
+                const status: AppStatuses = info.getValue();
+                return (
+                  <div className=" w-full pl-4">
+                    <Badge
+                      className="capitalize"
+                      style={{
+                        backgroundColor: STATUS_COLOR_MAP_BG[status],
+                        color: STATUS_COLOR_MAP_FG[status],
+                      }}
+                    >
+                      {parseStatus(status)}
+                    </Badge>
+                  </div>
+                );
+              },
+            }),
+          ]
+        : []),
+
+      colHelper.accessor("imitra_ticket_id", {
+        header: "iMitra Ticket ID",
+        minSize: 90,
+        maxSize: 120,
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
+    ];
+  }, []);
+
+  const departmentColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
+    if (!departmentView)
       return [
-        colHelper.accessor("name", {
-          header: "Name",
-          minSize: 280,
-          maxSize: 550,
-          cell: ({ row, getValue }) => (
-            <Button
-              variant="link"
-              className="p-0 h-auto text-left"
-              onClick={() => {
-                navigate(`/applications/details/${row.original.id}/overview`, {
-                  state: { appName: row.original.name },
-                });
-              }}
-            >
-              <span className="whitespace-normal wrap-break-word">
-                {getValue()}
-              </span>
-            </Button>
-          ),
-        }),
-
-        colHelper.accessor("description", {
-          header: "Description",
-          maxSize: 400,
-          minSize: 220,
-          cell: (info) => {
-            const content: string = info.getValue() ?? "-";
-            return <DescriptionCell content={content} />;
-          },
-        }),
-
-        colHelper.accessor("vertical", {
-          header: "Vertical",
-          maxSize: 180,
-          minSize: 120,
-          cell: (info) => {
-            return <span>{info.getValue()}</span>;
-          },
-        }),
-
-        colHelper.accessor("started_at", {
-          header: "Start Date",
-          maxSize: 100,
-          minSize: 80,
-          cell: (info) => {
-            const startDate = parseDate(info.getValue());
-            return <div className=" w-full">{startDate}</div>;
-          },
-        }),
-        colHelper.accessor("status", {
-          header: () => <StatusHeaderFilter />,
-          maxSize: 180,
-          minSize: 100,
-          cell: (info) => {
-            const status: AppStatuses = info.getValue();
-            return (
-              <div className=" w-full pl-4">
-                <Badge
-                  className="capitalize"
-                  style={{
-                    backgroundColor: STATUS_COLOR_MAP_BG[status],
-                    color: STATUS_COLOR_MAP_FG[status],
-                  }}
-                >
-                  {parseStatus(status)}
-                </Badge>
-              </div>
-            );
-          },
-        }),
-
         colHelper.accessor("departments", {
           header: "Departments",
           minSize: 220,
@@ -194,9 +433,8 @@ const AppsTable: React.FC = () => {
                   return "IAM";
                 case "tprm":
                   return "TPRM";
-
-                case "cloud security":
-                  return "Cloud Sec";
+                case "security controls":
+                  return "Sec Controls";
                 case "vapt":
                   return "VAPT";
                 case "soc integration":
@@ -231,15 +469,19 @@ const AppsTable: React.FC = () => {
                     </Hint>
                   ))}
                 </div>
-                {/* <span className="text-xs text-muted-foreground">
-                  {Object.entries(counts)
-                    .map(([k, v]) => `${v} ${parseStatus(k as any)}`)
-                    .join(" · ")}
-                </span> */}
               </div>
             );
           },
         }),
+      ];
+    return DEPARTMENT_COLUMNS[departmentView as DeptKey] ?? [];
+  }, [departmentView]);
+
+  const columns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
+    if (!isAppsLoading) {
+      return [
+        ...baseColumns,
+        ...departmentColumns,
 
         // colHelper.accessor("completed_at", {
         //   header: "End Date",
@@ -269,18 +511,6 @@ const AppsTable: React.FC = () => {
   });
   return (
     <div className="w-full h-full overflow-x-auto overflow-y-auto border rounded-md">
-      {showDeptDialog && deptDialogProps && (
-        <Suspense fallback={<div>Loading department dialog</div>}>
-          <AppDepartmentDialog
-            data={deptDialogProps}
-            isOpen={showDeptDialog}
-            onOpenChange={() => {
-              setDeptDialogProps(null);
-              setShowDeptDialog(false);
-            }}
-          />
-        </Suspense>
-      )}
       <Table
         style={{
           width: table.getCenterTotalSize(),
@@ -305,7 +535,7 @@ const AppsTable: React.FC = () => {
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                   {header.column.getCanResize() && (
                     <div

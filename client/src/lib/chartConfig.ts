@@ -14,10 +14,7 @@ export const donutChartConfig: ChartConfig = {
     label: "In Progress",
     color: "var(--status-in-progress-fg)",
   },
-  pending: {
-    label: "Pending",
-    color: "var(--status-pending-fg)",
-  },
+
   completed: {
     label: "Completed",
     color: "var(--status-completed-fg)",

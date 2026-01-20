@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useLoginMutation } from "../store/authApiSlice";
 import { setError, selectAuth, loginSuccess } from "../store/authSlice";
@@ -24,7 +24,13 @@ import { Loader, Lock, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "./PasswordInput";
 import { useNavigate } from "react-router-dom";
-const LoginForm: React.FC = () => {
+import { getApiErrorMessage } from "@/utils/handleApiError";
+
+interface LoginFormProps {
+  onForgotPasswordClick?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
   const navigate = useNavigate();
   const auth = useSelector(selectAuth);
   const dispatch = useDispatch();
@@ -50,14 +56,8 @@ const LoginForm: React.FC = () => {
       navigate("/dashboard");
       return;
     } catch (err: unknown) {
-      if ((err as FetchBaseQueryError)?.data) {
-        const apiError = (err as FetchBaseQueryError).data as {
-          detail: string;
-        };
-        dispatch(setError(apiError.detail));
-      } else {
-        dispatch(setError("Login failed"));
-      }
+      const errMsg = getApiErrorMessage(err) ?? "Login Failed";
+      dispatch(setError(errMsg));
     }
   };
   return (
@@ -91,12 +91,22 @@ const LoginForm: React.FC = () => {
 
           {/* Password */}
           <div className="grid gap-2">
-            <Label>Password</Label>
+            <div className="flex items-center justify-between">
+              <Label>Password</Label>
+              {onForgotPasswordClick && (
+                <button
+                  type="button"
+                  onClick={onForgotPasswordClick}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <PasswordInput
                 {...register("password", { required: true })}
-                type="password"
                 placeholder="Enter password"
                 className=""
               />

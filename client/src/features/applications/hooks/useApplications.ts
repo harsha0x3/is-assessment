@@ -6,7 +6,7 @@ import { useListAllAppsQuery } from "@/features/applications/store/applicationsA
 export const useApplications = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const appPage = parseInt(searchParams.get("appPage") || "1", 10);
+  const rawAppPage = parseInt(searchParams.get("appPage") || "1", 10);
   const appPageSize = parseInt(searchParams.get("appPageSize") || "15", 10);
   const appSortBy = searchParams.get("appSortBy") || "created_at";
   const appSortOrder = (searchParams.get("appSortOrder") || "desc") as
@@ -22,35 +22,40 @@ export const useApplications = () => {
     | "ticket_id";
   const appSearchValue = searchParams.get("appSearch") || "";
   const appStatus = searchParams.get("appStatus");
+  const deptStatus = searchParams.get("deptStatus");
+  const deptFilterId = searchParams.get("deptFilterId");
+  const appPage = rawAppPage === -1 ? 1 : rawAppPage;
 
   const appStatusList = appStatus
     ? appStatus.split(",").filter(Boolean)
     : undefined;
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [lastAppPage, setLastAppPage] = useState(appPage);
+  const [lastAppPage, setLastAppPage] = useState(rawAppPage);
 
   const { data, isSuccess, isError, error, isLoading } = useListAllAppsQuery(
     {
-      page: appPage,
+      page: rawAppPage,
       page_size: appPageSize,
       sort_by: appSortBy,
       sort_order: appSortOrder,
       search: debouncedSearch || "",
       search_by: appSearchBy,
       status: appStatusList,
+      dept_filter_id: deptFilterId ?? undefined,
+      dept_status: deptStatus ?? undefined,
     },
-    { refetchOnMountOrArgChange: true }
+    { refetchOnMountOrArgChange: true },
   );
 
-  const totalApps = useMemo(() => data?.data?.total_count, [data]);
-  const filteredApps = useMemo(() => data?.data?.filtered_count, [data]);
+  const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
+  const filteredApps = useMemo(() => data?.data?.filtered_count ?? 0, [data]);
   const appStatusStats = useMemo(() => data?.data?.app_stats, [data]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       if (appSearchValue && appSearchValue.trim() !== "") {
-        if (appPage >= 1) setLastAppPage(appPage);
+        if (rawAppPage >= 1) setLastAppPage(rawAppPage);
         updateSearchParams({
           appSearch: appSearchValue,
           appSearchBy: appSearchBy,
@@ -67,7 +72,7 @@ export const useApplications = () => {
   }, [appSearchValue]);
 
   const updateSearchParams = (
-    updates: Record<string, string | number | null | undefined>
+    updates: Record<string, string | number | null | undefined>,
   ) => {
     const newParams = new URLSearchParams(searchParams);
     Object.entries(updates).forEach(([key, value]) => {

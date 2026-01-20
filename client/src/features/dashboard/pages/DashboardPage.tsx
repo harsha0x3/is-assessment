@@ -51,6 +51,7 @@ const DashboardPage: React.FC = () => {
             <DepartmentStatusCard
               key={dept.department}
               department={dept.department}
+              deptId={dept.department_id}
               statuses={dept.statuses}
             />
           ))}

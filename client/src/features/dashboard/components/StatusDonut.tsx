@@ -16,7 +16,7 @@ const StatusCard: React.FC<{
 }> = ({ data }) => {
   return (
     <div className="flex flex-col gap-0.5 border px-2 py-1 rounded-md shadow-card">
-      <p className="text-muted-foreground font-medium capitalize flex items-center gap-2">
+      <p className="font-medium capitalize flex items-center gap-2">
         {parseStatus(data.name)}
 
         <span

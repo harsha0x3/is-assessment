@@ -19,3 +19,5 @@ from .pre_assessment.questions import Question
 from .pre_assessment.submissions import Submission
 
 from .pre_assessment.pre_assess_drafts import PreAssessmentResDraft
+
+from .core.otps import PasswordResetOtp

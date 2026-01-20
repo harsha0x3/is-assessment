@@ -40,28 +40,31 @@
   --sidebar-border: oklch(0.94 0 0);
   --sidebar-ring: oklch(0.77 0 0);
 
-  --font-sans: Roboto, "Geist", "Geist Fallback", ui-sans-serif, system-ui,
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial,
-    "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
-  --font-serif: "Geist", "Geist Fallback", ui-serif, Georgia, Cambria,
-    "Times New Roman", Times, serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular,
-    Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans:
+    Roboto, "Geist", "Geist Fallback", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+  --font-serif:
+    "Geist", "Geist Fallback", ui-serif, Georgia, Cambria, "Times New Roman",
+    Times, serif;
+  --font-mono:
+    "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --radius: 0.5rem;
 
   --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
   --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 1px 2px -1px oklch(0 0 0 / 0.1);
+  --shadow-sm:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
   --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
-  --shadow-md: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 2px 4px -1px oklch(0 0 0 / 0.1);
-  --shadow-lg: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 4px 6px -1px oklch(0 0 0 / 0.1);
-  --shadow-xl: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 8px 10px -1px oklch(0 0 0 / 0.1);
+  --shadow-md:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
 
   --app-header-height: 3rem;
@@ -78,9 +81,9 @@
   --status-in-progress-bg: hsl(215 95% 94%);
   --status-in-progress-fg: hsl(215 90% 45%);
 
-  /* Yellow — Pending */
-  --status-pending-bg: hsl(42 95% 90%);
-  --status-pending-fg: hsl(42 90% 42%);
+  /* Yellow — Hold */
+  --status-hold-bg: hsl(42 95% 90%);
+  --status-hold-fg: hsl(42 90% 42%);
 
   /* Green — Completed */
   --status-completed-bg: hsl(145 80% 92%);
@@ -134,15 +137,15 @@
 
   --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
   --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 1px 2px -1px oklch(0 0 0 / 0.1);
+  --shadow-sm:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
   --shadow: 0 1px 3px 0px oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
-  --shadow-md: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 2px 4px -1px oklch(0 0 0 / 0.1);
-  --shadow-lg: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 4px 6px -1px oklch(0 0 0 / 0.1);
-  --shadow-xl: 0 1px 3px 0px oklch(0 0 0 / 0.1),
-    0 8px 10px -1px oklch(0 0 0 / 0.1);
+  --shadow-md:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 2px 4px -1px oklch(0 0 0 / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 4px 6px -1px oklch(0 0 0 / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px oklch(0 0 0 / 0.1), 0 8px 10px -1px oklch(0 0 0 / 0.1);
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
   /* 
   --status-new-request-bg: hsl(270 50% 20%);
@@ -154,8 +157,8 @@
   --status-in-progress-bg: hsl(215 50% 20%);
   --status-in-progress-fg: hsl(215 85% 75%);
 
-  --status-pending-bg: hsl(48 60% 20%);
-  --status-pending-fg: hsl(48 90% 70%);
+  --status-hold-bg: hsl(48 60% 20%);
+  --status-hold-fg: hsl(48 90% 70%);
 
   --status-completed-bg: hsl(145 45% 20%);
   --status-completed-fg: hsl(145 75% 65%);
