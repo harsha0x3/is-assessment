@@ -163,8 +163,8 @@ export const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
     <div className="w-full max-w-xs space-y-2">
       {/* <Label htmlFor={"status-filter-trigger"}>Status Filter</Label> */}
       <Popover>
-        <PopoverTrigger asChild>
-          <Hint label={`Status of ${deptName}`}>
+        <Hint label={`Status of ${deptName}`}>
+          <PopoverTrigger asChild>
             <Button
               id={"status-filter-trigger"}
               variant="outline"
@@ -186,8 +186,8 @@ export const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
                 aria-hidden="true"
               />
             </Button>
-          </Hint>
-        </PopoverTrigger>
+          </PopoverTrigger>
+        </Hint>
         <PopoverContent className="w-64 p-0">
           <Command>
             <CommandList>
