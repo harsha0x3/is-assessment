@@ -18,12 +18,12 @@ from pydantic import BaseModel
 
 from api.controllers.application_controller import (
     create_app,
-    delete_app,
-    list_apps_with_details,
-    restore_app,
+    # delete_app,
+    # list_apps_with_details,
+    # restore_app,
     update_app,
-    get_trashed_apps,
-    list_apps,
+    # get_trashed_apps,
+    # list_apps,
     get_app_details,
     list_all_apps,
     change_app_status,
@@ -87,9 +87,11 @@ async def new_list_all_apps(
     ] = None,
     dept_filter_id: Annotated[int | None, Query()] = None,
     dept_status: Annotated[str | None, Query()] = None,
+    app_priority: Annotated[str | None, Query()] = None,
 ):
     status_list = status.split(",") if status else []
     dept_status_list = dept_status.split(",") if dept_status else []
+    app_priority_list = app_priority.split(",") if app_priority else []
     params = AppQueryParams(
         sort_by=sort_by,
         sort_order=sort_order,
@@ -100,6 +102,7 @@ async def new_list_all_apps(
         status=status_list,
         dept_filter_id=dept_filter_id,
         dept_status=dept_status_list,
+        app_priority=app_priority_list,
     )
     data = list_all_apps(
         db=db,
@@ -160,160 +163,6 @@ async def update_applicaion_status(
     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
 ):
     data = change_app_status(app_id=app_id, status_val=payload.status_val, db=db)
-    return {"msg": "", "data": data}
-
-
-# ---------- NOT USED --------------
-
-
-@router.delete("/{app_id}")
-async def delete_application(
-    app_id: Annotated[str, Path(title="App Id of the app to be updated")],
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-) -> dict[str, Any]:
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.full_name}",
-        )
-    data = delete_app(app_id, db, current_user)
-    return {"msg": "", "data": data}
-
-
-@router.patch("/restore/{app_id}")
-async def restore_app_from_trash(
-    app_id: Annotated[str, Path(title="App Id of the app to be updated")],
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-):
-    # return {"msg": "Hello"}
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.full_name}",
-        )
-    data = restore_app(app_id=app_id, db=db)
-    return {"msg": "", "data": data}
-
-
-@router.get("/trash")
-async def get_apps_in_trash(
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-):
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You are not authorised {current_user.full_name}",
-        )
-    data = get_trashed_apps(db=db)
-    return {"msg": "", "data": data}
-
-
-@router.patch("/{app_id}/set-priority")
-def set_app_priority(
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-    priority_val: Annotated[
-        PriorityVal,
-        Body(description="Priority value 1 = Low, 2 = Medium, 3 = High"),
-    ],
-    app_id: Annotated[str, Path(title="App Id of the app to be updated")],
-):
-    app = db.get(Application, app_id)
-    if not app:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
-        )
-
-    is_assigned = any(
-        any(a.user_id == current_user.id for a in checklist.assignments)
-        for checklist in app.checklists
-    )
-
-    if not is_assigned and current_user.role not in ["admin", "moderator"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorised to edit this app",
-        )
-    app.set_priority_for_user(
-        user_id=current_user.id, db=db, priority_val=priority_val.priority_val
-    )
-
-
-# -------------- OLD ----------
-
-
-@router.get("")
-async def get_apps(
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-    sort_by: Annotated[str, Query()] = "created_at",
-    sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
-    search: Annotated[str | None, Query()] = None,
-    page: Annotated[int, Query()] = 1,
-    page_size: Annotated[int, Query()] = 15,
-    search_by: Annotated[
-        Literal[
-            "name",
-            "environment",
-            "region",
-            "owner_name",
-            "vendor_company",
-            "vertical",
-            "ticket_id",
-        ],
-        Query(),
-    ] = "name",
-):
-    params = AppQueryParams(
-        sort_by=sort_by,
-        sort_order=sort_order,
-        search=search,
-        page=page,
-        page_size=page_size,
-        search_by=search_by,
-    )
-    data = list_apps(
-        db=db,
-        user=current_user,
-        params=params,
-    )
-    return {"msg": "", "data": data}
-
-
-@router.get("/with_details")
-async def get_applications_with_details(
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
-    sort_by: Annotated[str, Query()] = "created_at",
-    sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
-    search: Annotated[str | None, Query()] = None,
-    page: Annotated[int, Query()] = 1,
-    page_size: Annotated[int, Query()] = 15,
-    search_by: Annotated[
-        Literal[
-            "name",
-            "environment",
-            "region",
-            "owner_name",
-            "vendor_company",
-            "vertical",
-            "ticket_id",
-        ],
-        Query(),
-    ] = "name",
-):
-    params = AppQueryParams(
-        sort_by=sort_by,
-        sort_order=sort_order,
-        search=search,
-        page=page,
-        page_size=page_size,
-        search_by=search_by,
-    )
-    data = list_apps_with_details(db=db, user=current_user, params=params)
     return {"msg": "", "data": data}
 
 
@@ -387,3 +236,157 @@ async def get_application_evidences(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "Error getting application evidences", "err_stack": str(e)},
         )
+
+
+# ---------- NOT USED --------------
+
+
+# @router.delete("/{app_id}")
+# async def delete_application(
+#     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+# ) -> dict[str, Any]:
+#     if current_user.role != "admin":
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail=f"You are not authorised {current_user.full_name}",
+#         )
+#     data = delete_app(app_id, db, current_user)
+#     return {"msg": "", "data": data}
+
+
+# @router.patch("/restore/{app_id}")
+# async def restore_app_from_trash(
+#     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+# ):
+#     # return {"msg": "Hello"}
+#     if current_user.role != "admin":
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail=f"You are not authorised {current_user.full_name}",
+#         )
+#     data = restore_app(app_id=app_id, db=db)
+#     return {"msg": "", "data": data}
+
+
+# @router.get("/trash")
+# async def get_apps_in_trash(
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+# ):
+#     if current_user.role != "admin":
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail=f"You are not authorised {current_user.full_name}",
+#         )
+#     data = get_trashed_apps(db=db)
+#     return {"msg": "", "data": data}
+
+
+# @router.patch("/{app_id}/set-priority")
+# def set_app_priority(
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     priority_val: Annotated[
+#         PriorityVal,
+#         Body(description="Priority value 1 = Low, 2 = Medium, 3 = High"),
+#     ],
+#     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
+# ):
+#     app = db.get(Application, app_id)
+#     if not app:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
+#         )
+
+#     is_assigned = any(
+#         any(a.user_id == current_user.id for a in checklist.assignments)
+#         for checklist in app.checklists
+#     )
+
+#     if not is_assigned and current_user.role not in ["admin", "moderator"]:
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail="Not authorised to edit this app",
+#         )
+#     app.set_priority_for_user(
+#         user_id=current_user.id, db=db, priority_val=priority_val.priority_val
+#     )
+
+
+# # -------------- OLD ----------
+
+
+# @router.get("")
+# async def get_apps(
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     sort_by: Annotated[str, Query()] = "created_at",
+#     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
+#     search: Annotated[str | None, Query()] = None,
+#     page: Annotated[int, Query()] = 1,
+#     page_size: Annotated[int, Query()] = 15,
+#     search_by: Annotated[
+#         Literal[
+#             "name",
+#             "environment",
+#             "region",
+#             "owner_name",
+#             "vendor_company",
+#             "vertical",
+#             "ticket_id",
+#         ],
+#         Query(),
+#     ] = "name",
+# ):
+#     params = AppQueryParams(
+#         sort_by=sort_by,
+#         sort_order=sort_order,
+#         search=search,
+#         page=page,
+#         page_size=page_size,
+#         search_by=search_by,
+#     )
+#     data = list_apps(
+#         db=db,
+#         user=current_user,
+#         params=params,
+#     )
+#     return {"msg": "", "data": data}
+
+
+# @router.get("/with_details")
+# async def get_applications_with_details(
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     sort_by: Annotated[str, Query()] = "created_at",
+#     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
+#     search: Annotated[str | None, Query()] = None,
+#     page: Annotated[int, Query()] = 1,
+#     page_size: Annotated[int, Query()] = 15,
+#     search_by: Annotated[
+#         Literal[
+#             "name",
+#             "environment",
+#             "region",
+#             "owner_name",
+#             "vendor_company",
+#             "vertical",
+#             "ticket_id",
+#         ],
+#         Query(),
+#     ] = "name",
+# ):
+#     params = AppQueryParams(
+#         sort_by=sort_by,
+#         sort_order=sort_order,
+#         search=search,
+#         page=page,
+#         page_size=page_size,
+#         search_by=search_by,
+#     )
+#     data = list_apps_with_details(db=db, user=current_user, params=params)
+#     return {"msg": "", "data": data}
