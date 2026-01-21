@@ -1,7 +1,7 @@
 from models import User, DepartmentUsers, Department
 from schemas import auth_schemas as a_schemas
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+from sqlalchemy import select, func, desc
 from fastapi import HTTPException, status
 
 
@@ -166,7 +166,13 @@ def update_user_profile(
 
 def get_all_users(db: Session):
     try:
-        users = db.scalars(select(User).where(User.is_active)).unique().all()
+        users = (
+            db.scalars(
+                select(User).where(User.is_active).order_by(desc(User.created_at))
+            )
+            .unique()
+            .all()
+        )
         print("LENGTH OF ALL USERS = ", len(users))
         total_users = db.scalar(select(func.count(User.id)).where(User.is_active))
         result: list[a_schemas.AllUsersWithDepartments] = []
