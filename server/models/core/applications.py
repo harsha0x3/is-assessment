@@ -17,7 +17,7 @@ class Application(Base, BaseMixin):
     region: Mapped[str] = mapped_column(String(100), nullable=True)
     owner_name: Mapped[str] = mapped_column(String(512), nullable=True)
     vendor_company: Mapped[str] = mapped_column(String(666), nullable=True)
-    app_priority: Mapped[int] = mapped_column(Integer, nullable=True)
+    app_priority: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
     infra_host: Mapped[str] = mapped_column(String(512), nullable=True)
     app_tech: Mapped[str] = mapped_column(Text, nullable=True)
     vertical: Mapped[str] = mapped_column(String(128), nullable=True)

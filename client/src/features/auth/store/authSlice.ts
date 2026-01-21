@@ -1,5 +1,5 @@
 // src\features\auth\store\authSlice.ts
-import { createSlice, current, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { AuthState, UserWithDepartmentInfo } from "../types";
 import type { RootState } from "@/store/rootStore";
 

@@ -16,6 +16,7 @@ import { CheckIcon, ChevronsUpDownIcon, Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useApplications from "../hooks/useApplications";
+import Hint from "@/components/ui/hint";
 
 export const AppStatusHeaderFilter = () => {
   const [searchParams] = useSearchParams();
@@ -163,27 +164,29 @@ export const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
       {/* <Label htmlFor={"status-filter-trigger"}>Status Filter</Label> */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            id={"status-filter-trigger"}
-            variant="outline"
-            role="combobox"
-            className="h-auto min-h-8 w-full justify-between bg-transparent border-none shadow-none font-semibold"
-          >
-            {selectedValues.length > 0 ? (
-              <span className="truncate">
-                <Badge variant="outline" className="rounded-sm">
-                  {selectedValues.length}
-                </Badge>
-                Status
-              </span>
-            ) : (
-              <span className="text-ring">Status</span>
-            )}
-            <ChevronsUpDownIcon
-              className="text-muted-foreground/80 shrink-0"
-              aria-hidden="true"
-            />
-          </Button>
+          <Hint label={`Status of ${deptName}`}>
+            <Button
+              id={"status-filter-trigger"}
+              variant="outline"
+              role="combobox"
+              className="h-auto min-h-8 w-full justify-between bg-transparent border-none shadow-none font-semibold"
+            >
+              {selectedValues.length > 0 ? (
+                <span className="truncate">
+                  <Badge variant="outline" className="rounded-sm">
+                    {selectedValues.length}
+                  </Badge>
+                  Status
+                </span>
+              ) : (
+                <span className="text-ring">Status</span>
+              )}
+              <ChevronsUpDownIcon
+                className="text-muted-foreground/80 shrink-0"
+                aria-hidden="true"
+              />
+            </Button>
+          </Hint>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-0">
           <Command>

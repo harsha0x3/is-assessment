@@ -1,24 +1,23 @@
-import React, { useState } from "react";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
+import React from "react";
+// import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useLoginMutation } from "../store/authApiSlice";
 import { setError, selectAuth, loginSuccess } from "../store/authSlice";
 import type { LoginRequest } from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Controller,
+  // Controller,
   useForm,
   useWatch,
   type SubmitHandler,
 } from "react-hook-form";
-import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Button } from "@/components/ui/button";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+// import {
+//   InputOTP,
+//   InputOTPGroup,
+//   InputOTPSeparator,
+//   InputOTPSlot,
+// } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { Loader, Lock, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -114,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
           </div>
 
           {/* MFA Code */}
-          <div className="grid gap-2">
+          {/* <div className="grid gap-2">
             <Label htmlFor="mfa_code">MFA Code</Label>
             <Controller
               control={control}
@@ -140,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
                 </InputOTP>
               )}
             />
-          </div>
+          </div> */}
 
           <Button
             type="submit"

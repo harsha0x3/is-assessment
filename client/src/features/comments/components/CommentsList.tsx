@@ -15,7 +15,7 @@ import { Loader, PlusIcon } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import type { CommentOut } from "../types";
 import { useSelector } from "react-redux";
-import { selectAuth, selectUserDepts } from "@/features/auth/store/authSlice";
+import { selectUserDepts } from "@/features/auth/store/authSlice";
 
 const CommentList: React.FC<{
   appId: string;

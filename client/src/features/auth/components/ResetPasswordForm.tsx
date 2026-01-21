@@ -12,7 +12,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Loader, Lock, ArrowLeft } from "lucide-react";
 import { PasswordInput } from "./PasswordInput";
-import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 
 interface ResetPasswordFormProps {

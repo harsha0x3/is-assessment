@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader, Mail, ArrowLeft } from "lucide-react";
-import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 
 interface ForgotPasswordFormProps {
