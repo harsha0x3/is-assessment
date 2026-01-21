@@ -62,3 +62,14 @@ export const STATUS_COLOR_MAP_BG: Record<
   cleared: "var(--status-completed-bg)",
   hold: "var(--status-hold-bg)",
 };
+
+export const PriorityLabelMap: Record<string, string> = {
+  1: "low",
+  2: "medium",
+  3: "high",
+};
+export const PriorityValueMap: Record<string, string> = {
+  low: "1",
+  medium: "2",
+  high: "3",
+};

@@ -19,7 +19,7 @@ const buttonVariants = cva(
           "hover:cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "hover:cursor-pointer hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "hover:cursor-pointer text-primary underline-offset-4 hover:underline",
+        link: "hover:cursor-pointer text-blue-500 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -34,7 +34,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 type ButtonProps = React.ComponentProps<"button"> &
@@ -51,7 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       ...props
     },
-    ref
+    ref,
   ) => {
     const Comp: any = asChild ? Slot : "button";
 
@@ -65,7 +65,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

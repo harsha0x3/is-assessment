@@ -174,20 +174,16 @@ def list_all_apps(db: Session, params: AppQueryParams):
         else:
             sort_column = asc(sort_column)
 
-        if params.page >= 1:
-            apps = (
-                db.execute(
-                    stmt.order_by(sort_column)
-                    .limit(params.page_size)
-                    .offset(params.page * params.page_size - params.page_size)
-                )
-                .scalars()
-                .unique()
-                .all()
+        apps = (
+            db.execute(
+                stmt.order_by(sort_column)
+                .limit(params.page_size)
+                .offset(params.page * params.page_size - params.page_size)
             )
-        else:
-            print("\nIN ELSE", stmt)
-            apps = db.execute(stmt.order_by(sort_column)).scalars().unique().all()
+            .scalars()
+            .unique()
+            .all()
+        )
 
         apps_out: list[NewAppListOut] = []
         for app in apps:

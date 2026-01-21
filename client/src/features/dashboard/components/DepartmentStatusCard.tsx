@@ -47,17 +47,20 @@ const DepartmentStatusCard: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <Card className="h-full px-0 w-md">
+    <Card className="h-80 px-0 w-md gap-1">
       <CardHeader className="pb-2 px-0">
         <CardTitle className="text-sm font-medium text-center capitalize">
           {parseDept(department)}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="h-64 w-md px-0">
+      <CardContent className="h-full w-md px-0">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={statuses}>
+            <BarChart
+              data={statuses}
+              margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+            >
               <XAxis
                 dataKey="status"
                 tickFormatter={(value) =>

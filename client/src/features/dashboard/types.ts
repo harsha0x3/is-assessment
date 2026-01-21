@@ -5,6 +5,12 @@ export interface StatusCountItem {
   count: number;
 }
 
+export interface PriorityCountItem {
+  priority: string;
+  total_apps: number;
+  statuses: StatusCountItem[];
+}
+
 export interface ApplicationStats {
   total_apps: number;
   status_chart: StatusCountItem[];

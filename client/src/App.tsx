@@ -1,125 +1,101 @@
 import { Outlet, Route, Routes } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RootLayout from "./layouts/RootLayout";
-import { Toaster } from "sonner";
 import ProtectedLayout from "./layouts/ProtectedLayout";
-import { lazy, Suspense } from "react";
-import { Loader } from "lucide-react";
-import { useGetMeQuery } from "./features/auth/store/authApiSlice";
 import ApplicationsLayout from "./layouts/ApplicationsLayout";
 import AppInfoDialog from "./features/applications/components/AppInfoDialog";
 import DepartmentInfo from "./features/departments/components/DepartmentInfo";
+import { Toaster } from "sonner";
+import { lazy } from "react";
+import { LazyRoute } from "@/components/LazyRoute";
+import { useGetMeQuery } from "./features/auth/store/authApiSlice";
+
+const DashboardPage = lazy(
+  () => import("./features/dashboard/pages/DashboardPage"),
+);
+const UserManagementPage = lazy(
+  () => import("./features/user_management/pages/UserManagementPage"),
+);
+const AppOverview = lazy(
+  () => import("./features/applications/components/AppOverview"),
+);
+const AppDepartments = lazy(
+  () => import("./features/departments/components/AppDepartments"),
+);
+const EvidencesTab = lazy(
+  () => import("./features/evidences/components/EvidencesTab"),
+);
 
 function App() {
   const { data: _data } = useGetMeQuery();
-
-  const UserManagementPage = lazy(
-    () => import("./features/user_management/pages/UserManagementPage"),
-  );
-  const AppDepartments = lazy(
-    () => import("./features/departments/components/AppDepartments"),
-  );
-  const AppOverview = lazy(
-    () => import("./features/applications/components/AppOverview"),
-  );
-  const DashboardPage = lazy(
-    () => import("./features/dashboard/pages/DashboardPage"),
-  );
-  const EvidencesTab = lazy(
-    () => import("./features/evidences/components/EvidencesTab"),
-  );
-
   return (
     <>
-      <div>
-        <Toaster
-          position="bottom-right"
-          richColors
-          toastOptions={{
-            closeButton: true,
-          }}
-        />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<ProtectedLayout />}>
-            <Route path="" element={<RootLayout />}>
-              <Route
-                path="dashboard"
-                element={
-                  <Suspense
-                    fallback={
-                      <div>
-                        <Loader className="animate-spin" />
-                      </div>
+      <Toaster
+        position="bottom-right"
+        richColors
+        toastOptions={{ closeButton: true }}
+      />
+
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route path="/" element={<ProtectedLayout />}>
+          <Route element={<RootLayout />}>
+            <Route
+              path="dashboard"
+              element={
+                <LazyRoute fallbackLabel="Loading dashboard…">
+                  <DashboardPage />
+                </LazyRoute>
+              }
+            />
+
+            <Route path="applications" element={<ApplicationsLayout />}>
+              <Route element={<AppInfoDialog />}>
+                <Route path="details/:appId" element={<Outlet />}>
+                  <Route
+                    path="overview"
+                    element={
+                      <LazyRoute fallbackLabel="Loading overview…">
+                        <AppOverview />
+                      </LazyRoute>
+                    }
+                  />
+
+                  <Route
+                    path="departments"
+                    element={
+                      <LazyRoute fallbackLabel="Loading departments…">
+                        <AppDepartments />
+                      </LazyRoute>
                     }
                   >
-                    <DashboardPage />
-                  </Suspense>
-                }
-              />
-              <Route path="applications" element={<ApplicationsLayout />}>
-                <Route path="" element={<AppInfoDialog />}>
-                  <Route path="details/:appId" element={<Outlet />}>
-                    <Route
-                      path="overview"
-                      element={
-                        <Suspense
-                          fallback={
-                            <div>
-                              <Loader className="animate-spin" />
-                            </div>
-                          }
-                        >
-                          <AppOverview />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="departments"
-                      element={
-                        <Suspense
-                          fallback={
-                            <div>
-                              <Loader className="animate-spin" />
-                            </div>
-                          }
-                        >
-                          <AppDepartments />
-                        </Suspense>
-                      }
-                    >
-                      <Route path=":deptId" element={<DepartmentInfo />} />
-                    </Route>
-                    <Route
-                      path="evidences"
-                      element={
-                        <Suspense
-                          fallback={
-                            <div>
-                              <Loader className="animate-spin" />
-                            </div>
-                          }
-                        >
-                          <EvidencesTab />
-                        </Suspense>
-                      }
-                    />
+                    <Route path=":deptId" element={<DepartmentInfo />} />
                   </Route>
+
+                  <Route
+                    path="evidences"
+                    element={
+                      <LazyRoute fallbackLabel="Loading evidences…">
+                        <EvidencesTab />
+                      </LazyRoute>
+                    }
+                  />
                 </Route>
               </Route>
-              <Route
-                index
-                path="users/all"
-                element={
-                  <Suspense fallback={<Loader className="animate-spin" />}>
-                    <UserManagementPage />
-                  </Suspense>
-                }
-              />
             </Route>
+
+            <Route
+              path="users/all"
+              element={
+                <LazyRoute fallbackLabel="Loading users…">
+                  <UserManagementPage />
+                </LazyRoute>
+              }
+            />
           </Route>
-        </Routes>
-      </div>
+        </Route>
+      </Routes>
     </>
   );
 }

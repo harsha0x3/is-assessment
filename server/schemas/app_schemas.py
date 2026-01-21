@@ -143,6 +143,7 @@ class AppQueryParams(BaseModel):
     status: list[str] | None = None
     dept_filter_id: int | None = None
     dept_status: list[str] | None = None
+    app_priority: list[str] | None = None
 
     @field_validator("sort_by")
     @classmethod

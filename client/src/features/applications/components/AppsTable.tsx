@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import useApplications from "../hooks/useApplications";
 import {
   createColumnHelper,
   flexRender,
@@ -24,17 +23,20 @@ import DescriptionCell from "@/components/ui/description-cell";
 import { parseDate, parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
-import {
-  AppStatusHeaderFilter,
-  DeptStatusHeaderFilter,
-} from "./AppsTableHeaders";
+import { AppStatusHeaderFilter } from "./AppsTableHeaders";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
 import { Dot, Loader } from "lucide-react";
+import { useApplicationsContext } from "../context/ApplicationsContext";
+import { createDepartmentStatusColumn } from "./DepartmentColumnFactory";
 // import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
 
+// type Props = {
+//   data:
+// }
+
 const AppsTable: React.FC = () => {
-  const { data: appsData, isLoading: isAppsLoading } = useApplications();
+  const { data: appsData, isLoading: isAppsLoading } = useApplicationsContext();
   // const { data: departments, isLoading: isLoadingDepts } =
   //   useGetAllDepartmentsQuery();
   const navigate = useNavigate();
@@ -50,33 +52,7 @@ const AppsTable: React.FC = () => {
 
   const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
     vapt: [
-      colHelper.display({
-        id: "vapt_status",
-        minSize: 140,
-        maxSize: 140,
-        header: () => {
-          return <DeptStatusHeaderFilter deptName="VAPT" />;
-        },
-        cell: ({ row }) => {
-          const dept = row.original.departments?.find(
-            (d) => d.name.toLowerCase() == "vapt",
-          );
-          return (
-            <div className=" w-full pl-4">
-              <Badge
-                className="capitalize"
-                style={{
-                  backgroundColor:
-                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
-                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
-                }}
-              >
-                {parseStatus(dept?.status ?? "yet_to_connect")}
-              </Badge>
-            </div>
-          );
-        },
-      }),
+      createDepartmentStatusColumn("vapt", "VAPT"),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -105,33 +81,8 @@ const AppsTable: React.FC = () => {
           return info.getValue();
         },
       }),
-      colHelper.display({
-        id: "tprm_status",
-        minSize: 140,
-        maxSize: 140,
-        header: () => {
-          return <DeptStatusHeaderFilter deptName="TPRM" />;
-        },
-        cell: ({ row }) => {
-          const dept = row.original.departments?.find(
-            (d) => d.name.toLowerCase() == "tprm",
-          );
-          return (
-            <div className=" w-full pl-4">
-              <Badge
-                className="capitalize"
-                style={{
-                  backgroundColor:
-                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
-                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
-                }}
-              >
-                {parseStatus(dept?.status ?? "yet_to_connect")}
-              </Badge>
-            </div>
-          );
-        },
-      }),
+      createDepartmentStatusColumn("tprm", "TPRM"),
+
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -148,34 +99,8 @@ const AppsTable: React.FC = () => {
     ],
 
     security_controls: [
-      colHelper.display({
-        id: "security_controls_status",
-        minSize: 140,
-        maxSize: 140,
-        header: () => {
-          return <DeptStatusHeaderFilter deptName="Security Controls" />;
-        },
+      createDepartmentStatusColumn("security controls", "Security Controls"),
 
-        cell: ({ row }) => {
-          const dept = row.original.departments?.find(
-            (d) => d.name.toLowerCase() == "security controls",
-          );
-          return (
-            <div className=" w-full pl-4">
-              <Badge
-                className="capitalize"
-                style={{
-                  backgroundColor:
-                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
-                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
-                }}
-              >
-                {parseStatus(dept?.status ?? "yet_to_connect")}
-              </Badge>
-            </div>
-          );
-        },
-      }),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -191,34 +116,8 @@ const AppsTable: React.FC = () => {
       }),
     ],
     iam: [
-      colHelper.display({
-        id: "iam_status",
-        minSize: 140,
-        maxSize: 140,
-        header: () => {
-          return <DeptStatusHeaderFilter deptName="IAM" />;
-        },
+      createDepartmentStatusColumn("iam", "IAM"),
 
-        cell: ({ row }) => {
-          const dept = row.original.departments?.find(
-            (d) => d.name.toLowerCase() == "iam",
-          );
-          return (
-            <div className=" w-full pl-4">
-              <Badge
-                className="capitalize"
-                style={{
-                  backgroundColor:
-                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
-                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
-                }}
-              >
-                {parseStatus(dept?.status ?? "yet_to_connect")}
-              </Badge>
-            </div>
-          );
-        },
-      }),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -234,34 +133,8 @@ const AppsTable: React.FC = () => {
       }),
     ],
     soc_integration: [
-      colHelper.display({
-        id: "soc_status",
-        minSize: 140,
-        maxSize: 140,
-        header: () => {
-          return <DeptStatusHeaderFilter deptName="SOC" />;
-        },
+      createDepartmentStatusColumn("soc integration", "SOC Integration"),
 
-        cell: ({ row }) => {
-          const dept = row.original.departments?.find(
-            (d) => d.name.toLowerCase() == "soc integration",
-          );
-          return (
-            <div className=" w-full pl-4">
-              <Badge
-                className="capitalize"
-                style={{
-                  backgroundColor:
-                    STATUS_COLOR_MAP_BG[dept?.status ?? "yet_to_connect"],
-                  color: STATUS_COLOR_MAP_FG[dept?.status ?? "yet_to_connect"],
-                }}
-              >
-                {parseStatus(dept?.status ?? "yet_to_connect")}
-              </Badge>
-            </div>
-          );
-        },
-      }),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -339,7 +212,7 @@ const AppsTable: React.FC = () => {
         cell: ({ row, getValue }) => (
           <Button
             variant="link"
-            className="p-0 h-auto text-left"
+            className="p-0 h-auto text-left text-primary"
             onClick={() => {
               navigate(`/applications/details/${row.original.id}/overview`, {
                 state: { appName: row.original.name },

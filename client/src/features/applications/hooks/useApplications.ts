@@ -25,16 +25,22 @@ export const useApplications = () => {
   const deptStatus = searchParams.get("deptStatus");
   const deptFilterId = searchParams.get("deptFilterId");
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
+  const appPriority = searchParams.get("appPriority");
 
-  const appStatusList = appStatus
-    ? appStatus.split(",").filter(Boolean)
-    : undefined;
+  const appStatusList = useMemo(
+    () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
+    [appStatus],
+  );
+  const appPriorityList = useMemo(
+    () => (appPriority ? appPriority.split(",").filter(Boolean) : undefined),
+    [appPriority],
+  );
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
 
-  const { data, isSuccess, isError, error, isLoading } = useListAllAppsQuery(
-    {
+  const { data, isSuccess, isError, error, isLoading, isFetching } =
+    useListAllAppsQuery({
       page: rawAppPage,
       page_size: appPageSize,
       sort_by: appSortBy,
@@ -44,9 +50,8 @@ export const useApplications = () => {
       status: appStatusList,
       dept_filter_id: deptFilterId ?? undefined,
       dept_status: deptStatus ?? undefined,
-    },
-    { refetchOnMountOrArgChange: true },
-  );
+      app_priotity: appPriorityList,
+    });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
   const filteredApps = useMemo(() => data?.data?.filtered_count ?? 0, [data]);
@@ -59,7 +64,7 @@ export const useApplications = () => {
         updateSearchParams({
           appSearch: appSearchValue,
           appSearchBy: appSearchBy,
-          appPage: -1,
+          appPage: 1,
         });
         setDebouncedSearch(appSearchValue);
       } else {
@@ -104,6 +109,7 @@ export const useApplications = () => {
     isSuccess,
     debouncedSearch,
     appSearchValue,
+    isFetching,
   };
 };
 

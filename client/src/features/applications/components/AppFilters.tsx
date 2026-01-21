@@ -1,5 +1,4 @@
 import React from "react";
-import { useApplications } from "../hooks/useApplications";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,10 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Check, SlidersHorizontalIcon } from "lucide-react";
+import { useApplicationsContext } from "../context/ApplicationsContext";
 
 const AppFilters: React.FC = () => {
   const { updateSearchParams, appSearchBy, appSortBy, appSortOrder } =
-    useApplications();
+    useApplicationsContext();
 
   const validSearchBys = [
     { name: "Name" },

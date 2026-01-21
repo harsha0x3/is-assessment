@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from collections import defaultdict
 from api.constants.statuses import ALL_APP_STATUSES, ALL_DEPT_STATUSES
+from api.constants.priorities import PRIORITY_ID_TO_KEY
 
 from models import Application, Department, ApplicationDepartments
 from schemas import dashboard_schemas as ds
@@ -46,13 +47,6 @@ def get_app_status_stats(db: Session) -> ds.ApplicationStats:
         total_apps = (
             db.scalar(select(func.count(Application.id)).where(Application.is_active))
             or 0
-        )
-
-        print(
-            ds.ApplicationStats(
-                total_apps=total_apps,
-                status_chart=status_chart,
-            ).model_dump()
         )
 
         return ds.ApplicationStats(
@@ -147,4 +141,55 @@ def get_dashboard_status_stats(db: Session):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error getting status charts",
+        )
+
+
+def get_priority_wise_grouped_stats(db: Session):
+    try:
+        raw = defaultdict(lambda: defaultdict(int))
+
+        rows = db.execute(
+            select(
+                Application.app_priority.label("priority"),
+                Application.status.label("status"),
+                func.count().label("status_count"),
+            )
+            .where(Application.is_active)
+            .group_by(Application.app_priority, Application.status)
+        ).all()
+
+        # DB aggregation
+        for row in rows:
+            raw[row.priority][normalize_key(row.status)] += int(row.status_count)
+
+        result = []
+
+        for priority_id, priority_label in PRIORITY_ID_TO_KEY.items():
+            status_counts = raw.get(priority_id, {})
+
+            total_apps = sum(status_counts.values())
+
+            if total_apps == 0:
+                continue
+
+            result.append(
+                ds.PriorityCountItem(
+                    priority=priority_label,
+                    total_apps=total_apps,
+                    statuses=[
+                        ds.StatusCountItem(
+                            status=status,
+                            count=count,
+                        )
+                        for status, count in status_counts.items()
+                    ],
+                )
+            )
+
+        return result
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting priority wise status split",
         )

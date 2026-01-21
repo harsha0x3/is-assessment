@@ -11,7 +11,6 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import React, { useMemo } from "react";
-import { useApplications } from "../hooks/useApplications";
 import {
   Select,
   SelectContent,
@@ -19,9 +18,11 @@ import {
   SelectValue,
   SelectItem,
 } from "@/components/ui/select";
+import { useApplicationsContext } from "../context/ApplicationsContext";
 
 const AppPagination: React.FC = () => {
-  const { appPage, goToPage, filteredApps, appPageSize } = useApplications();
+  const { appPage, goToPage, filteredApps, appPageSize } =
+    useApplicationsContext();
   const totalPages: number = useMemo(() => {
     return Math.ceil((filteredApps ?? 0) / appPageSize);
   }, [filteredApps]);

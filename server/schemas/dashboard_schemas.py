@@ -9,6 +9,12 @@ class StatusCountItem(BaseModel):
     count: int
 
 
+class PriorityCountItem(BaseModel):
+    priority: str  # "in_progress"
+    total_apps: int
+    statuses: list[StatusCountItem]
+
+
 # ---------- Application-level stats ----------
 
 
