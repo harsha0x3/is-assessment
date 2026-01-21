@@ -18,6 +18,7 @@ import type {
   RoleEnum,
   AllUsersWithDepartments,
   RegisterRequest,
+  UserWithDepartmentInfo,
 } from "@/features/auth/types";
 import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
 import { Label } from "@/components/ui/label";
@@ -31,10 +32,12 @@ import {
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader } from "lucide-react";
+import { useSelector } from "react-redux";
+import { selectAuth } from "@/features/auth/store/authSlice";
 // import { PasswordInput } from "@/features/auth/components/PasswordInput";
 
 interface Props {
-  user: AllUsersWithDepartments | null;
+  user: AllUsersWithDepartments | UserWithDepartmentInfo | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -48,6 +51,8 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [departmentIds, setDepartmentIds] = useState<number[]>([]);
+  const currentUserInfo = useSelector(selectAuth);
+  const isAdmin = currentUserInfo.role == "admin";
   // const [password, setPassword] = useState<string>("");
   // const [confirmPassword, setConfirmPassword] = useState<string>("");
   const isNew = !user;
@@ -161,7 +166,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
 
           {!isNew && (
             <div className="flex justify-end gap-2">
-              {!editMode ? (
+              {isAdmin && !editMode ? (
                 <Button onClick={() => setEditMode(true)}>Edit</Button>
               ) : (
                 <>

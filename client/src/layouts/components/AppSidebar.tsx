@@ -1,5 +1,5 @@
 // src\layouts\components\AppSidebar.tsx
-import React from "react";
+import React, { useState } from "react";
 
 import {
   Sidebar,
@@ -20,6 +20,21 @@ import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
 import Hint from "@/components/ui/hint";
 import { ISLogo } from "@/components/ui/ISLogo";
+import { SidebarFooter } from "@/components/ui/sidebar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LogOut, User } from "lucide-react";
+import {
+  useLogoutMutation,
+  useGetMeQuery,
+} from "@/features/auth/store/authApiSlice";
+import UserDetailsDialog from "@/features/user_management/components/UserDetailsDialog";
+import { getApiErrorMessage } from "@/utils/handleApiError";
+import { toast } from "sonner";
 
 type SidebarData = {
   title: string;
@@ -61,8 +76,15 @@ const AppSidebar: React.FC = ({
   const isItemActive = (item: SidebarData) => {
     return location.pathname.includes(item.path);
   };
-
   const currentUserInfo = useSelector(selectAuth);
+  const [logout] = useLogoutMutation();
+
+  const [openProfile, setOpenProfile] = useState(false);
+  const [openUserDialog, setOpenUserDialog] = useState(false);
+
+  const { data: meData } = useGetMeQuery(undefined, {
+    skip: !openUserDialog,
+  });
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -98,6 +120,64 @@ const AppSidebar: React.FC = ({
           })}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter className="px-2 pb-2">
+        <Popover open={openProfile} onOpenChange={setOpenProfile}>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-2 w-full rounded-md p-2 hover:bg-accent">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>
+                  {currentUserInfo.full_name?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+
+              <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
+                {currentUserInfo.full_name}
+              </span>
+            </button>
+          </PopoverTrigger>
+
+          <PopoverContent side="right" align="end" className="w-40">
+            <div className="flex flex-col gap-1">
+              <button
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm"
+                onClick={() => {
+                  setOpenProfile(false);
+                  setOpenUserDialog(true);
+                }}
+              >
+                <User className="h-4 w-4" />
+                Profile
+              </button>
+
+              <button
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-destructive"
+                onClick={async () => {
+                  setOpenProfile(false);
+                  try {
+                    await logout().unwrap();
+                  } catch (error) {
+                    const errMsg =
+                      getApiErrorMessage(error) ?? "Error logging out";
+                    toast.error(errMsg);
+                  }
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Profile Dialog */}
+        {meData?.data && (
+          <UserDetailsDialog
+            user={meData?.data ?? null}
+            open={openUserDialog}
+            onOpenChange={setOpenUserDialog}
+          />
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 };

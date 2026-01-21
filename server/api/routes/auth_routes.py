@@ -68,6 +68,7 @@ def logout_user(response: Response):
     """
     clear_jwt_cookies(response)
     clear_csrf_cookie(response)
+    return {"msg": "Logout Successful"}
 
 
 @router.post("/password-reset/request")

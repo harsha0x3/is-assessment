@@ -264,14 +264,14 @@ def clear_jwt_cookies(response: Response):
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=is_prod,
+        secure=True,
         samesite="lax" if is_prod else "none",
         path="/",
     )
     response.delete_cookie(
         key="refresh_token",
         httponly=True,
-        secure=is_prod,
+        secure=True,
         samesite="lax" if is_prod else "none",
         path="/",
     )
