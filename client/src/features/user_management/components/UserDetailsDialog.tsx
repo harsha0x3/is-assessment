@@ -67,6 +67,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
         await updateUser({
           userId: user.id,
           payload: {
+            email: email,
             full_name: fullName,
             department_ids: departmentIds,
           },
