@@ -35,7 +35,6 @@ from schemas.app_schemas import (
     AppQueryParams,
 )
 from schemas.auth_schemas import UserOut
-from schemas.crud_schemas import PriorityVal
 from services.auth.deps import get_current_user, require_admin
 from api.controllers import evidence_controller as e_ctrl
 import os
@@ -93,6 +92,9 @@ async def new_list_all_apps(
     status_list = status.split(",") if status else []
     dept_status_list = dept_status.split(",") if dept_status else []
     app_priority_list = app_priority.split(",") if app_priority else []
+    print("APP PRIORITY", app_priority)
+    print("APP PRIORITY LIST", app_priority_list)
+
     params = AppQueryParams(
         sort_by=sort_by,
         sort_order=sort_order,

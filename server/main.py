@@ -23,6 +23,7 @@ from api.routes import (
     dashboard_routes,
     file_serving,
     user_management_routes,
+    export_routes,
 )
 
 
@@ -117,3 +118,4 @@ app.include_router(comments_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(file_serving.router)
 app.include_router(user_management_routes.router)
+app.include_router(export_routes.router)
