@@ -26,6 +26,8 @@ export const useApplications = () => {
   const deptFilterId = searchParams.get("deptFilterId");
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
   const appPriority = searchParams.get("appPriority");
+  console.log("APP PRIORITY", appPriority);
+  console.log("APP PRIORITY TYPE", typeof appPriority);
   const appVertical = searchParams.get("appVertical");
 
   const appStatusList = useMemo(
@@ -52,7 +54,7 @@ export const useApplications = () => {
       status: appStatusList,
       dept_filter_id: deptFilterId ?? undefined,
       dept_status: deptStatus ?? undefined,
-      app_priotity: appPriorityList,
+      app_priority: appPriorityList,
       vertical: debouncedVerticalSearch ?? undefined,
     });
 

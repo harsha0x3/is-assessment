@@ -11,8 +11,11 @@ import { parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
+import { getApiErrorMessage } from "@/utils/handleApiError";
+import { toast } from "sonner";
 
 const StatusCard: React.FC<{
   data: { name: string; count: number; percent: number };
@@ -80,12 +83,79 @@ const StatusDonut = ({
   data: DonutData[];
   total_count: number;
 }) => {
+  const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
+
+  async function saveBlobWithDialog(blob: Blob, filename: string) {
+    // ✅ Modern browsers (Chrome, Edge)
+    // if ("showSaveFilePicker" in window) {
+    //   // Define SaveFilePickerOptions type inline for TS
+    //   type SaveFilePickerOptions = {
+    //     suggestedName?: string;
+    //     types?: Array<{
+    //       description?: string;
+    //       accept: Record<string, string[]>;
+    //     }>;
+    //     excludeAcceptAllOption?: boolean;
+    //   };
+    //   const handle = await (window as typeof window & {
+    //     showSaveFilePicker: (options: SaveFilePickerOptions) => Promise<any>;
+    //   }).showSaveFilePicker({
+    //     suggestedName: filename,
+    //     types: [
+    //       {
+    //         description: "CSV file",
+    //         accept: { "text/csv": [".csv"] },
+    //       },
+    //     ],
+    //   });
+
+    //   const writable = await handle.createWritable();
+    //   await writable.write(blob);
+    //   await writable.close();
+    //   return;
+    // }
+
+    // 🔁 Fallback (Firefox, Safari)
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  }
+
   return (
     <>
       <CardHeader>
-        <CardTitle className="text-center text-lg">
-          Overall Application Status Summary
-        </CardTitle>
+        <div className="w-full flex items-center">
+          <CardTitle className="text-center text-lg flex-1">
+            Overall Application Status Summary
+          </CardTitle>
+          <Button
+            onClick={async () => {
+              try {
+                const blob = await trigger().unwrap();
+                await saveBlobWithDialog(blob, "applications_overview.csv");
+              } catch (error) {
+                toast.error(
+                  getApiErrorMessage(error) ?? "Error downloading the report",
+                );
+              }
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center">
+                <Loader className="animnate-spin" />
+                Exporting...
+              </span>
+            ) : (
+              "Export"
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="grid md:grid-cols-2 gap-2">
         <ChartContainer

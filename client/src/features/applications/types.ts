@@ -110,7 +110,7 @@ export interface AppQueryParams {
   status?: string[];
   dept_filter_id?: string;
   dept_status?: string;
-  app_priotity?: string[];
+  app_priority?: string[];
   vertical?: string;
 }
 
