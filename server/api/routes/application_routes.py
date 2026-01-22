@@ -85,11 +85,30 @@ async def new_list_all_apps(
     app_priority: Annotated[str | None, Query()] = None,
     vertical: Annotated[str | None, Query()] = None,
 ):
-    status_list = status.split(",") if status else []
-    dept_status_list = dept_status.split(",") if dept_status else []
+    status_list = []
+
+    if (
+        status
+        and status.strip() != "null"
+        and status.strip() != "all"
+        and status.strip() != "undefined"
+    ):
+        status_list = status.split(",")
+        print("STATUS LIST SATIS FIED", status)
+    print("STATUS LIST NOT SATIS FIED", status)
+    dept_status_list = []
+
+    if (
+        dept_status
+        and dept_status.strip() != "null"
+        and dept_status.strip() != "all"
+        and dept_status.strip() != "undefined"
+    ):
+        dept_status_list = dept_status.split(",")
+        print("dept_STATUS LIST SATIS FIED", dept_status)
+    print("dept_STATUS LIST NOT SATIS FIED", dept_status)
+
     app_priority_list = app_priority.split(",") if app_priority else []
-    print("APP PRIORITY", app_priority)
-    print("APP PRIORITY LIST", app_priority_list)
 
     params = AppQueryParams(
         sort_by=sort_by,

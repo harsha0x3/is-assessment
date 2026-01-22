@@ -59,7 +59,9 @@ const DashboardPage: React.FC = () => {
     data: deptSummay,
     isLoading: isLoadingDeptSummay,
     error: deptSummayErr,
-  } = useGetDepartmentSummaryQuery({ status_filter: deptStatusFilter });
+  } = useGetDepartmentSummaryQuery({
+    status_filter: deptStatusFilter,
+  });
   const {
     data: prioritySummary,
     isLoading: isLoadingPrioritySummary,
@@ -184,6 +186,7 @@ const DashboardPage: React.FC = () => {
                 department={dept.department}
                 deptId={dept.department_id}
                 statuses={dept.statuses}
+                deptStatusFilter={deptStatusFilter}
               />
             ))}
           </Suspense>

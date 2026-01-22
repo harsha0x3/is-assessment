@@ -13,7 +13,7 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
     }),
     getDepartmentSummary: builder.query<
       DepartmentSummaryResponse,
-      { status_filter: string } | void
+      { status_filter?: string } | void
     >({
       query: (params) => ({
         url: `/dashboard/summary/departments`,
