@@ -75,6 +75,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
             email: email,
             full_name: fullName,
             department_ids: departmentIds,
+            role: role,
           },
         }).unwrap();
 
