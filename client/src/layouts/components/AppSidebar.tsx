@@ -64,7 +64,7 @@ const sidebarItems: SidebarData[] = [
     path: "/users/all",
     isActive: false,
     icon: Users2Icon,
-    roles: ["admin", "moderator", "user"],
+    roles: ["admin"],
   },
 ];
 
