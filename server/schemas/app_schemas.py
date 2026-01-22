@@ -141,6 +141,7 @@ class AppQueryParams(BaseModel):
     page: int = 1
     page_size: int = 15
     status: list[str] | None = None
+    vertical: str | None = None
     dept_filter_id: int | None = None
     dept_status: list[str] | None = None
     app_priority: list[str] | None = None

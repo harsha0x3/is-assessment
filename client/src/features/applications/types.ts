@@ -111,9 +111,10 @@ export interface AppQueryParams {
   dept_filter_id?: string;
   dept_status?: string;
   app_priotity?: string[];
+  vertical?: string;
 }
 
-export interface AppStatusStats {
+export interface AppStatusSummary {
   in_progress: number;
   not_yet_started: number;
   closed: number;

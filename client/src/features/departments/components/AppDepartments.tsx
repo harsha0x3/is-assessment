@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
 import { useGetDepartmentsByApplicationQuery } from "../store/departmentsApiSlice";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Loader } from "lucide-react";
@@ -11,6 +16,7 @@ import { selectUserDepts } from "@/features/auth/store/authSlice";
 const AppDepartments: React.FC = () => {
   const { appId, deptId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const userDepts = useSelector(selectUserDepts);
   const {
     data: appDepts,
@@ -29,7 +35,9 @@ const AppDepartments: React.FC = () => {
     );
 
     if (firstAllowedDept) {
-      navigate(`${firstAllowedDept.id}`, { replace: true });
+      navigate(`${firstAllowedDept.id}?${searchParams.toString()}`, {
+        replace: true,
+      });
     }
   }, [appId, deptId, appDepts, userDepts, navigate]);
 
@@ -49,7 +57,9 @@ const AppDepartments: React.FC = () => {
                 <TabsTrigger
                   key={dept.id}
                   value={dept.id.toString()}
-                  onClick={() => navigate(`${dept.id}`)}
+                  onClick={() =>
+                    navigate(`${dept.id}?${searchParams.toString()}`)
+                  }
                   className="data-[state=active]:bg-primary dark:data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:text-primary-foreground dark:data-[state=active]:border-transparent"
                 >
                   {dept.name}

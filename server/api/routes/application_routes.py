@@ -88,6 +88,7 @@ async def new_list_all_apps(
     dept_filter_id: Annotated[int | None, Query()] = None,
     dept_status: Annotated[str | None, Query()] = None,
     app_priority: Annotated[str | None, Query()] = None,
+    vertical: Annotated[str | None, Query()] = None,
 ):
     status_list = status.split(",") if status else []
     dept_status_list = dept_status.split(",") if dept_status else []
@@ -103,6 +104,7 @@ async def new_list_all_apps(
         dept_filter_id=dept_filter_id,
         dept_status=dept_status_list,
         app_priority=app_priority_list,
+        vertical=vertical,
     )
     data = list_all_apps(
         db=db,
@@ -224,7 +226,7 @@ async def add_application_evidences(
 async def get_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
     try:
         result = e_ctrl.get_application_evidences(app_id=app_id, db=db)

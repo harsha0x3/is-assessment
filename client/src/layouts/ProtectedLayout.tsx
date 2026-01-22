@@ -19,7 +19,6 @@ const ProtectedLayout: React.FC = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", { state: { from: location }, replace: true });
-      console.log("NOT LOGGED IN");
       return;
     }
   }, [isAuthenticated]);

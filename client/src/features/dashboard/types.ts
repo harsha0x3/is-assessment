@@ -11,7 +11,7 @@ export interface PriorityCountItem {
   statuses: StatusCountItem[];
 }
 
-export interface ApplicationStats {
+export interface ApplicationStatusSummary {
   total_apps: number;
   status_chart: StatusCountItem[];
 }
@@ -21,17 +21,23 @@ export interface DepartmentStatusItem {
   count: number;
 }
 
-export interface DepartmentStatsItem {
+export interface DepartmentSummaryItem {
   department_id: number;
   department: string; // "finance"
   statuses: DepartmentStatusItem[];
 }
 
-export interface DashboardStatsResponse {
-  application_stats: ApplicationStats;
-  department_stats: {
-    departments: DepartmentStatsItem[];
+export interface DashboardSummaryResponse {
+  application_summary: ApplicationStatusSummary;
+  department_summary: {
+    departments: DepartmentSummaryItem[];
   };
+}
+
+export interface VerticalStatusSummary {
+  vertical: string;
+  total: number;
+  statuses: StatusCountItem[];
 }
 
 export interface DonutData {

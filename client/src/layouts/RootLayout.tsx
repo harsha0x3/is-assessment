@@ -3,10 +3,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import React from "react";
-import AppSidebar from "./components/AppSidebar";
+import React, { lazy, Suspense } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Outlet, useLocation } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const AppSidebar = lazy(() => import("./components/AppSidebar"));
+
+const SidebarSkeleton = () => (
+  <div className="w-(--sidebar-width) h-full bg-muted animate-pulse">
+    <Skeleton />
+  </div>
+);
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
@@ -20,7 +28,9 @@ const RootLayout: React.FC = () => {
   return (
     <div className="w-full h-full overflow-hidden">
       <SidebarProvider>
-        <AppSidebar />
+        <Suspense fallback={<SidebarSkeleton />}>
+          <AppSidebar />
+        </Suspense>
         <SidebarInset className="min-w-0 flex flex-col h-screen">
           <header className="border-b flex h-(--app-header-height) shrink-0 items-center gap-2">
             <div className="flex items-center gap-2 px-4">

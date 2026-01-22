@@ -20,10 +20,10 @@ def humanize(value: str) -> str:
     return value.replace("_", " ").title()
 
 
-# ---------- Application status stats ----------
+# ---------- Application status summary ----------
 
 
-def get_app_status_stats(db: Session) -> ds.ApplicationStats:
+def get_app_status_summary(db: Session) -> ds.ApplicationSummary:
     try:
         rows = db.execute(
             select(
@@ -49,7 +49,7 @@ def get_app_status_stats(db: Session) -> ds.ApplicationStats:
             or 0
         )
 
-        return ds.ApplicationStats(
+        return ds.ApplicationSummary(
             total_apps=total_apps,
             status_chart=status_chart,
         )
@@ -61,10 +61,10 @@ def get_app_status_stats(db: Session) -> ds.ApplicationStats:
         )
 
 
-# ---------- Department-wise status stats ----------
+# ---------- Department-wise status summary ----------
 
 
-def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
+def get_department_status_summary(db: Session) -> ds.DepartmentSummaryResponse:
     try:
         rows = db.execute(
             select(
@@ -103,7 +103,7 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
 
         for dept, data in raw.items():
             departments.append(
-                ds.DepartmentStatsItem(
+                ds.DepartmentSummaryItem(
                     department_id=data["dept_id"],
                     department=dept,
                     statuses=[
@@ -116,7 +116,7 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
                 )
             )
 
-        return ds.DepartmentStatsResponse(departments=departments)
+        return ds.DepartmentSummaryResponse(departments=departments)
 
     except Exception:
         raise HTTPException(
@@ -125,12 +125,12 @@ def get_department_status_stats(db: Session) -> ds.DepartmentStatsResponse:
         )
 
 
-def get_dashboard_status_stats(db: Session):
+def get_dashboard_status_summary(db: Session):
     try:
-        app_stats = get_app_status_stats(db=db)
-        dept_stats = get_department_status_stats(db=db)
-        result = ds.DashboardStatsResponse(
-            application_stats=app_stats, department_stats=dept_stats
+        app_summary = get_app_status_summary(db=db)
+        dept_summary = get_department_status_summary(db=db)
+        result = ds.DashboardSummaryResponse(
+            application_summary=app_summary, department_summary=dept_summary
         )
         return result
 
@@ -144,7 +144,7 @@ def get_dashboard_status_stats(db: Session):
         )
 
 
-def get_priority_wise_grouped_stats(db: Session):
+def get_priority_wise_grouped_summary(db: Session):
     try:
         raw = defaultdict(lambda: defaultdict(int))
 
@@ -193,3 +193,45 @@ def get_priority_wise_grouped_stats(db: Session):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error getting priority wise status split",
         )
+
+
+def get_vertical_wise_app_statuses(db: Session):
+    try:
+        rows = db.execute(
+            select(
+                Application.vertical.label("vertical"),
+                Application.status.label("status"),
+                func.count().label("status_count"),
+            ).group_by(Application.vertical, Application.status)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting vertical wise applications",
+        )
+
+    grouped: dict[str, dict] = defaultdict(lambda: {"total": 0, "statuses": []})
+
+    for row in rows:
+        vertical = row.vertical
+        status_ = row.status
+        count = row.status_count
+
+        grouped[vertical]["statuses"].append(
+            ds.StatusCountItem(status=status_, count=count)
+        )
+        grouped[vertical]["total"] += count
+
+    response: list[ds.VerticalStatusSummary] = []
+
+    for vertical, data in grouped.items():
+        response.append(
+            ds.VerticalStatusSummary(
+                vertical=vertical,
+                total=data["total"],
+                statuses=data["statuses"],
+            )
+        )
+
+    return response

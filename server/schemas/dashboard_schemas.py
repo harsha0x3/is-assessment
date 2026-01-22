@@ -15,15 +15,21 @@ class PriorityCountItem(BaseModel):
     statuses: list[StatusCountItem]
 
 
-# ---------- Application-level stats ----------
+class VerticalStatusSummary(BaseModel):
+    vertical: str
+    total: int
+    statuses: list[StatusCountItem]
 
 
-class ApplicationStats(BaseModel):
+# ---------- Application-level summary ----------
+
+
+class ApplicationSummary(BaseModel):
     total_apps: int
     status_chart: list[StatusCountItem]
 
 
-# ---------- Department-level stats ----------
+# ---------- Department-level summary ----------
 
 
 class DepartmentStatusItem(BaseModel):
@@ -31,16 +37,16 @@ class DepartmentStatusItem(BaseModel):
     count: int
 
 
-class DepartmentStatsItem(BaseModel):
+class DepartmentSummaryItem(BaseModel):
     department_id: int
     department: str  # "finance"
     statuses: list[DepartmentStatusItem]
 
 
-class DepartmentStatsResponse(BaseModel):
-    departments: list[DepartmentStatsItem]
+class DepartmentSummaryResponse(BaseModel):
+    departments: list[DepartmentSummaryItem]
 
 
-class DashboardStatsResponse(BaseModel):
-    application_stats: ApplicationStats
-    department_stats: DepartmentStatsResponse
+class DashboardSummaryResponse(BaseModel):
+    application_summary: ApplicationSummary
+    department_summary: DepartmentSummaryResponse

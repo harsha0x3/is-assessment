@@ -17,7 +17,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import type { AppStatuses } from "@/utils/globalTypes";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const chartConfig: ChartConfig = {
   count: {
@@ -46,6 +46,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
   deptId,
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   return (
     <Card className="h-80 px-0 w-md gap-1">
       <CardHeader className="pb-2 px-0">

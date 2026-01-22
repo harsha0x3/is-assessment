@@ -106,10 +106,7 @@ export function UsersTable({ users }: Props) {
   return (
     <>
       <div className="w-full h-full overflow-x-auto overflow-y-auto border rounded-md">
-        <Table
-          style={{ width: table.getCenterTotalSize() }}
-          className="table-fixed"
-        >
+        <Table className="table-fixed">
           <TableHeader className="bg-accent text-accent-foreground sticky">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>

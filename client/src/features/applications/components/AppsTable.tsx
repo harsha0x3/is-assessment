@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { lazy, Suspense, useMemo } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -23,12 +23,17 @@ import DescriptionCell from "@/components/ui/description-cell";
 import { parseDate, parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
-import { AppStatusHeaderFilter } from "./AppsTableHeaders";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
 import { Dot, Loader } from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 import { createDepartmentStatusColumn } from "./DepartmentColumnFactory";
+const VerticalSearchFilter = lazy(
+  () => import("../components/tableHeaders/VerticalSearchFilter"),
+);
+const AppStatusHeaderFilter = lazy(
+  () => import("../components/tableHeaders/AppStatusHeaderFilter"),
+);
 // import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
 
 // type Props = {
@@ -214,9 +219,12 @@ const AppsTable: React.FC = () => {
             variant="link"
             className="p-0 h-auto text-left text-primary"
             onClick={() => {
-              navigate(`/applications/details/${row.original.id}/overview`, {
-                state: { appName: row.original.name },
-              });
+              navigate(
+                `/applications/details/${row.original.id}/overview?${searchParams.toString()}`,
+                {
+                  state: { appName: row.original.name },
+                },
+              );
             }}
           >
             <span className="whitespace-normal wrap-break-word">
@@ -237,7 +245,11 @@ const AppsTable: React.FC = () => {
       }),
 
       colHelper.accessor("vertical", {
-        header: "Vertical",
+        header: () => (
+          <Suspense fallback="Vertical">
+            <VerticalSearchFilter />
+          </Suspense>
+        ),
         maxSize: 180,
         minSize: 120,
         cell: (info) => {
@@ -257,7 +269,11 @@ const AppsTable: React.FC = () => {
               },
             }),
             colHelper.accessor("status", {
-              header: () => <AppStatusHeaderFilter />,
+              header: () => (
+                <Suspense fallback={"Status"}>
+                  <AppStatusHeaderFilter />
+                </Suspense>
+              ),
               maxSize: 140,
               minSize: 80,
               cell: (info) => {
@@ -322,6 +338,7 @@ const AppsTable: React.FC = () => {
                 <div className="flex gap-2">
                   {depts.map((d) => (
                     <Hint
+                      key={d.id}
                       label={
                         <div>
                           <p>{d.name}</p>
@@ -384,12 +401,7 @@ const AppsTable: React.FC = () => {
   });
   return (
     <div className="w-full h-full overflow-x-auto overflow-y-auto border rounded-md">
-      <Table
-        style={{
-          width: table.getCenterTotalSize(),
-        }}
-        className="table-fixed"
-      >
+      <Table className="table-fixed">
         <TableHeader className="bg-accent text-accent-foreground sticky">
           {table.getHeaderGroups().map((hg) => (
             <TableRow key={hg.id} className="text-ring">

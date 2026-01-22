@@ -6,6 +6,7 @@ import {
   useLocation,
   useNavigate,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 const AppInfoDialog: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { appId } = useParams();
   const {
     data: appDetails,
@@ -27,11 +29,11 @@ const AppInfoDialog: React.FC = () => {
 
   const appName = useMemo<string>(
     () => appDetails?.data.name ?? "",
-    [appDetails]
+    [appDetails],
   );
 
   const [isOpen, setIsOpen] = useState(
-    location.pathname.startsWith("/applications/details")
+    location.pathname.startsWith("/applications/details"),
   );
 
   const tabs = [
@@ -50,7 +52,7 @@ const AppInfoDialog: React.FC = () => {
       location.pathname.startsWith("/applications/details") &&
       !location.pathname.match(/overview|departments|evidences/)
     ) {
-      navigate("overview", { replace: true });
+      navigate(`overview?${searchParams.toString()}`, { replace: true });
     }
   }, [location.pathname, navigate]);
 
@@ -63,7 +65,7 @@ const AppInfoDialog: React.FC = () => {
       open={isOpen}
       onOpenChange={() => {
         setIsOpen(false);
-        navigate("/applications");
+        navigate(`/applications?${searchParams.toString()}`);
       }}
     >
       <DialogContent
@@ -94,10 +96,10 @@ const AppInfoDialog: React.FC = () => {
                       value={tab.value}
                       onClick={() =>
                         navigate(
-                          `/applications/details/${appId}/${tab.value}`,
+                          `/applications/details/${appId}/${tab.value}?${searchParams.toString()}`,
                           {
                             state: { appName },
-                          }
+                          },
                         )
                       }
                       className="flex-1 rounded-none"
@@ -120,14 +122,14 @@ const AppInfoDialog: React.FC = () => {
                   {tabs.map((tab) => (
                     <NavLink
                       key={tab.value}
-                      to={`/applications/details/${appId}/${tab.value}`}
+                      to={`/applications/details/${appId}/${tab.value}?${searchParams.toString()}`}
                       state={{ appName }}
                       className={({ isActive }) =>
                         cn(
                           "flex items-center px-4 py-2 rounded-md text-sm transition-colors",
                           "hover:bg-muted",
                           isActive &&
-                            "bg-background font-semibold text-primary border-l-4 border-primary"
+                            "bg-background font-semibold text-primary border-l-4 border-primary",
                         )
                       }
                     >

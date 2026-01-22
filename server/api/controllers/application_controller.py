@@ -74,7 +74,18 @@ def create_app(
         )
 
 
-def get_app_stats(db: Session):
+def _has_filters(params: AppQueryParams) -> bool:
+    return any(
+        [
+            params.dept_filter_id,
+            params.app_priority,
+            params.vertical and params.vertical != "null",
+            params.search and params.search != "null",
+        ]
+    )
+
+
+def get_apps_summary(db: Session):
     try:
         normalized_status = func.replace(
             func.replace(
@@ -117,6 +128,43 @@ def get_app_stats(db: Session):
         )
 
 
+def get_apps_summary_from_stmt(db: Session, stmt):
+    try:
+        normalized_status = func.replace(
+            func.replace(func.lower(stmt.c.status), " ", "_"),
+            "-",
+            "_",
+        )
+
+        rows = db.execute(
+            select(
+                normalized_status.label("status"),
+                func.count().label("status_count"),
+            )
+            .select_from(stmt)
+            .group_by(normalized_status)
+        ).all()
+
+        app_statuses = {row.status: int(row.status_count) for row in rows}
+
+        return AppStatuses(
+            in_progress=app_statuses.get("in_progress", 0),
+            not_yet_started=app_statuses.get("not_yet_started", 0),
+            closed=app_statuses.get("closed", 0),
+            new_request=app_statuses.get("new_request", 0),
+            cancelled=app_statuses.get("cancelled", 0),
+            completed=app_statuses.get("completed", 0),
+            reopen=app_statuses.get("reopen", 0),
+        )
+
+    except Exception as e:
+        print("Error fetching filtered summary", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching filtered app summary.",
+        )
+
+
 def list_all_apps(db: Session, params: AppQueryParams):
     try:
         stmt = (
@@ -128,12 +176,9 @@ def list_all_apps(db: Session, params: AppQueryParams):
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total_count = db.scalar(count_stmt)
+        apps_summary = get_apps_summary(db=db)
 
         sort_column = getattr(Application, params.sort_by)
-
-        if params.status and len(params.status) > 0:
-            print("STATUS LIST", params.status)
-            stmt = stmt.where(Application.status.in_(params.status))
 
         latest_comment = None
 
@@ -151,6 +196,13 @@ def list_all_apps(db: Session, params: AppQueryParams):
         if params.app_priority and len(params.app_priority) > 0:
             stmt = stmt.where(Application.app_priority.in_(params.app_priority))
 
+        if (
+            params.vertical
+            and params.vertical != "null"
+            and params.vertical.strip() != ""
+        ):
+            stmt = stmt.where(Application.vertical.ilike(f"%{params.vertical}%"))
+
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
             search_value = f"%{params.search}%"
@@ -166,8 +218,18 @@ def list_all_apps(db: Session, params: AppQueryParams):
             elif search_column is not None:
                 stmt = stmt.where(search_column.ilike(search_value))
 
-        filtered_count_stmt = select(func.count()).select_from(stmt.subquery())
-        filtered_count = db.scalar(filtered_count_stmt)
+        filtered_subquery = stmt.subquery()
+        filtered_count = db.scalar(select(func.count()).select_from(filtered_subquery))
+        filtered_apps_summary = None
+        if _has_filters(params):
+            filtered_apps_summary = get_apps_summary_from_stmt(
+                db=db, stmt=filtered_subquery
+            )
+
+        if params.status and len(params.status) > 0:
+            stmt = stmt.where(Application.status.in_(params.status))
+
+        # -------- pagination ans sorting ---------
 
         if params.sort_order == "desc":
             sort_column = desc(sort_column)
@@ -211,13 +273,12 @@ def list_all_apps(db: Session, params: AppQueryParams):
             )
             apps_out.append(data)
 
-        app_stats = get_app_stats(db=db)
-
         return {
             "apps": apps_out,
             "total_count": total_count,
             "filtered_count": filtered_count,
-            "app_stats": app_stats,
+            "filtered_summary": filtered_apps_summary,
+            "apps_summary": apps_summary,
         }
 
     except HTTPException:

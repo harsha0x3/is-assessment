@@ -123,7 +123,7 @@ const ApplicationsPage: React.FC = () => {
             <InlineLoader />
           </div>
         )}
-        <StatusProgressBar stats={data?.data.app_stats} />
+        <StatusProgressBar summary={data?.data.apps_summary} />
         <div className="flex-1 overflow-auto">
           <AppsTable />
         </div>

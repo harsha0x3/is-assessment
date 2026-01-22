@@ -84,7 +84,7 @@ const StatusDonut = ({
     <>
       <CardHeader>
         <CardTitle className="text-center text-lg">
-          Overall Application Statuses
+          Overall Application Status Summary
         </CardTitle>
       </CardHeader>
       <CardContent className="grid md:grid-cols-2 gap-2">
@@ -152,6 +152,7 @@ const StatusDonut = ({
         <div className="grid grid-cols-2 gap-3 items-center">
           {data.map((item) => (
             <StatusCard
+              key={item.name}
               data={{
                 name: item.name,
                 count: item.count,

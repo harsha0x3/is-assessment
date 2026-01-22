@@ -1,4 +1,4 @@
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RootLayout from "./layouts/RootLayout";
 import ProtectedLayout from "./layouts/ProtectedLayout";
@@ -40,6 +40,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route path="/" element={<ProtectedLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route element={<RootLayout />}>
             <Route
               path="dashboard"

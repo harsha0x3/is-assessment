@@ -4,7 +4,7 @@ import type {
   ApplicationUpdate,
   NewAppListOut,
   AppQueryParams,
-  AppStatusStats,
+  AppStatusSummary,
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";
 import { rootApiSlice } from "@/store/rootApiSlice";
@@ -30,7 +30,8 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
         apps: NewAppListOut[];
         total_count: number;
         filtered_count: number;
-        app_stats: AppStatusStats;
+        apps_summary: AppStatusSummary;
+        filtered_summary?: AppStatusSummary | null;
       }>,
       AppQueryParams | void
     >({

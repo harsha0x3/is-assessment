@@ -26,6 +26,7 @@ export const useApplications = () => {
   const deptFilterId = searchParams.get("deptFilterId");
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
   const appPriority = searchParams.get("appPriority");
+  const appVertical = searchParams.get("appVertical");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -37,6 +38,7 @@ export const useApplications = () => {
   );
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedVerticalSearch, setDebouncedVerticalSearch] = useState("");
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
 
   const { data, isSuccess, isError, error, isLoading, isFetching } =
@@ -51,11 +53,16 @@ export const useApplications = () => {
       dept_filter_id: deptFilterId ?? undefined,
       dept_status: deptStatus ?? undefined,
       app_priotity: appPriorityList,
+      vertical: debouncedVerticalSearch ?? undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
   const filteredApps = useMemo(() => data?.data?.filtered_count ?? 0, [data]);
-  const appStatusStats = useMemo(() => data?.data?.app_stats, [data]);
+  const appStatusSummary = useMemo(() => data?.data?.apps_summary, [data]);
+  const filteredAppsSummary = useMemo(
+    () => data?.data?.filtered_summary,
+    [data],
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -76,6 +83,24 @@ export const useApplications = () => {
     return () => clearTimeout(handler);
   }, [appSearchValue]);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (appVertical && appVertical.trim() !== "") {
+        if (rawAppPage >= 1) setLastAppPage(rawAppPage);
+        updateSearchParams({
+          appVertical: appVertical,
+          appPage: 1,
+        });
+        setDebouncedVerticalSearch(appVertical);
+      } else {
+        updateSearchParams({ appSearch: null, appPage: lastAppPage });
+        setDebouncedVerticalSearch("");
+      }
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [appVertical]);
+
   const updateSearchParams = (
     updates: Record<string, string | number | null | undefined>,
   ) => {
@@ -84,7 +109,7 @@ export const useApplications = () => {
       if (value === undefined || value === null) newParams.delete(key);
       else newParams.set(key, String(value));
     });
-    setSearchParams(newParams);
+    setSearchParams(newParams, { replace: true });
   };
 
   const goToPage = (page: number) => {
@@ -104,12 +129,14 @@ export const useApplications = () => {
     data,
     totalApps,
     filteredApps,
-    appStatusStats,
+    appStatusSummary,
     isLoading,
     isSuccess,
     debouncedSearch,
     appSearchValue,
     isFetching,
+    appVertical,
+    filteredAppsSummary,
   };
 };
 

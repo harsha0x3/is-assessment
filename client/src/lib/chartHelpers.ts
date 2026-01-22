@@ -1,4 +1,4 @@
-// utils/chartHelpers.ts
+// src\lib\chartHelpers.ts
 
 import type { PriorityCountItem } from "@/features/dashboard/types";
 
