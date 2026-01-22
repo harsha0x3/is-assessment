@@ -71,12 +71,22 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
-      colHelper.accessor("app_url", {
-        header: "App URL",
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
         cell: (info) => {
-          return info.getValue();
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
         },
       }),
+      // colHelper.accessor("app_url", {
+      //   header: "App URL",
+      //   cell: (info) => {
+      //     return info.getValue();
+      //   },
+      // }),
     ],
 
     tprm: [
@@ -87,6 +97,16 @@ const AppsTable: React.FC = () => {
         },
       }),
       createDepartmentStatusColumn("tprm", "TPRM"),
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
 
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
@@ -105,6 +125,16 @@ const AppsTable: React.FC = () => {
 
     security_controls: [
       createDepartmentStatusColumn("security controls", "Security Controls"),
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
 
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
@@ -122,6 +152,16 @@ const AppsTable: React.FC = () => {
     ],
     iam: [
       createDepartmentStatusColumn("iam", "IAM"),
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
 
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
@@ -139,7 +179,16 @@ const AppsTable: React.FC = () => {
     ],
     soc_integration: [
       createDepartmentStatusColumn("soc integration", "SOC Integration"),
-
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -233,17 +282,19 @@ const AppsTable: React.FC = () => {
           </Button>
         ),
       }),
-
-      colHelper.accessor("description", {
-        header: "Description",
-        maxSize: 400,
-        minSize: 220,
-        cell: (info) => {
-          const content: string = info.getValue() ?? "-";
-          return <DescriptionCell content={content} />;
-        },
-      }),
-
+      ...(!departmentView
+        ? [
+            colHelper.accessor("description", {
+              header: "Description",
+              maxSize: 400,
+              minSize: 220,
+              cell: (info) => {
+                const content: string = info.getValue() ?? "-";
+                return <DescriptionCell content={content} />;
+              },
+            }),
+          ]
+        : []),
       colHelper.accessor("vertical", {
         header: () => (
           <Suspense fallback="Vertical">

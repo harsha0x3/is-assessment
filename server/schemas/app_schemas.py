@@ -112,15 +112,14 @@ class NewAppListOut(BaseModel):
     ticket_id: str | None = None
     vertical: str | None = None
     imitra_ticket_id: str | None = None
-    is_completed: bool
     status: str
-    priority: int = 2
     app_priority: int | None = None
     app_url: str | None
 
     started_at: datetime | None = None
     completed_at: datetime | None = None
     vendor_company: str | None = None
+    titan_spoc: str | None
     departments: list[AppDepartmentOut] | None = None
     latest_comment: CommentOut | None
 

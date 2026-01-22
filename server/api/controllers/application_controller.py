@@ -261,7 +261,6 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 vertical=app.vertical,
                 ticket_id=app.ticket_id,
                 imitra_ticket_id=app.imitra_ticket_id,
-                is_completed=app.is_completed,
                 status=app.status,
                 app_priority=app.app_priority,
                 started_at=app.created_at,
@@ -270,6 +269,7 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 app_url=app.app_url,
                 vendor_company=app.vendor_company,
                 latest_comment=latest_comment,
+                titan_spoc=app.titan_spoc,
             )
             apps_out.append(data)
 

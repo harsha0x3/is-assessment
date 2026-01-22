@@ -81,9 +81,7 @@ export interface NewAppListOut {
   ticket_id?: string | null;
   vertical?: string | null;
   imitra_ticket_id?: string | null;
-  is_completed: boolean;
   status: AppStatuses;
-  priority?: number;
   app_priority?: number | null;
   started_at?: string | null;
   completed_at?: string | null;
@@ -91,6 +89,7 @@ export interface NewAppListOut {
   vendor_company?: string;
   departments?: AppDepartmentOut[] | null;
   latest_comment?: CommentOut;
+  titan_spoc?: string | null;
 }
 
 export interface AppQueryParams {

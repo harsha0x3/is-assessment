@@ -66,10 +66,10 @@ const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
                   <Badge variant="outline" className="rounded-sm">
                     {selectedValues.length}
                   </Badge>
-                  Department Status
+                  Dept Status
                 </span>
               ) : (
-                <span className="text-ring">Department Status</span>
+                <span className="text-ring">Dept Status</span>
               )}
               <ChevronsUpDownIcon
                 className="text-muted-foreground/80 shrink-0"
