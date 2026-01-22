@@ -37,7 +37,7 @@ class Application(Base, BaseMixin):
     completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-    app_url: Mapped[str] = mapped_column(String(888), nullable=True)
+    app_url: Mapped[str] = mapped_column(Text, nullable=True)
 
     # -- Relationships --
     creator = relationship(
