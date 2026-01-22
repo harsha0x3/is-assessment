@@ -101,10 +101,9 @@ const VerticalWiseSummary: React.FC = () => {
   });
   return (
     <>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <CardTitle>Vertical Wise Applications Summary</CardTitle>
-          <div className="relative w-64">
+      <CardHeader className="py-0 gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center w-full">
+          <div className="relative w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search vertical..."
@@ -113,6 +112,9 @@ const VerticalWiseSummary: React.FC = () => {
               className="pl-8"
             />
           </div>
+          <CardTitle className="sm:flex-1 text-center">
+            Vertical Wise Applications Summary
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="h-135 overflow-auto">

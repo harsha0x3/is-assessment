@@ -19,7 +19,7 @@ class CommentWithEvidences(c_schemas.CommentOut, BaseModel):
 def get_latest_app_dept_comment(app_id: str, dept_id: int, db: Session):
     latest_comment = db.scalar(
         select(Comment)
-        .where(and_(Comment.application_id == app_id))
+        .where(and_(Comment.application_id == app_id, Comment.department_id == dept_id))
         .order_by(desc(Comment.created_at))
         .limit(1)
     )

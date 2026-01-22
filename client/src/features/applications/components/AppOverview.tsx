@@ -95,7 +95,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
   const currentUserInfo = useSelector(selectAuth);
 
   const [isEditing, setIsEditing] = useState(false);
-  const isAdmin = currentUserInfo.role === "admin";
+  const isAdmin = ["admin", "manager"].includes(currentUserInfo.role);
   const isNew = !appId && isAdmin;
 
   useEffect(() => {

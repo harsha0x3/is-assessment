@@ -84,48 +84,6 @@ const StatusDonut = ({
   total_count: number;
 }) => {
   const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
-
-  async function saveBlobWithDialog(blob: Blob, filename: string) {
-    // ✅ Modern browsers (Chrome, Edge)
-    // if ("showSaveFilePicker" in window) {
-    //   // Define SaveFilePickerOptions type inline for TS
-    //   type SaveFilePickerOptions = {
-    //     suggestedName?: string;
-    //     types?: Array<{
-    //       description?: string;
-    //       accept: Record<string, string[]>;
-    //     }>;
-    //     excludeAcceptAllOption?: boolean;
-    //   };
-    //   const handle = await (window as typeof window & {
-    //     showSaveFilePicker: (options: SaveFilePickerOptions) => Promise<any>;
-    //   }).showSaveFilePicker({
-    //     suggestedName: filename,
-    //     types: [
-    //       {
-    //         description: "CSV file",
-    //         accept: { "text/csv": [".csv"] },
-    //       },
-    //     ],
-    //   });
-
-    //   const writable = await handle.createWritable();
-    //   await writable.write(blob);
-    //   await writable.close();
-    //   return;
-    // }
-
-    // 🔁 Fallback (Firefox, Safari)
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  }
-
   return (
     <>
       <CardHeader>
@@ -136,8 +94,7 @@ const StatusDonut = ({
           <Button
             onClick={async () => {
               try {
-                const blob = await trigger().unwrap();
-                await saveBlobWithDialog(blob, "applications_overview.csv");
+                await trigger().unwrap();
               } catch (error) {
                 toast.error(
                   getApiErrorMessage(error) ?? "Error downloading the report",
@@ -147,9 +104,8 @@ const StatusDonut = ({
             disabled={isLoading}
           >
             {isLoading ? (
-              <span className="flex items-center">
+              <span className="flex items-ce">
                 <Loader className="animnate-spin" />
-                Exporting...
               </span>
             ) : (
               "Export"

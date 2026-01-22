@@ -64,9 +64,11 @@ def get_app_status_summary(db: Session) -> ds.ApplicationSummary:
 # ---------- Department-wise status summary ----------
 
 
-def get_department_status_summary(db: Session) -> ds.DepartmentSummaryResponse:
+def get_department_status_summary(
+    db: Session, status_filter: str | None
+) -> ds.DepartmentSummaryResponse:
     try:
-        rows = db.execute(
+        stmt = (
             select(
                 Department.id.label("dept_id"),
                 Department.name.label("department"),
@@ -82,7 +84,12 @@ def get_department_status_summary(db: Session) -> ds.DepartmentSummaryResponse:
                 Department.name,
                 ApplicationDepartments.status,
             )
-        ).all()
+        )
+        if status_filter and status_filter != "all":
+            stmt = stmt.join(
+                Application, Application.id == ApplicationDepartments.application_id
+            ).where(Application.status == status_filter)
+        rows = db.execute(stmt).all()
 
         raw: dict[str, dict] = {}
 
@@ -125,23 +132,22 @@ def get_department_status_summary(db: Session) -> ds.DepartmentSummaryResponse:
         )
 
 
-def get_dashboard_status_summary(db: Session):
-    try:
-        app_summary = get_app_status_summary(db=db)
-        dept_summary = get_department_status_summary(db=db)
-        result = ds.DashboardSummaryResponse(
-            application_summary=app_summary, department_summary=dept_summary
-        )
-        return result
+# def get_dashboard_status_summary(db: Session):
+#     try:
+#         app_summary = get_app_status_summary(db=db)
+#         result = ds.DashboardSummaryResponse(
+#             application_summary=app_summary, department_summary=dept_summary
+#         )
+#         return result
 
-    except HTTPException:
-        raise
+#     except HTTPException:
+#         raise
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error getting status charts",
-        )
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail="Error getting status charts",
+#         )
 
 
 def get_priority_wise_grouped_summary(db: Session):

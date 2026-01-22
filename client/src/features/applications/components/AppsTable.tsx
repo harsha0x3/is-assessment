@@ -356,7 +356,7 @@ const AppsTable: React.FC = () => {
         },
       }),
     ];
-  }, []);
+  }, [departmentView]);
 
   const departmentColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     if (!departmentView)

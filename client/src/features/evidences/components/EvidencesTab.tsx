@@ -14,7 +14,7 @@ const EvidencesTab: React.FC = () => {
   return (
     <div className="flex flex-col h-full min-h-0 gap-4">
       <EvidenceList appId={appId} />
-      {["super_admin", "admin"].includes(curretUserInfo.role) && (
+      {["super_admin", "admin", "manager"].includes(curretUserInfo.role) && (
         <EvidenceUploader appId={appId} />
       )}
     </div>

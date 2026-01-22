@@ -1,12 +1,27 @@
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import {
-  useGetDashboardSummaryQuery,
+  useGetApplicationSummaryQuery,
+  useGetDepartmentSummaryQuery,
   useGetPriorityWiseSummaryQuery,
 } from "../store/dashboardApiSlice";
 import { buildDonutData, buildPriorityStackedData } from "@/lib/chartHelpers";
 import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AppStatusOptions,
+  STATUS_COLOR_MAP_BG,
+  STATUS_COLOR_MAP_FG,
+} from "@/utils/globalValues";
+import type { AppStatuses } from "@/utils/globalTypes";
+import { Separator } from "@/components/ui/separator";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
@@ -34,8 +49,17 @@ const CardLoader = () => (
 
 const DashboardPage: React.FC = () => {
   // 🔹 Lazy-loaded components
-
-  const { data, isLoading, error } = useGetDashboardSummaryQuery();
+  const [deptStatusFilter, setDeptStatusFilter] = useState<string>("all");
+  const {
+    data: appsSummary,
+    isLoading: isLoadingAppsSummary,
+    error: appsSummaryErr,
+  } = useGetApplicationSummaryQuery();
+  const {
+    data: deptSummay,
+    isLoading: isLoadingDeptSummay,
+    error: deptSummayErr,
+  } = useGetDepartmentSummaryQuery({ status_filter: deptStatusFilter });
   const {
     data: prioritySummary,
     isLoading: isLoadingPrioritySummary,
@@ -47,7 +71,7 @@ const DashboardPage: React.FC = () => {
     [prioritySummary],
   );
 
-  if (isLoading) {
+  if (isLoadingAppsSummary || isLoadingDeptSummay) {
     return (
       <div className="flex items-center gap-2">
         <Loader className="animate-spin" /> Loading...
@@ -55,11 +79,19 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  if (error) {
-    return <p>{getApiErrorMessage(error) ?? "Error fetching summary"}</p>;
+  if (appsSummaryErr || deptSummayErr || prioritySummaryErr) {
+    return (
+      <p>
+        {appsSummaryErr
+          ? getApiErrorMessage(appsSummaryErr)
+          : deptSummayErr
+            ? getApiErrorMessage(deptSummayErr)
+            : prioritySummaryErr
+              ? getApiErrorMessage(prioritySummaryErr)
+              : "Error fetching summary"}
+      </p>
+    );
   }
-
-  if (!data) return null;
 
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">
@@ -68,27 +100,72 @@ const DashboardPage: React.FC = () => {
         <Suspense
           fallback={<SectionLoader label="Loading application summary…" />}
         >
-          {!isLoading && data && (
+          {!isLoadingAppsSummary && appsSummary && (
             <StatusDonut
               data={buildDonutData(
-                data.application_summary.status_chart,
-                data.application_summary.total_apps,
+                appsSummary.status_chart,
+                appsSummary.total_apps,
               )}
-              total_count={data.application_summary.total_apps}
+              total_count={appsSummary.total_apps}
             />
           )}
         </Suspense>
 
-        {isLoading && <SectionLoader label="Loading application summary…" />}
-        {error && <p>{getApiErrorMessage(error)}</p>}
+        {isLoadingAppsSummary && (
+          <SectionLoader label="Loading application summary…" />
+        )}
+        {appsSummaryErr && <p>{getApiErrorMessage(appsSummaryErr)}</p>}
       </Card>
 
       {/* ---------- Department-wise summary ---------- */}
       <Card className="px-0">
         <CardHeader className="px-0">
-          <CardTitle className="text-center">
-            Department Wise Status Summary
-          </CardTitle>
+          <div className="flex w-full items-center">
+            <div className="flex items-center gap-2 pl-9">
+              <p>Applications' Status</p>
+              <Select
+                value={deptStatusFilter}
+                onValueChange={(value) => setDeptStatusFilter(value)}
+              >
+                <SelectTrigger
+                  id="app-status"
+                  className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
+                  style={{
+                    backgroundColor: deptStatusFilter
+                      ? STATUS_COLOR_MAP_BG[deptStatusFilter as AppStatuses]
+                      : undefined,
+                    color: deptStatusFilter
+                      ? STATUS_COLOR_MAP_FG[deptStatusFilter as AppStatuses]
+                      : undefined,
+                  }}
+                >
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent className="">
+                  <SelectItem value="all">All</SelectItem>
+                  {AppStatusOptions.map((s, idx) => {
+                    return (
+                      <>
+                        <SelectItem
+                          value={s.value}
+                          style={{
+                            color: STATUS_COLOR_MAP_FG[s.value],
+                          }}
+                          className=""
+                        >
+                          {s.label}
+                        </SelectItem>
+                        {idx !== AppStatusOptions.length && <Separator />}
+                      </>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <CardTitle className="text-center flex-1">
+              Department Wise Status Summary
+            </CardTitle>
+          </div>
         </CardHeader>
 
         <CardContent className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
@@ -101,7 +178,7 @@ const DashboardPage: React.FC = () => {
               </>
             }
           >
-            {data?.department_summary.departments.map((dept) => (
+            {deptSummay?.departments.map((dept) => (
               <DepartmentStatusCard
                 key={dept.department}
                 department={dept.department}

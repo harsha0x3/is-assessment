@@ -27,6 +27,10 @@ export interface DepartmentSummaryItem {
   statuses: DepartmentStatusItem[];
 }
 
+export interface DepartmentSummaryResponse {
+  departments: DepartmentSummaryItem[];
+}
+
 export interface DashboardSummaryResponse {
   application_summary: ApplicationStatusSummary;
   department_summary: {

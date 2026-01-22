@@ -1,14 +1,25 @@
 import { rootApiSlice } from "@/store/rootApiSlice";
 import type {
   PriorityCountItem,
-  DashboardSummaryResponse,
   VerticalStatusSummary,
+  ApplicationStatusSummary,
+  DepartmentSummaryResponse,
 } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getDashboardSummary: builder.query<DashboardSummaryResponse, void>({
-      query: () => `/dashboard/summary`,
+    getApplicationSummary: builder.query<ApplicationStatusSummary, void>({
+      query: () => `/dashboard/summary/applications`,
+    }),
+    getDepartmentSummary: builder.query<
+      DepartmentSummaryResponse,
+      { status_filter: string } | void
+    >({
+      query: (params) => ({
+        url: `/dashboard/summary/departments`,
+        method: "GET",
+        params: params ?? undefined,
+      }),
     }),
     getPriorityWiseSummary: builder.query<PriorityCountItem[], void>({
       query: () => `/dashboard/summary/priority-wise`,
@@ -19,7 +30,8 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
   }),
 });
 export const {
-  useGetDashboardSummaryQuery,
+  useGetApplicationSummaryQuery,
+  useGetDepartmentSummaryQuery,
   useGetPriorityWiseSummaryQuery,
   useGetVerticalWiseSummaryQuery,
 } = dashboardApiSlice;
