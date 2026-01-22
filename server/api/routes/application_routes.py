@@ -35,7 +35,7 @@ from schemas.app_schemas import (
     AppQueryParams,
 )
 from schemas.auth_schemas import UserOut
-from services.auth.deps import get_current_user, require_admin
+from services.auth.deps import get_current_user, require_admin, require_manager
 from api.controllers import evidence_controller as e_ctrl
 import os
 from schemas import evidence_schemas as e_schemas
@@ -49,12 +49,8 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 async def create_application(
     payload: Annotated[ApplicationCreate, "Request fields for creating an application"],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(require_manager)],
 ):
-    if current_user.role not in ["admin", "moderator"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
-        )
     data = create_app(payload=payload, db=db, creator=current_user, owner=current_user)
     return {"msg": "Application created successfully", "data": data}
 
@@ -133,13 +129,8 @@ async def update_application(
     payload: Annotated[ApplicationUpdate, Body(title="App update payload")],
     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[UserOut, Depends(require_manager)],
 ):
-    if current_user.role not in ["admin", "moderator"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"You don't have to update the application {current_user.full_name}",
-        )
     data = update_app(payload, app_id, db, current_user)
     return {"msg": "", "data": data}
 
@@ -174,7 +165,7 @@ async def update_applicaion_status(
 async def add_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[UserOut, Depends(require_manager)],
     severity: Annotated[str | None, Form()] = None,
     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
 ):

@@ -141,6 +141,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="manager">Manager</SelectItem>
                 <SelectItem value="moderator">Moderator</SelectItem>
                 <SelectItem value="user">User</SelectItem>
               </SelectContent>

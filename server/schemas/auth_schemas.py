@@ -65,6 +65,7 @@ class UserWithDepartments(UserOut, BaseModel):
 
 class RoleEnum(str, Enum):
     admin = "admin"
+    manager = "manager"
     moderator = "moderator"
     user = "user"
 

@@ -50,14 +50,14 @@ const sidebarItems: SidebarData[] = [
     path: "/dashboard",
     isActive: false,
     icon: LayoutDashboardIcon,
-    roles: ["admin", "moderator", "user"],
+    roles: ["admin", "moderator", "user", "manager"],
   },
   {
     title: "Apps",
     path: "/applications",
     isActive: false,
     icon: LayoutGridIcon,
-    roles: ["admin", "moderator", "user"],
+    roles: ["admin", "moderator", "user", "manager"],
   },
   {
     title: "User Management",

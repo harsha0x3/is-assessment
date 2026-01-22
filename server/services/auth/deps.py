@@ -122,6 +122,14 @@ def require_admin(current_user: UserOut = Depends(get_current_user)) -> UserOut:
     return current_user
 
 
+def require_manager(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+    if current_user.role not in ["super_admin", "admin", "manager"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"
+        )
+    return current_user
+
+
 # def require_mfa_verified(
 #     user: User = Depends(get_current_user), token: str = Depends(oauth2_scheme)
 # ) -> User:

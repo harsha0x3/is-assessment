@@ -120,7 +120,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
           loading: "Saving Changes...",
           success: "Changes saved successfully!",
           error: getApiErrorMessage(editAppErr) ?? "Failed to save changes",
-        }
+        },
       );
     } catch (err) {
       const errMSg = getApiErrorMessage(err);
@@ -138,7 +138,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
           loading: "Creating new app...",
           success: `App ${payload.name} created successfully!`,
           error: getApiErrorMessage(newAppErr) ?? "Failed to create new app",
-        }
+        },
       );
       onNewAppSuccess?.();
     } catch (err) {
@@ -591,54 +591,56 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
               </div>
             </div>
           </ScrollArea>
-          <div className="rounded-md bg-accent py-2 mx-1">
-            <div className="flex items-center gap-3 justify-between">
-              {!isNew && currentUserInfo.role === "admin" && (
-                <div
-                  className="group inline-flex items-center gap-2"
-                  data-state={isEditing ? "checked" : "unchecked"}
-                >
-                  {isEditing && (
+          {["admin", "manager"].includes(currentUserInfo.role) && (
+            <div className="rounded-md bg-accent py-2 mx-1">
+              <div className="flex items-center gap-3 justify-between">
+                {!isNew && (
+                  <div
+                    className="group inline-flex items-center gap-2"
+                    data-state={isEditing ? "checked" : "unchecked"}
+                  >
+                    {isEditing && (
+                      <span
+                        id={`edit-app-yes`}
+                        className="group-data-[state=checked]:text-muted-foreground/70 cursor-pointer text-right text-sm font-medium"
+                        aria-controls="edit-app"
+                        onClick={() => setIsEditing(false)}
+                      >
+                        Cancel
+                      </span>
+                    )}
+                    <Switch
+                      id="edit-app"
+                      checked={isEditing}
+                      onCheckedChange={setIsEditing}
+                      aria-labelledby={`edit-app-yes edit-app-no`}
+                      className="focus-visible:border-ring-green-600 dark:focus-visible:border-ring-green-400 focus-visible:ring-green-400/20 data-[state=checked]:bg-green-400 dark:focus-visible:ring-green-300/40 dark:data-[state=checked]:bg-green-300 hover:cursor-pointer"
+                    />
                     <span
-                      id={`edit-app-yes`}
-                      className="group-data-[state=checked]:text-muted-foreground/70 cursor-pointer text-right text-sm font-medium"
+                      id={`edit-app-no`}
+                      className="group-data-[state=unchecked]:text-muted-foreground/70 cursor-pointer text-left text-sm font-medium"
                       aria-controls="edit-app"
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => setIsEditing(true)}
                     >
-                      Cancel
+                      Edit
                     </span>
-                  )}
-                  <Switch
-                    id="edit-app"
-                    checked={isEditing}
-                    onCheckedChange={setIsEditing}
-                    aria-labelledby={`edit-app-yes edit-app-no`}
-                    className="focus-visible:border-ring-green-600 dark:focus-visible:border-ring-green-400 focus-visible:ring-green-400/20 data-[state=checked]:bg-green-400 dark:focus-visible:ring-green-300/40 dark:data-[state=checked]:bg-green-300 hover:cursor-pointer"
-                  />
-                  <span
-                    id={`edit-app-no`}
-                    className="group-data-[state=unchecked]:text-muted-foreground/70 cursor-pointer text-left text-sm font-medium"
-                    aria-controls="edit-app"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit
-                  </span>
-                </div>
-              )}
-              {(isEditing || isNew) && (
-                <Field orientation={"horizontal"}>
-                  <Button
-                    size="sm"
-                    form="application-details"
-                    type="submit"
-                    disabled={isUpdating || isAdding}
-                  >
-                    Save
-                  </Button>
-                </Field>
-              )}
+                  </div>
+                )}
+                {(isEditing || isNew) && (
+                  <Field orientation={"horizontal"}>
+                    <Button
+                      size="sm"
+                      form="application-details"
+                      type="submit"
+                      disabled={isUpdating || isAdding}
+                    >
+                      Save
+                    </Button>
+                  </Field>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </FieldGroup>
     </form>

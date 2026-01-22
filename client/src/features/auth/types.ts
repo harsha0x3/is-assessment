@@ -1,6 +1,6 @@
 // src\features\auth\types.ts
 
-export type RoleEnum = "admin" | "moderator" | "user";
+export type RoleEnum = "admin" | "manager" | "moderator" | "user";
 
 // ---------- BASE MODELS ----------
 export interface AllUsersOut {

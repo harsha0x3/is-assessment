@@ -17,6 +17,8 @@ import { PageLoader } from "@/components/loaders/PageLoader";
 import { InlineLoader } from "@/components/loaders/InlineLoader";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { ApplicationsProvider } from "../context/ApplicationsContext";
+import { useSelector } from "react-redux";
+import { selectAuth } from "@/features/auth/store/authSlice";
 
 const ApplicationsPage: React.FC = () => {
   const {
@@ -34,7 +36,7 @@ const ApplicationsPage: React.FC = () => {
     isFetching,
   } = useApplications();
   const [openNewApp, setIsopenNewApp] = useState<boolean>(false);
-
+  const currentUserInfo = useSelector(selectAuth);
   const start = (appPage - 1) * appPageSize + 1;
   const end = Math.min(start + appPageSize - 1, filteredApps);
   const [searchParams] = useSearchParams();
@@ -55,7 +57,7 @@ const ApplicationsPage: React.FC = () => {
   return (
     <ApplicationsProvider>
       <div className="h-full flex flex-col w-full space-y-2 overflow-hidden px-2">
-        {openNewApp && (
+        {["admin", "manager"].includes(currentUserInfo.role) && openNewApp && (
           <Suspense fallback={<InlineLoader />}>
             <NewAppDialog
               isOpen={openNewApp}
