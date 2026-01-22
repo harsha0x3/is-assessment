@@ -60,9 +60,7 @@ const EvidenceList: React.FC<Props> = ({ appId }) => {
                     path: evidence.evidence_path,
                   }).unwrap();
 
-                  const blobUrl = URL.createObjectURL(
-                    new Blob([file], { type: "application/pdf" })
-                  );
+                  const blobUrl = URL.createObjectURL(file);
 
                   window.open(blobUrl, "_blank");
 
