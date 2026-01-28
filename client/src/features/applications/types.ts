@@ -1,5 +1,5 @@
 import type { AppStatuses } from "@/utils/globalTypes";
-import type { AppDepartmentOut } from "../departments/types";
+import type { AppDepartmentOut, DepartmentOut } from "../departments/types";
 import type { CommentOut } from "../comments/types";
 
 // app_schemas.ts
@@ -51,6 +51,8 @@ export interface ApplicationOut {
   imitra_ticket_id?: string | null;
   titan_spoc?: string | null;
   app_url?: string | null;
+
+  departments?: DepartmentOut[];
 }
 
 export interface ApplicationUpdate {
@@ -90,6 +92,7 @@ export interface NewAppListOut {
   departments?: AppDepartmentOut[] | null;
   latest_comment?: CommentOut;
   titan_spoc?: string | null;
+  environment?: string;
 }
 
 export interface AppQueryParams {

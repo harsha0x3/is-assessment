@@ -16,6 +16,7 @@ import Hint from "@/components/ui/hint";
 import type { CommentOut } from "../types";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
+import { PageLoader } from "@/components/loaders/PageLoader";
 
 const CommentList: React.FC<{
   appId: string;
@@ -59,12 +60,7 @@ const CommentList: React.FC<{
   }, [isNewComment, textareaRef.current]);
 
   if (isLoadingDeptComments) {
-    return (
-      <div className="text-center">
-        <Loader className="animate-spin h-7 w-7" />
-        Loading...
-      </div>
-    );
+    return <PageLoader label="Loading department comments" />;
   }
 
   const commentsToShow = commentsData ?? deptComments?.data;

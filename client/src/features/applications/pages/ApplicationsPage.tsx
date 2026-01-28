@@ -4,21 +4,22 @@ import React, { lazy, Suspense, useState } from "react";
 import AppFilters from "../components/AppFilters";
 import AppPagination from "../components/AppPagination";
 import useApplications from "../hooks/useApplications";
-import AppsTable from "../components/AppsTable";
 import { Button } from "@/components/ui/button";
 import StatusProgressBar from "../components/StatusProgressBar";
 import { useSearchParams } from "react-router-dom";
 import { parseDept } from "@/utils/helpers";
 
+const AppsTable = lazy(() => import("../components/AppsTable"));
 const NewAppDialog = lazy(
   () => import("@/features/applications/components/NewAppDialog"),
 );
-import { PageLoader } from "@/components/loaders/PageLoader";
 import { InlineLoader } from "@/components/loaders/InlineLoader";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { ApplicationsProvider } from "../context/ApplicationsContext";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
+import AppsToolbarSkeleton from "../components/skeletons/AppToolBarSkeleton";
+import TableSkeleton from "@/components/skeletons/TableSkeleton";
 
 const ApplicationsPage: React.FC = () => {
   const {
@@ -44,7 +45,14 @@ const ApplicationsPage: React.FC = () => {
 
   const isFiltered = debouncedSearch || totalApps !== filteredApps;
   if (isLoading) {
-    return <PageLoader label="Loading applications…" />;
+    return (
+      <div className="h-full flex flex-col w-full space-y-2 overflow-hidden px-2">
+        <AppsToolbarSkeleton />
+        <div className="flex-1 overflow-auto">
+          <TableSkeleton columns={7} rows={10} />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -120,14 +128,16 @@ const ApplicationsPage: React.FC = () => {
             </div>
           </div>
         </div>
-        {isFetching && (
-          <div className="absolute top-2 right-2">
-            <InlineLoader />
-          </div>
-        )}
+
         <StatusProgressBar summary={data?.data.apps_summary} />
         <div className="flex-1 overflow-auto">
-          <AppsTable />
+          {isFetching ? (
+            <TableSkeleton columns={7} rows={14} />
+          ) : (
+            <Suspense fallback={<TableSkeleton columns={7} rows={14} />}>
+              <AppsTable />
+            </Suspense>
+          )}
         </div>
         <div className="flex items-center gap-3 px-2 pb-2">
           <div className="text-sm md:hidden block text-muted-foreground md:whitespace-nowrap">

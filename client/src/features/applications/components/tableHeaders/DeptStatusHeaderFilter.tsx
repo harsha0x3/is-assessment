@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { CheckIcon, Filter } from "lucide-react";
 import {
   Command,
   CommandGroup,
@@ -71,7 +71,7 @@ const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
               ) : (
                 <span className="text-ring">Dept Status</span>
               )}
-              <ChevronsUpDownIcon
+              <Filter
                 className="text-muted-foreground/80 shrink-0"
                 aria-hidden="true"
               />

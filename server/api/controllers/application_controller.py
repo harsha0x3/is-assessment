@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_, not_, desc, asc, func, or_
+from sqlalchemy import select, and_, desc, asc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from models import (
@@ -56,10 +56,7 @@ def create_app(
         db.commit()
         db.refresh(app)
 
-        return ApplicationOut(
-            **app.to_dict(),
-            priority=app.get_priority_for_user(user_id=creator.id, db=db),
-        )
+        return ApplicationOut.model_validate(app)
 
     except IntegrityError as e:
         raise HTTPException(
@@ -263,13 +260,14 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 imitra_ticket_id=app.imitra_ticket_id,
                 status=app.status,
                 app_priority=app.app_priority,
-                started_at=app.created_at,
+                started_at=app.started_at,
                 completed_at=app.completed_at,
                 departments=depts_out,
                 app_url=app.app_url,
                 vendor_company=app.vendor_company,
                 latest_comment=latest_comment,
                 titan_spoc=app.titan_spoc,
+                environment=app.environment,
             )
             apps_out.append(data)
 
@@ -322,7 +320,6 @@ def update_app(
         db.refresh(app)
         return ApplicationOut(
             **app.to_dict(),
-            priority=app.get_priority_for_user(user_id=current_user.id, db=db),
         )
 
     except HTTPException:
@@ -346,10 +343,7 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
             )
 
-        return ApplicationOut(
-            **app.to_dict(),
-            priority=app.get_priority_for_user(user_id=current_user.id, db=db),
-        )
+        return ApplicationOut.model_validate(app)
 
     except HTTPException:
         raise
@@ -541,7 +535,6 @@ def list_apps_with_details(
         "apps": [
             ApplicationOut(
                 **app.to_dict(),
-                priority=app.get_priority_for_user(user_id=user.id, db=db),
             )
             for app in apps
         ],

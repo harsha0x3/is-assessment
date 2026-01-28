@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDownIcon, Search, XCircleIcon } from "lucide-react";
+import { Filter, Search, XCircleIcon } from "lucide-react";
 
 import Hint from "@/components/ui/hint";
 import { useApplicationsContext } from "../../context/ApplicationsContext";
@@ -23,7 +23,7 @@ const VerticalSearchFilter: React.FC = () => {
           className="h-auto min-h-8 w-full justify-between bg-transparent border-none shadow-none font-semibold"
         >
           <span className="text-ring">Vertical</span>
-          <ChevronsUpDownIcon
+          <Filter
             className="text-muted-foreground/80 shrink-0"
             aria-hidden="true"
           />

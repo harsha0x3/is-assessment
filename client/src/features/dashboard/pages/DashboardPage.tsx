@@ -22,6 +22,7 @@ import {
 } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Separator } from "@/components/ui/separator";
+import { PageLoader } from "@/components/loaders/PageLoader";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
@@ -73,12 +74,16 @@ const DashboardPage: React.FC = () => {
     [prioritySummary],
   );
 
-  if (isLoadingAppsSummary || isLoadingDeptSummay) {
-    return (
-      <div className="flex items-center gap-2">
-        <Loader className="animate-spin" /> Loading...
-      </div>
+  const orderedDepartments = useMemo(() => {
+    return [...(deptSummay?.departments ?? [])].sort((a, b) =>
+      a.department.localeCompare(b.department, undefined, {
+        sensitivity: "base",
+      }),
     );
+  }, [deptSummay?.departments]);
+
+  if (isLoadingAppsSummary || isLoadingDeptSummay) {
+    return <PageLoader label="Loading Data. Please wait" />;
   }
 
   if (appsSummaryErr || deptSummayErr || prioritySummaryErr) {
@@ -180,7 +185,7 @@ const DashboardPage: React.FC = () => {
               </>
             }
           >
-            {deptSummay?.departments.map((dept) => (
+            {orderedDepartments.map((dept) => (
               <DepartmentStatusCard
                 key={dept.department}
                 department={dept.department}

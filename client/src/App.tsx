@@ -3,8 +3,6 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import RootLayout from "./layouts/RootLayout";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import ApplicationsLayout from "./layouts/ApplicationsLayout";
-import AppInfoDialog from "./features/applications/components/AppInfoDialog";
-import DepartmentInfo from "./features/departments/components/DepartmentInfo";
 import { Toaster } from "sonner";
 import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
@@ -23,7 +21,13 @@ const AppDepartments = lazy(
   () => import("./features/departments/components/AppDepartments"),
 );
 const EvidencesTab = lazy(
-  () => import("./features/evidences/components/EvidencesTab"),
+  () => import("./features/evidences/pages/EvidencesTab"),
+);
+const AppInfoDialog = lazy(
+  () => import("./features/applications/components/AppInfoDialog"),
+);
+const DepartmentInfo = lazy(
+  () => import("./features/departments/components/DepartmentInfo"),
 );
 
 function App() {
@@ -52,7 +56,13 @@ function App() {
             />
 
             <Route path="applications" element={<ApplicationsLayout />}>
-              <Route element={<AppInfoDialog />}>
+              <Route
+                element={
+                  <LazyRoute fallbackLabel="Loading overview…">
+                    <AppInfoDialog />
+                  </LazyRoute>
+                }
+              >
                 <Route path="details/:appId" element={<Outlet />}>
                   <Route
                     path="overview"
@@ -71,7 +81,22 @@ function App() {
                       </LazyRoute>
                     }
                   >
-                    <Route path=":deptId" element={<DepartmentInfo />} />
+                    <Route
+                      path=":deptId/comments"
+                      element={
+                        <LazyRoute fallbackLabel="Loading departments…">
+                          <DepartmentInfo />
+                        </LazyRoute>
+                      }
+                    />
+                    <Route
+                      path=":deptId/evidences"
+                      element={
+                        <LazyRoute fallbackLabel="Loading evidences…">
+                          <EvidencesTab />
+                        </LazyRoute>
+                      }
+                    />
                   </Route>
 
                   <Route

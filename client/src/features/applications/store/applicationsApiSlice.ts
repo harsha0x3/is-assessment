@@ -8,7 +8,6 @@ import type {
 } from "../types";
 import type { ApiResponse } from "@/store/rootTypes";
 import { rootApiSlice } from "@/store/rootApiSlice";
-import type { EvidenceOut } from "@/features/evidences/types";
 import type { AppStatuses } from "@/utils/globalTypes";
 
 export const applicationsApiSlice = rootApiSlice.injectEndpoints({
@@ -117,26 +116,6 @@ export const applicationsApiSlice = rootApiSlice.injectEndpoints({
         { type: "AppDetails", id: "LIST" },
       ],
     }),
-
-    addAppEvidence: builder.mutation<
-      ApiResponse<unknown>,
-      { appId: string; payload: FormData }
-    >({
-      query: ({ appId, payload }) => ({
-        url: `/applications/${appId}/evidences`,
-        method: "POST",
-        body: payload,
-      }),
-      invalidatesTags: ["Evidences"],
-    }),
-
-    getAppEvidences: builder.query<
-      ApiResponse<EvidenceOut[]>,
-      { appId: string }
-    >({
-      query: ({ appId }) => `/applications/${appId}/evidences`,
-      providesTags: ["Evidences"],
-    }),
   }),
 });
 
@@ -146,8 +125,6 @@ export const {
   useGetApplicationDetailsQuery,
   useUpdateApplicationMutation,
   useUpdateApplicationStatusMutation,
-  useGetAppEvidencesQuery,
-  useAddAppEvidenceMutation,
 } = applicationsApiSlice;
 
 export default applicationsApiSlice;

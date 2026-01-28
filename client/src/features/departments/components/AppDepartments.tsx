@@ -8,12 +8,15 @@ import {
 } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { PageLoader } from "@/components/loaders/PageLoader";
 
 const AppDepartments: React.FC = () => {
+  const isMobile = useIsMobile();
+
   const { appId, deptId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -22,59 +25,84 @@ const AppDepartments: React.FC = () => {
     data: appDepts,
     isLoading: isLoadingDepts,
     error,
-  } = useGetDepartmentsByApplicationQuery(appId || "", { skip: !appId });
-  useEffect(() => {
-    if (!appId) return;
-    if (deptId) return; // already on a department route
-    if (!appDepts?.data?.length) return;
-    if (!userDepts.length) return;
+  } = useGetDepartmentsByApplicationQuery(appId || "", {
+    skip: !appId || !isMobile,
+  });
 
-    // find first department the user has access to
-    const firstAllowedDept = appDepts.data.find((dept) =>
-      userDepts.includes(dept.id),
-    );
+  useEffect(() => {
+    if (!isMobile) return;
+    if (!appId || deptId) return;
+    if (!appDepts?.data?.length) return;
+
+    const firstAllowedDept =
+      appDepts.data.find((dept) => userDepts.includes(dept.id)) ??
+      appDepts.data[0];
 
     if (firstAllowedDept) {
-      navigate(`${firstAllowedDept.id}?${searchParams.toString()}`, {
+      navigate(`${firstAllowedDept.id}/comments?${searchParams.toString()}`, {
         replace: true,
       });
     }
-  }, [appId, deptId, appDepts, userDepts, navigate]);
+  }, [isMobile, appId, deptId, appDepts, userDepts]);
+
+  const activeSubTab = location.pathname.includes("evidences")
+    ? "evidences"
+    : "comments";
 
   return (
-    <div className="w-full">
-      {isLoadingDepts ? (
-        <div>
-          <Loader className="animate-spin h-5 w-5" />
-        </div>
-      ) : error ? (
-        <p>{getApiErrorMessage(error) ?? "Error finding departments"}</p>
-      ) : appDepts?.data ? (
-        <Tabs className="gap-4 text-center" value={deptId}>
-          <div className="overflow-auto">
-            <TabsList className="bg-background gap-1 border text-left p-1 overflow-auto">
-              {appDepts.data.map((dept) => (
-                <TabsTrigger
-                  key={dept.id}
-                  value={dept.id.toString()}
-                  onClick={() =>
-                    navigate(`${dept.id}?${searchParams.toString()}`)
-                  }
-                  className="data-[state=active]:bg-primary dark:data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:text-primary-foreground dark:data-[state=active]:border-transparent"
-                >
-                  {dept.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-
-          <div className="text-left">
-            <Outlet />
-          </div>
-        </Tabs>
-      ) : (
-        <p>No Departments found</p>
+    <div className="w-full text-center">
+      {isMobile && (
+        <>
+          {isLoadingDepts ? (
+            <PageLoader />
+          ) : error ? (
+            <p>{getApiErrorMessage(error)}</p>
+          ) : (
+            <Tabs value={deptId}>
+              <TabsList className="overflow-x-auto">
+                {appDepts?.data?.map((dept) => (
+                  <TabsTrigger
+                    key={dept.id}
+                    value={String(dept.id)}
+                    onClick={() =>
+                      navigate(`${dept.id}/comments?${searchParams.toString()}`)
+                    }
+                    className="cursor-pointer"
+                  >
+                    {dept.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+        </>
       )}
+      <Tabs value={activeSubTab} className="gap-4 w-full">
+        <TabsList className="bg-background rounded-none border-b p-0 flex justify-center w-full">
+          <TabsTrigger
+            value="comments"
+            onClick={() =>
+              navigate(`${deptId}/comments?${searchParams.toString()}`)
+            }
+            className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
+          >
+            Comments
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="evidences"
+            onClick={() =>
+              navigate(`${deptId}/evidences?${searchParams.toString()}`)
+            }
+            className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
+          >
+            Evidences
+          </TabsTrigger>
+        </TabsList>
+        <div className="text-left">
+          <Outlet />
+        </div>
+      </Tabs>
     </div>
   );
 };

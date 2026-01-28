@@ -42,6 +42,7 @@ export interface EvidenceOut {
   severity: string;
   comment_id: string;
   uploader: EvidenceUploader;
+  department?: DepartmentOut;
   created_at: string;
 }
 

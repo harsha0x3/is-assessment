@@ -24,6 +24,7 @@ from api.routes import (
     file_serving,
     user_management_routes,
     export_routes,
+    evidence_routes,
 )
 
 
@@ -119,3 +120,4 @@ app.include_router(dashboard_routes.router)
 app.include_router(file_serving.router)
 app.include_router(user_management_routes.router)
 app.include_router(export_routes.router)
+app.include_router(evidence_routes.router)

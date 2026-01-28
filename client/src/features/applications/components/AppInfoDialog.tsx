@@ -11,14 +11,16 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useGetApplicationDetailsQuery } from "../store/applicationsApiSlice";
-import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
+import { useSelector } from "react-redux";
+import { selectUserDepts } from "@/features/auth/store/authSlice";
+import { PageLoader } from "@/components/loaders/PageLoader";
 
 const AppInfoDialog: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { appId } = useParams();
+  const { appId, deptId: activeDeptId } = useParams();
   const {
     data: appDetails,
     isLoading,
@@ -31,6 +33,7 @@ const AppInfoDialog: React.FC = () => {
     () => appDetails?.data.name ?? "",
     [appDetails],
   );
+  const userDepts = useSelector(selectUserDepts);
 
   const [isOpen, setIsOpen] = useState(
     location.pathname.startsWith("/applications/details"),
@@ -56,6 +59,16 @@ const AppInfoDialog: React.FC = () => {
     }
   }, [location.pathname, navigate]);
 
+  const firstAllowedDept = useMemo(() => {
+    if (appDetails?.data.departments) {
+      return (
+        appDetails?.data.departments.find((dept) =>
+          userDepts.includes(dept.id),
+        ) ?? appDetails?.data?.departments[0]
+      );
+    }
+  }, [appDetails]);
+
   useEffect(() => {
     setIsOpen(location.pathname.startsWith("/applications/details"));
   }, [location.pathname]);
@@ -76,10 +89,7 @@ const AppInfoDialog: React.FC = () => {
       >
         {/* Root layout — unchanged flex behavior */}
         {isLoading ? (
-          <div>
-            <Loader className="animate-spin w-6 h-6" />
-            <p>Loading...</p>
-          </div>
+          <PageLoader label="Loading Application Details" />
         ) : error ? (
           <p>
             {getApiErrorMessage(error) ?? "Error getting application details"}
@@ -118,30 +128,84 @@ const AppInfoDialog: React.FC = () => {
                   Application
                 </h2>
 
-                <nav className="flex flex-col gap-1">
-                  {tabs.map((tab) => (
+                <nav className="flex flex-col gap-1 text-sm">
+                  {/* Overview */}
+                  <NavLink
+                    to={`/applications/details/${appId}/overview?${searchParams.toString()}`}
+                    state={{ appName }}
+                    className={({ isActive }) =>
+                      cn(
+                        "px-4 py-2 rounded-md transition-colors",
+                        "hover:bg-muted",
+                        isActive &&
+                          "bg-background font-semibold text-primary border-l-4 border-primary",
+                      )
+                    }
+                  >
+                    Overview
+                  </NavLink>
+
+                  {/* Departments */}
+                  <div>
                     <NavLink
-                      key={tab.value}
-                      to={`/applications/details/${appId}/${tab.value}?${searchParams.toString()}`}
+                      to={`/applications/details/${appId}/departments/${firstAllowedDept?.id}/comments?${searchParams.toString()}`}
                       state={{ appName }}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center px-4 py-2 rounded-md text-sm transition-colors",
-                          "hover:bg-muted",
-                          isActive &&
-                            "bg-background font-semibold text-primary border-l-4 border-primary",
-                        )
-                      }
+                      className={cn(
+                        "px-4 py-2 rounded-md transition-colors flex items-center",
+                        "hover:bg-muted",
+                        currentTab == "departments" &&
+                          "bg-background font-semibold text-primary border-l-4 border-primary",
+                      )}
                     >
-                      {tab.name}
+                      Departments
                     </NavLink>
-                  ))}
+
+                    {/* Sub categories */}
+
+                    <div
+                      className={`ml-2 flex flex-col gap-1 mt-1 pl-1 rounded transition-colors ${currentTab == "departments" ? "border-l-3 border-primary/70" : "border-l-3"} pt-2`}
+                    >
+                      {appDetails?.data?.departments?.map((dept) => {
+                        const isActiveDept = String(dept.id) === activeDeptId;
+                        return (
+                          <NavLink
+                            key={dept.id}
+                            to={`/applications/details/${appId}/departments/${dept.id}/comments?${searchParams.toString()}`}
+                            state={{ appName, department: dept }}
+                            className={cn(
+                              "px-4 py-1.5 rounded-md text-xs transition-colors hover:bg-muted",
+                              isActiveDept &&
+                                "bg-muted font-semibold text-primary border-l-2 border-primary",
+                            )}
+                          >
+                            {dept.name}
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* All Evidences */}
+                  <NavLink
+                    to={`/applications/details/${appId}/evidences?${searchParams.toString()}`}
+                    state={{ appName }}
+                    className={({ isActive }) =>
+                      cn(
+                        "px-4 py-2 rounded-md transition-colors",
+                        "hover:bg-muted",
+                        isActive &&
+                          "bg-background font-semibold text-primary border-l-4 border-primary",
+                      )
+                    }
+                  >
+                    All Evidences
+                  </NavLink>
                 </nav>
               </div>
             </aside>
 
             {/* Content area — outlet behavior preserved */}
-            <main className="flex flex-col min-h-0 overflow-hidden md:mr-7 p-6 gap-6">
+            <main className="flex flex-col min-h-0 overflow-hidden md:mr-7 px-6 pt-6 pb-0 gap-6">
               <header className="border-b pb-2">
                 <h1 className="text-lg font-semibold truncate">{appName}</h1>
               </header>

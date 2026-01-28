@@ -29,6 +29,7 @@ import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
 import { parseStatus } from "@/utils/helpers";
+import { PageLoader } from "@/components/loaders/PageLoader";
 
 const DepartmentInfo: React.FC = () => {
   const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
@@ -81,7 +82,7 @@ const DepartmentInfo: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <PageLoader label="Loading Department Info" />;
   }
 
   return (

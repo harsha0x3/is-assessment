@@ -180,58 +180,58 @@ async def update_applicaion_status(
     return {"msg": "", "data": data}
 
 
-@router.post("/{app_id}/evidences")
-async def add_application_evidences(
-    app_id: Annotated[str, Path(...)],
-    db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_manager)],
-    severity: Annotated[str | None, Form()] = None,
-    evidence_files: Annotated[list[UploadFile] | None, File()] = None,
-):
-    try:
-        if not evidence_files:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No files found to upload",
-            )
-        app = db.get(Application, app_id)
-        if not app:
-            raise HTTPException(
-                status_code=status.HTTP_400,
-                detail="Application you are uploading evidence to is not found",
-            )
-        save_evidence = (
-            e_ctrl.save_evidence_file_s3
-            if ENV == "production"
-            else e_ctrl.save_evidence_file_local
-        )
-        failed = []
-        success = []
+# @router.post("/{app_id}/evidences")
+# async def add_application_evidences(
+#     app_id: Annotated[str, Path(...)],
+#     db: Annotated[Session, Depends(get_db_conn)],
+#     current_user: Annotated[UserOut, Depends(require_manager)],
+#     severity: Annotated[str | None, Form()] = None,
+#     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
+# ):
+#     try:
+#         if not evidence_files:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="No files found to upload",
+#             )
+#         app = db.get(Application, app_id)
+#         if not app:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400,
+#                 detail="Application you are uploading evidence to is not found",
+#             )
+#         save_evidence = (
+#             e_ctrl.save_evidence_file_s3
+#             if ENV == "production"
+#             else e_ctrl.save_evidence_file_local
+#         )
+#         failed = []
+#         success = []
 
-        for file in evidence_files:
-            try:
-                file_path = await save_evidence(file=file, app_name=app.name)
-                evidence_payload = e_schemas.CreateEvidenceSchema(
-                    uploader_id=current_user.id,
-                    evidence_path=file_path,
-                    severity=severity or "medium",
-                    application_id=app_id,
-                )
-                await e_ctrl.add_evidence(payload=evidence_payload, db=db)
-                success.append(file.filename)
-            except Exception as e:
-                failed.append(f"Failed to add file. Error: {str(e)}")
-        return {
-            "msg": "Evidences uploaded",
-            "data": {"success": success, "failed": failed},
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"msg": "Error adding evidences", "err_stack": str(e)},
-        )
+#         for file in evidence_files:
+#             try:
+#                 file_path = await save_evidence(file=file, app_name=app.name)
+#                 evidence_payload = e_schemas.CreateEvidenceSchema(
+#                     uploader_id=current_user.id,
+#                     evidence_path=file_path,
+#                     severity=severity or "medium",
+#                     application_id=app_id,
+#                 )
+#                 await e_ctrl.add_evidence(payload=evidence_payload, db=db)
+#                 success.append(file.filename)
+#             except Exception as e:
+#                 failed.append(f"Failed to add file. Error: {str(e)}")
+#         return {
+#             "msg": "Evidences uploaded",
+#             "data": {"success": success, "failed": failed},
+#         }
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail={"msg": "Error adding evidences", "err_stack": str(e)},
+#         )
 
 
 @router.get("/{app_id}/evidences")

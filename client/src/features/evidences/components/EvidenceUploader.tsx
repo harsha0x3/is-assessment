@@ -11,19 +11,28 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
-import { useAddAppEvidenceMutation } from "@/features/applications/store/applicationsApiSlice";
+import {
+  useAddAppEvidenceMutation,
+  useAddDeptEvidenceMutation,
+} from "../store/evidencesApiSlice";
+import { getApiErrorMessage } from "@/utils/handleApiError";
 
 interface Props {
   appId: string;
+  deptId?: string;
 }
 
-const EvidenceUploader: React.FC<Props> = ({ appId }) => {
+const EvidenceUploader: React.FC<Props> = ({ appId, deptId }) => {
   const [files, setFiles] = useState<File[]>([]);
   // const [severity, setSeverity] = useState("medium");
   const [open, setOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [uploadEvidence, { isLoading }] = useAddAppEvidenceMutation();
+  const [uploadAppEvidence, { isLoading: isUploadingAppEvidence }] =
+    useAddAppEvidenceMutation();
+
+  const [uploadDeptEvidence, { isLoading: isUploadingDeptEvidence }] =
+    useAddDeptEvidenceMutation();
 
   const onFilesAdded = (newFiles: FileList | null) => {
     if (!newFiles) return;
@@ -54,12 +63,21 @@ const EvidenceUploader: React.FC<Props> = ({ appId }) => {
     // formData.append("severity", severity);
 
     try {
-      await uploadEvidence({ appId, payload: formData }).unwrap();
-      toast.success("Evidence uploaded successfully");
-      setFiles([]);
-      setOpen(false);
-    } catch {
-      toast.error("Failed to upload evidences");
+      if (deptId) {
+        await uploadDeptEvidence({ appId, deptId, payload: formData }).unwrap();
+        toast.success("Evidence uploaded successfully");
+        setFiles([]);
+        setOpen(false);
+        return;
+      } else {
+        await uploadAppEvidence({ appId, payload: formData }).unwrap();
+        toast.success("Evidence uploaded successfully");
+        setFiles([]);
+        setOpen(false);
+        return;
+      }
+    } catch (err) {
+      toast.error(getApiErrorMessage(err) ?? "Failed to upload evidences");
     }
   };
 
@@ -137,8 +155,13 @@ const EvidenceUploader: React.FC<Props> = ({ appId }) => {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleUpload} disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button
+            onClick={handleUpload}
+            disabled={isUploadingAppEvidence || isUploadingDeptEvidence}
+          >
+            {isUploadingAppEvidence && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Upload
           </Button>
         </div>

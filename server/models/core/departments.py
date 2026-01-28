@@ -27,6 +27,7 @@ class Department(Base):
     applications = relationship(
         "Application", secondary="application_departments", back_populates="departments"
     )
+    evidences = relationship("ApplicationEvidence", back_populates="department")
 
     user_links = relationship(
         "DepartmentUsers",

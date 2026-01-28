@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckIcon, ChevronsUpDownIcon, Loader } from "lucide-react";
+import { CheckIcon, Filter, Loader } from "lucide-react";
 import {
   Command,
   CommandGroup,
@@ -73,7 +73,7 @@ const AppStatusHeaderFilter: React.FC = () => {
             ) : (
               <span className="text-ring">Status</span>
             )}
-            <ChevronsUpDownIcon
+            <Filter
               className="text-muted-foreground/80 shrink-0"
               aria-hidden="true"
             />

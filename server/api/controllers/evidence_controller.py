@@ -1,11 +1,12 @@
 from fastapi import HTTPException, status, UploadFile
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 from models import ApplicationEvidence
 from schemas import evidence_schemas as e_schemas
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
+from schemas.department_schemas import DepartmentOut
 
 from datetime import datetime, timezone, timedelta
 import mimetypes
@@ -24,6 +25,7 @@ async def add_evidence(payload: e_schemas.CreateEvidenceSchema, db: Session):
     try:
         new_evidence = ApplicationEvidence(
             application_id=payload.application_id,
+            department_id=payload.department_id,
             uploader_id=payload.uploader_id,
             evidence_path=payload.evidence_path,
             severity=payload.severity,
@@ -192,12 +194,14 @@ def get_evidences_of_comment(comment_id: str, db: Session):
             e_schemas.EvidenceOut(
                 id=e.id,
                 application_id=e.application_id,
+                department_id=e.department_id,
                 uploader_id=e.uploader_id,
                 evidence_path=e.evidence_path,
                 severity=e.severity,
                 comment_id=e.comment_id,
                 uploader=e_schemas.EvidenceUploader.model_validate(e.uploader),
                 created_at=e.created_at,
+                department=DepartmentOut.model_validate(e.department),
             )
             for e in evidences
         ]
@@ -220,17 +224,59 @@ def get_application_evidences(app_id: str, db: Session):
             e_schemas.EvidenceOut(
                 id=e.id,
                 application_id=e.application_id,
+                department_id=e.department_id,
                 uploader_id=e.uploader_id,
                 evidence_path=e.evidence_path,
                 severity=e.severity,
                 comment_id=e.comment_id,
                 uploader=e_schemas.EvidenceUploader.model_validate(e.uploader),
                 created_at=e.created_at,
+                department=DepartmentOut.model_validate(e.department)
+                if e.department
+                else None,
             )
             for e in evidences
         ]
 
         return {"msg": "Application evidences fetched", "data": results}
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"msg": "Error getting application evidences", "err_stack": str(e)},
+        )
+
+
+def get_department_evidences(app_id: str, dept_id: int, db: Session):
+    try:
+        evidences = db.scalars(
+            select(ApplicationEvidence).where(
+                and_(
+                    ApplicationEvidence.application_id == app_id,
+                    ApplicationEvidence.department_id == dept_id,
+                )
+            )
+        ).all()
+        results = [
+            e_schemas.EvidenceOut(
+                id=e.id,
+                application_id=e.application_id,
+                department_id=e.department_id,
+                uploader_id=e.uploader_id,
+                evidence_path=e.evidence_path,
+                severity=e.severity,
+                comment_id=e.comment_id,
+                uploader=e_schemas.EvidenceUploader.model_validate(e.uploader),
+                created_at=e.created_at,
+                department=DepartmentOut.model_validate(e.department)
+                if e.department
+                else None,
+            )
+            for e in evidences
+        ]
+
+        return {"msg": "Department evidences fetched", "data": results}
 
     except Exception as e:
         print(e)

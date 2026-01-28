@@ -3,7 +3,7 @@ from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Literal
 
 from datetime import datetime
-from .department_schemas import AppDepartmentOut
+from .department_schemas import AppDepartmentOut, DepartmentOut
 from .checklist_schemas import ChecklistOut
 from .comment_schemas import CommentOut
 
@@ -42,7 +42,6 @@ class ApplicationOut(BaseModel):
     vendor_company: str | None = None
     infra_host: str | None = None
     app_tech: str | None = None
-    priority: int = 2
     vertical: str | None = None
     is_active: bool
     is_completed: bool
@@ -60,6 +59,8 @@ class ApplicationOut(BaseModel):
     completed_at: datetime | None = None
     due_date: datetime | None = None
     app_url: str | None
+
+    departments: list[DepartmentOut] | None
 
     # Automatically convert UTC -> Asia/Kolkata
 
@@ -115,6 +116,7 @@ class NewAppListOut(BaseModel):
     status: str
     app_priority: int | None = None
     app_url: str | None
+    environment: str | None
 
     started_at: datetime | None = None
     completed_at: datetime | None = None

@@ -205,58 +205,6 @@ const AppsTable: React.FC = () => {
     ],
   };
 
-  // const deptCols = useMemo<ColumnDef<NewAppListOut, any>[]>(() => {
-  //   if (!Array.isArray(departments?.data)) {
-  //     return [];
-  //   }
-  //   if (departments.data && Array.isArray(departments.data)) {
-  //     return departments.data.map((dept) =>
-  //       colHelper.display({
-  //         id: `dept-${dept.name}`,
-  //         header: () => <span className="capitalize">{dept.name}</span>,
-  //         minSize: 120,
-  //         cell: ({ row }) => {
-  //           const appDept = row.original.departments?.find(
-  //             (d) => d.name === dept.name,
-  //           );
-  //           if (!appDept) return "-";
-  //           return (
-  //             <div className="flex items-center">
-  //               <Button
-  //                 variant="ghost"
-  //                 size="sm"
-  //                 className={`group/dept`}
-  //                 asChild
-  //               >
-  //                 <Badge
-  //                   variant="outline"
-  //                   className={`relative overflow-hidden text-xs`}
-  //                   style={{
-  //                     backgroundColor: STATUS_COLOR_MAP_BG[appDept.status],
-  //                     color: STATUS_COLOR_MAP_FG[appDept.status],
-  //                   }}
-  //                 >
-  //                   {/* Default text */}
-  //                   <span className="block transition-opacity duration-200 group-hover/dept:opacity-0">
-  //                     {appDept.status}
-  //                   </span>
-
-  //                   {/* Hover text */}
-  //                   <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover/dept:opacity-100">
-  //                     View
-  //                   </span>
-  //                 </Badge>
-  //               </Button>
-  //               {/* <Button variant="ghost">View</Button> */}
-  //             </div>
-  //           );
-  //         },
-  //       }),
-  //     );
-  //   }
-  //   return [];
-  // }, [departments, isLoadingDepts]);
-
   const baseColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     return [
       colHelper.accessor("name", {
@@ -422,6 +370,14 @@ const AppsTable: React.FC = () => {
     if (!isAppsLoading) {
       return [
         ...baseColumns,
+        // colHelper.accessor("environment", {
+        //   header: "Environment",
+        //   maxSize: 100,
+        //   minSize: 80,
+        //   cell: (info) => {
+        //     return <div className=" w-full">{info.getValue()}</div>;
+        //   },
+        // }),
         ...departmentColumns,
 
         // colHelper.accessor("completed_at", {

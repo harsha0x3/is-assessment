@@ -428,7 +428,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid} className="gap-2">
                       <FieldLabel htmlFor="imitra_ticket_id">
-                        IMitra Ticket
+                        iMitra Ticket
                       </FieldLabel>
                       <Input
                         {...field}
@@ -455,7 +455,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                       <FieldLabel htmlFor="started_at">Start Date</FieldLabel>
                       <Input
                         {...field}
-                        value={field.value ?? ""}
+                        value={field.value ? field.value.split("T")[0] : ""}
                         type="date"
                         id="started_at"
                         readOnly={!(isNew || isEditing)}
@@ -567,7 +567,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                 />
 
                 {/* Infra Host */}
-                <Controller
+                {/* <Controller
                   name="infra_host"
                   control={control}
                   render={({ field, fieldState }) => (
@@ -587,7 +587,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                       )}
                     </Field>
                   )}
-                />
+                /> */}
               </div>
             </div>
           </ScrollArea>

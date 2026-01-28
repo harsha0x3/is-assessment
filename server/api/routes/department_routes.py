@@ -9,7 +9,7 @@ from schemas.auth_schemas import UserOut
 from typing import Annotated
 from pydantic import BaseModel
 from services.auth.permissions import is_user_of_dept
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 
 router = APIRouter(prefix="/departments", tags=["departments"])

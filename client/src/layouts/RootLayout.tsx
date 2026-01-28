@@ -7,12 +7,19 @@ import React, { lazy, Suspense } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Outlet, useLocation } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
 
 const AppSidebar = lazy(() => import("./components/AppSidebar"));
 
 const SidebarSkeleton = () => (
-  <div className="w-(--sidebar-width) h-full bg-muted animate-pulse">
-    <Skeleton />
+  <div className="w-(--sidebar-width) h-full min-h-screen flex flex-col pt-12 px-3 border-r">
+    <div className="flex flex-col gap-3">
+      <Skeleton className="h-5 w-32" />
+      <Skeleton className="h-5 w-28" />
+      <Skeleton className="h-5 w-36" />
+    </div>
+
+    <Skeleton className="h-10 w-36 mt-auto" />
   </div>
 );
 
