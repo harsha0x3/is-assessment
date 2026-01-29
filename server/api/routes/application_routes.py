@@ -84,6 +84,7 @@ async def new_list_all_apps(
     dept_status: Annotated[str | None, Query()] = None,
     app_priority: Annotated[str | None, Query()] = None,
     vertical: Annotated[str | None, Query()] = None,
+    sla_filter: Annotated[int | None, Query()] = None,
 ):
     status_list = []
 
@@ -122,6 +123,7 @@ async def new_list_all_apps(
         dept_status=dept_status_list,
         app_priority=app_priority_list,
         vertical=vertical,
+        sla_filter=sla_filter,
     )
     data = list_all_apps(
         db=db,

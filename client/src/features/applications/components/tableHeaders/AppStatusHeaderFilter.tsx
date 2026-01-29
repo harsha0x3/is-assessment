@@ -74,7 +74,7 @@ const AppStatusHeaderFilter: React.FC = () => {
               <span className="text-ring">Status</span>
             )}
             <Filter
-              className="text-muted-foreground/80 shrink-0"
+              className={`shrink-0 ${!!appStatus ? "text-primary fill-primary" : "text-muted-foreground"}`}
               aria-hidden="true"
             />
           </Button>

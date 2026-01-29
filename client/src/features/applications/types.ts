@@ -52,6 +52,9 @@ export interface ApplicationOut {
   titan_spoc?: string | null;
   app_url?: string | null;
 
+  user_type?: string | null;
+  data_type?: string | null;
+
   departments?: DepartmentOut[];
 }
 
@@ -114,6 +117,7 @@ export interface AppQueryParams {
   dept_status?: string;
   app_priority?: string[];
   vertical?: string;
+  sla_filter?: number;
 }
 
 export interface AppStatusSummary {

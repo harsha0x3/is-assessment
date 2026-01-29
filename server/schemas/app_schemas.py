@@ -2,7 +2,7 @@
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Literal
 
-from datetime import datetime
+from datetime import datetime, date
 from .department_schemas import AppDepartmentOut, DepartmentOut
 from .checklist_schemas import ChecklistOut
 from .comment_schemas import CommentOut
@@ -25,9 +25,12 @@ class ApplicationCreate(BaseModel):
     imitra_ticket_id: str | None = None
     titan_spoc: str | None = None
 
-    started_at: datetime | None = None
+    started_at: date | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
+
+    user_type: str | None = None
+    data_type: str | None = None
 
     app_url: str | None
 
@@ -55,10 +58,13 @@ class ApplicationOut(BaseModel):
 
     app_priority: int | None = None
 
-    started_at: datetime | None = None
+    started_at: date | None = None
+    end_date: date | None = None
     completed_at: datetime | None = None
-    due_date: datetime | None = None
     app_url: str | None
+
+    user_type: str | None
+    data_type: str | None
 
     departments: list[DepartmentOut] | None
 
@@ -84,10 +90,15 @@ class ApplicationUpdate(BaseModel):
     imitra_ticket_id: str | None = None
     titan_spoc: str | None = None
 
-    started_at: datetime | None = None
+    started_at: date | None = None
+    end_date: date | None = None
+
     completed_at: datetime | None = None
     due_date: datetime | None = None
     app_url: str | None
+
+    user_type: str | None = None
+    data_type: str | None = None
 
 
 class ListApplicationsOut(BaseModel):
@@ -100,7 +111,7 @@ class ListApplicationsOut(BaseModel):
     priority: int = 2
     app_priority: int | None = None
 
-    started_at: datetime | None = None
+    started_at: date | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
     checklists: list[ChecklistOut] | None = None
@@ -118,7 +129,7 @@ class NewAppListOut(BaseModel):
     app_url: str | None
     environment: str | None
 
-    started_at: datetime | None = None
+    started_at: date | None = None
     completed_at: datetime | None = None
     vendor_company: str | None = None
     titan_spoc: str | None
@@ -146,6 +157,7 @@ class AppQueryParams(BaseModel):
     dept_filter_id: int | None = None
     dept_status: list[str] | None = None
     app_priority: list[str] | None = None
+    sla_filter: int | None
 
     @field_validator("sort_by")
     @classmethod

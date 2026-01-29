@@ -16,7 +16,7 @@ class PriorityCountItem(BaseModel):
 
 
 class VerticalStatusSummary(BaseModel):
-    vertical: str
+    vertical: str | None
     total: int
     statuses: list[StatusCountItem]
 
@@ -45,6 +45,7 @@ class DepartmentSummaryItem(BaseModel):
 
 class DepartmentSummaryResponse(BaseModel):
     departments: list[DepartmentSummaryItem]
+    total_apps: int
 
 
 class DashboardSummaryResponse(BaseModel):

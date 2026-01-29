@@ -23,6 +23,7 @@ from schemas.auth_schemas import UserOut
 from schemas.checklist_schemas import ChecklistOut
 from .department_controller import get_departments_by_application
 from typing import Any
+from datetime import date, timedelta
 
 
 def create_app(
@@ -200,6 +201,17 @@ def list_all_apps(db: Session, params: AppQueryParams):
         ):
             stmt = stmt.where(Application.vertical.ilike(f"%{params.vertical}%"))
 
+        if params.status and len(params.status) > 0:
+            stmt = stmt.where(Application.status.in_(params.status))
+
+        if params.sla_filter and params.sla_filter > 0:
+            sla_cutoff = date.today() - timedelta(days=params.sla_filter)
+
+            stmt = stmt.where(
+                Application.started_at.is_not(None),
+                func.date(Application.started_at) <= sla_cutoff,
+            )
+
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
             search_value = f"%{params.search}%"
@@ -222,9 +234,6 @@ def list_all_apps(db: Session, params: AppQueryParams):
             filtered_apps_summary = get_apps_summary_from_stmt(
                 db=db, stmt=filtered_subquery
             )
-
-        if params.status and len(params.status) > 0:
-            stmt = stmt.where(Application.status.in_(params.status))
 
         # -------- pagination ans sorting ---------
 
@@ -312,10 +321,6 @@ def update_app(
         ).items():
             setattr(app, key, val)
 
-        priority_val = payload.priority or 2
-        app.set_priority_for_user(
-            user_id=current_user.id, db=db, priority_val=priority_val
-        )
         db.commit()
         db.refresh(app)
         return ApplicationOut.model_validate(app)

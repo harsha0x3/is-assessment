@@ -72,7 +72,7 @@ const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
                 <span className="text-ring">Dept Status</span>
               )}
               <Filter
-                className="text-muted-foreground/80 shrink-0"
+                className={`shrink-0 ${!!deptStatus ? "text-primary fill-primary" : "text-muted-foreground"}`}
                 aria-hidden="true"
               />
             </Button>

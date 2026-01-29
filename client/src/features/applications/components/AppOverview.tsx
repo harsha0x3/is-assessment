@@ -40,6 +40,7 @@ import {
   STATUS_COLOR_MAP_FG,
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
+import { daysBetweenDateAndToday } from "@/utils/helpers";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -73,6 +74,9 @@ const applicationDefaultValues: ApplicationOut = {
   imitra_ticket_id: null,
   titan_spoc: null,
   app_url: null,
+
+  user_type: null,
+  data_type: null,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -88,7 +92,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
   const [addAppMutation, { isLoading: isAdding, error: newAppErr }] =
     useCreateApplicationMutation();
 
-  const { control, reset, handleSubmit } = useForm<ApplicationOut>({
+  const { control, reset, handleSubmit, watch } = useForm<ApplicationOut>({
     defaultValues: applicationDefaultValues,
   });
 
@@ -97,6 +101,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
   const [isEditing, setIsEditing] = useState(false);
   const isAdmin = ["admin", "manager"].includes(currentUserInfo.role);
   const isNew = !appId && isAdmin;
+  const startedAt = watch("started_at");
 
   useEffect(() => {
     reset(appDetails?.data || {});
@@ -463,6 +468,11 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         placeholder="Application Technology"
                         autoComplete="off"
                       />
+                      {startedAt && (
+                        <p className="text-xs text-muted-foreground">
+                          {daysBetweenDateAndToday(startedAt)} days since start
+                        </p>
+                      )}
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -557,6 +567,52 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         id="app_tech"
                         aria-invalid={fieldState.invalid}
                         placeholder="Application Technology"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* User Type */}
+                <Controller
+                  name="user_type"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="user_type">User Type</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="user_type"
+                        aria-invalid={fieldState.invalid}
+                        placeholder=""
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Data Type */}
+                <Controller
+                  name="data_type"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="data_type">Data Type</FieldLabel>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        readOnly={!(isNew || isEditing)}
+                        id="data_type"
+                        aria-invalid={fieldState.invalid}
+                        placeholder=""
                         autoComplete="off"
                       />
                       {fieldState.invalid && (

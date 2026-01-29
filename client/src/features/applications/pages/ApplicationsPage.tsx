@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { PlusSquareIcon, Search } from "lucide-react";
+import { Loader, PlusSquareIcon, Search } from "lucide-react";
 import React, { lazy, Suspense, useState } from "react";
 import AppFilters from "../components/AppFilters";
 import AppPagination from "../components/AppPagination";
@@ -130,14 +130,18 @@ const ApplicationsPage: React.FC = () => {
         </div>
 
         <StatusProgressBar summary={data?.data.apps_summary} />
+        {isFetching && (
+          <div className="flex items-center justify-center gap-2 z-10 px-2 py-1 text-xs text-muted-foreground">
+            <div className="border p-2 flex items-center  gap-2">
+              <Loader className="h-3 w-3 animate-spin" />
+              Updating…
+            </div>
+          </div>
+        )}
         <div className="flex-1 overflow-auto">
-          {isFetching ? (
-            <TableSkeleton columns={7} rows={14} />
-          ) : (
-            <Suspense fallback={<TableSkeleton columns={7} rows={14} />}>
-              <AppsTable />
-            </Suspense>
-          )}
+          <Suspense fallback={<TableSkeleton columns={7} rows={14} />}>
+            <AppsTable />
+          </Suspense>
         </div>
         <div className="flex items-center gap-3 px-2 pb-2">
           <div className="text-sm md:hidden block text-muted-foreground md:whitespace-nowrap">

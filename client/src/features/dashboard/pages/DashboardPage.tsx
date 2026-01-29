@@ -23,6 +23,8 @@ import {
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/loaders/PageLoader";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/utils/helpers";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
@@ -51,6 +53,8 @@ const CardLoader = () => (
 const DashboardPage: React.FC = () => {
   // 🔹 Lazy-loaded components
   const [deptStatusFilter, setDeptStatusFilter] = useState<string>("all");
+  const [deptSlaFilter, setDeptSlaFilter] = useState<number>(0);
+  const debouncedSla = useDebounce(deptSlaFilter);
   const {
     data: appsSummary,
     isLoading: isLoadingAppsSummary,
@@ -60,8 +64,10 @@ const DashboardPage: React.FC = () => {
     data: deptSummay,
     isLoading: isLoadingDeptSummay,
     error: deptSummayErr,
+    isFetching: isFetchingDeptSummary,
   } = useGetDepartmentSummaryQuery({
     status_filter: deptStatusFilter,
+    sla_filter: debouncedSla,
   });
   const {
     data: prioritySummary,
@@ -125,10 +131,26 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       {/* ---------- Department-wise summary ---------- */}
-      <Card className="px-0">
+      <Card className="px-0 gap-3">
         <CardHeader className="px-0">
-          <div className="flex w-full items-center">
-            <div className="flex items-center gap-2 pl-9">
+          <div className="flex gap-3 w-full items-center">
+            <CardTitle className="text-center flex-1">
+              Department Wise Status Summary
+            </CardTitle>
+          </div>
+          {isFetchingDeptSummary && (
+            <div className="w-full flex items-center justify-center text-center text-sm text-muted-foreground">
+              <p className="flex items-center gap-2 border p-2 rounded w-fit">
+                <Loader className="animate-spin" />
+                Applying filters..
+              </p>
+            </div>
+          )}
+        </CardHeader>
+
+        <CardContent className="">
+          <div className="flex items-center justify-between pl-9">
+            <div className="flex items-center gap-2">
               <p>Applications' Status</p>
               <Select
                 value={deptStatusFilter}
@@ -169,32 +191,57 @@ const DashboardPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <CardTitle className="text-center flex-1">
-              Department Wise Status Summary
-            </CardTitle>
-          </div>
-        </CardHeader>
+            <div className="flex items-center gap-2">
+              <p>Applications: {deptSummay?.total_apps}</p>
+            </div>
+            <div className="flex flex-col gap-2 min-w-64">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Applications older than
+                </p>
+                <span className="text-sm font-semibold">
+                  {deptSlaFilter === 0 ? "Any age" : `${deptSlaFilter} days`}
+                </span>
+              </div>
 
-        <CardContent className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
-          <Suspense
-            fallback={
-              <>
-                <CardLoader />
-                <CardLoader />
-                <CardLoader />
-              </>
-            }
-          >
-            {orderedDepartments.map((dept) => (
-              <DepartmentStatusCard
-                key={dept.department}
-                department={dept.department}
-                deptId={dept.department_id}
-                statuses={dept.statuses}
-                deptStatusFilter={deptStatusFilter}
+              <Input
+                type="range"
+                min={0}
+                max={90}
+                step={15}
+                value={deptSlaFilter}
+                onChange={(e) => setDeptSlaFilter(Number(e.target.value))}
               />
-            ))}
-          </Suspense>
+
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0</span>
+                <span>30</span>
+                <span>60</span>
+                <span>90+</span>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
+            <Suspense
+              fallback={
+                <>
+                  <CardLoader />
+                  <CardLoader />
+                  <CardLoader />
+                </>
+              }
+            >
+              {orderedDepartments.map((dept) => (
+                <DepartmentStatusCard
+                  key={dept.department}
+                  department={dept.department}
+                  deptId={dept.department_id}
+                  statuses={dept.statuses}
+                  deptStatusFilter={deptStatusFilter}
+                />
+              ))}
+            </Suspense>
+          </div>
         </CardContent>
       </Card>
 

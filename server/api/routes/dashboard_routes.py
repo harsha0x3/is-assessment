@@ -22,8 +22,11 @@ def get_department_status_summary(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
     status_filter: Annotated[str | None, Query(...)] = None,
+    sla_filter: Annotated[int | None, Query(...)] = None,
 ):
-    return dc.get_department_status_summary(db=db, status_filter=status_filter)
+    return dc.get_department_status_summary(
+        db=db, status_filter=status_filter, sla_filter=sla_filter
+    )
 
 
 @router.get("/summary/priority-wise")

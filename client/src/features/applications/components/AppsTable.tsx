@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useMemo } from "react";
+import React, { lazy, Suspense, useEffect, useMemo } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -20,7 +20,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DescriptionCell from "@/components/ui/description-cell";
-import { parseDate, parseStatus } from "@/utils/helpers";
+import {
+  daysBetweenDateAndToday,
+  parseDate,
+  parseStatus,
+} from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "@/features/departments/types";
@@ -34,6 +38,8 @@ const VerticalSearchFilter = lazy(
 const AppStatusHeaderFilter = lazy(
   () => import("../components/tableHeaders/AppStatusHeaderFilter"),
 );
+
+const SLAFilterHeader = lazy(() => import("./tableHeaders/SLAFilterHeader"));
 // import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
 
 // type Props = {
@@ -47,6 +53,9 @@ const AppsTable: React.FC = () => {
   const navigate = useNavigate();
   const colHelper = createColumnHelper<NewAppListOut>();
   const [searchParams] = useSearchParams();
+  useEffect(() => {
+    console.log("😊😊😊 Search params", searchParams);
+  }, [searchParams]);
   const departmentView = searchParams.get("view");
   type DeptKey =
     | "vapt"
@@ -259,12 +268,26 @@ const AppsTable: React.FC = () => {
       ...(!departmentView
         ? [
             colHelper.accessor("started_at", {
-              header: "Start Date",
-              maxSize: 100,
-              minSize: 80,
+              header: () => (
+                <Suspense fallback="Duration">
+                  <SLAFilterHeader />
+                </Suspense>
+              ),
+              maxSize: 150,
+              minSize: 120,
               cell: (info) => {
-                const startDate = parseDate(info.getValue());
-                return <div className=" w-full">{startDate}</div>;
+                const rawDate = info.getValue(); // "2026-01-11"
+
+                return rawDate ? (
+                  <div className="w-full">
+                    <p>Started: {parseDate(rawDate)}</p>
+                    <p className="text-muted-foreground">
+                      {daysBetweenDateAndToday(rawDate)} Days ago
+                    </p>
+                  </div>
+                ) : (
+                  "-"
+                );
               },
             }),
             colHelper.accessor("status", {

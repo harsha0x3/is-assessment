@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from collections import defaultdict
 from api.constants.statuses import ALL_APP_STATUSES, ALL_DEPT_STATUSES
 from api.constants.priorities import PRIORITY_ID_TO_KEY
-
+from datetime import timedelta, date
 from models import Application, Department, ApplicationDepartments
 from schemas import dashboard_schemas as ds
 
@@ -65,7 +65,7 @@ def get_app_status_summary(db: Session) -> ds.ApplicationSummary:
 
 
 def get_department_status_summary(
-    db: Session, status_filter: str | None
+    db: Session, status_filter: str | None, sla_filter: int | None
 ) -> ds.DepartmentSummaryResponse:
     try:
         stmt = (
@@ -85,11 +85,35 @@ def get_department_status_summary(
                 ApplicationDepartments.status,
             )
         )
-        if status_filter and status_filter != "all":
+        total_apps_stmt = select(func.count(Application.id)).where(
+            Application.is_active
+        )
+
+        if status_filter or (sla_filter is not None and sla_filter > 0):
             stmt = stmt.join(
-                Application, Application.id == ApplicationDepartments.application_id
-            ).where(Application.status == status_filter)
+                Application,
+                Application.id == ApplicationDepartments.application_id,
+            )
+
+        if status_filter and status_filter != "all":
+            stmt = stmt.where(Application.status == status_filter)
+            total_apps_stmt = total_apps_stmt.where(Application.status == status_filter)
+
+        if sla_filter is not None and sla_filter > 0:
+            sla_cutoff = date.today() - timedelta(days=sla_filter)
+
+            stmt = stmt.where(
+                Application.started_at.is_not(None),
+                func.date(Application.started_at) <= sla_cutoff,
+            )
+            total_apps_stmt = total_apps_stmt.where(
+                Application.started_at.is_not(None),
+                func.date(Application.started_at) <= sla_cutoff,
+            )
+
         rows = db.execute(stmt).all()
+
+        total_apps = db.scalar(total_apps_stmt) or 0
 
         raw: dict[str, dict] = {}
 
@@ -123,7 +147,9 @@ def get_department_status_summary(
                 )
             )
 
-        return ds.DepartmentSummaryResponse(departments=departments)
+        return ds.DepartmentSummaryResponse(
+            departments=departments, total_apps=total_apps
+        )
 
     except Exception:
         raise HTTPException(

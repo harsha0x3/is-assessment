@@ -26,6 +26,7 @@ export const useApplications = () => {
   const deptFilterId = searchParams.get("deptFilterId");
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
   const appPriority = searchParams.get("appPriority");
+  const appSlaFilter = searchParams.get("appSlaFilter");
   console.log("APP PRIORITY", appPriority);
   console.log("APP PRIORITY TYPE", typeof appPriority);
   const appVertical = searchParams.get("appVertical");
@@ -41,6 +42,7 @@ export const useApplications = () => {
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [debouncedVerticalSearch, setDebouncedVerticalSearch] = useState("");
+  const [debouncedSlaFilter, setDebouncedSlaFilter] = useState<number>(0);
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
 
   const { data, isSuccess, isError, error, isLoading, isFetching } =
@@ -56,6 +58,7 @@ export const useApplications = () => {
       dept_status: deptStatus ?? undefined,
       app_priority: appPriorityList,
       vertical: debouncedVerticalSearch ?? undefined,
+      sla_filter: debouncedSlaFilter,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
@@ -95,13 +98,31 @@ export const useApplications = () => {
         });
         setDebouncedVerticalSearch(appVertical);
       } else {
-        updateSearchParams({ appSearch: null, appPage: lastAppPage });
+        updateSearchParams({ appVertical: null, appPage: lastAppPage });
         setDebouncedVerticalSearch("");
       }
     }, 400);
 
     return () => clearTimeout(handler);
   }, [appVertical]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (appSlaFilter && appSlaFilter.trim() !== "") {
+        if (rawAppPage >= 1) setLastAppPage(rawAppPage);
+        updateSearchParams({
+          appSlaFilter: appSlaFilter,
+          appPage: 1,
+        });
+        setDebouncedSlaFilter(Number(appSlaFilter));
+      } else {
+        updateSearchParams({ appSlaFilter: null, appPage: lastAppPage });
+        setDebouncedSlaFilter(0);
+      }
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [appSlaFilter]);
 
   const updateSearchParams = (
     updates: Record<string, string | number | null | undefined>,
@@ -139,6 +160,7 @@ export const useApplications = () => {
     isFetching,
     appVertical,
     filteredAppsSummary,
+    appSlaFilter,
   };
 };
 

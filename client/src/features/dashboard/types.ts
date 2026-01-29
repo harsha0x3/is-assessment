@@ -29,6 +29,7 @@ export interface DepartmentSummaryItem {
 
 export interface DepartmentSummaryResponse {
   departments: DepartmentSummaryItem[];
+  total_apps: number;
 }
 
 export interface DashboardSummaryResponse {
