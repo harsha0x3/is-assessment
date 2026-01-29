@@ -238,6 +238,7 @@ const DashboardPage: React.FC = () => {
                   deptId={dept.department_id}
                   statuses={dept.statuses}
                   deptStatusFilter={deptStatusFilter}
+                  appSlaFilter={deptSlaFilter}
                 />
               ))}
             </Suspense>

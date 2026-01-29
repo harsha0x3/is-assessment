@@ -39,6 +39,7 @@ interface Props {
   statuses: { status: string; count: number }[];
   deptId: number;
   deptStatusFilter: string;
+  appSlaFilter?: number;
 }
 
 const DepartmentStatusCard: React.FC<Props> = ({
@@ -46,6 +47,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
   statuses,
   deptId,
   deptStatusFilter,
+  appSlaFilter,
 }) => {
   const navigate = useNavigate();
   return (
@@ -83,7 +85,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                 className="hover:cursor-pointer"
                 onClick={(data) => {
                   navigate(
-                    `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}`,
+                    `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}&appSlaFilter=${appSlaFilter}`,
                   );
                 }}
               >
