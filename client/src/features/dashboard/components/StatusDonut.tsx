@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const StatusCard: React.FC<{
   data: { name: string; count: number; percent: number };
@@ -84,6 +85,7 @@ const StatusDonut = ({
   total_count: number;
 }) => {
   const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
   return (
     <>
       <CardHeader>
@@ -94,17 +96,32 @@ const StatusDonut = ({
           <Button
             onClick={async () => {
               try {
-                await trigger().unwrap();
+                setIsDownloading(true);
+                const blob = await trigger().unwrap();
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+
+                link.href = url;
+                link.download = "is_assessment_all_applications.csv";
+
+                document.body.appendChild(link);
+                link.click();
+
+                link.remove();
+                window.URL.revokeObjectURL(url);
               } catch (error) {
                 toast.error(
                   getApiErrorMessage(error) ?? "Error downloading the report",
                 );
+              } finally {
+                setIsDownloading(false);
               }
             }}
-            disabled={isLoading}
+            disabled={isLoading || isDownloading}
           >
-            {isLoading ? (
-              <span className="flex items-ce">
+            {isLoading || isDownloading ? (
+              <span className="flex items-center">
                 <Loader className="animnate-spin" />
               </span>
             ) : (
