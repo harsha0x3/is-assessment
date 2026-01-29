@@ -318,9 +318,7 @@ def update_app(
         )
         db.commit()
         db.refresh(app)
-        return ApplicationOut(
-            **app.to_dict(),
-        )
+        return ApplicationOut.model_validate(app)
 
     except HTTPException:
         raise
