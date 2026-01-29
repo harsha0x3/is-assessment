@@ -138,7 +138,7 @@ class NewAppListOut(BaseModel):
 
 
 class AppQueryParams(BaseModel):
-    sort_by: str = Field("created_at", description="Field to sort by")
+    sort_by: str = Field("started_at", description="Field to sort by")
     sort_order: Literal["asc", "desc"] = Field("desc", description="Sort order")
     search: str | None
     search_by: Literal[
@@ -162,7 +162,7 @@ class AppQueryParams(BaseModel):
     @field_validator("sort_by")
     @classmethod
     def validate_sort_by(cls, v: str) -> str:
-        valid_fields = {"updated_at", "name", "created_at", "priority"}
+        valid_fields = {"updated_at", "name", "created_at", "priority", "started_at"}
         if v not in valid_fields:
             raise ValueError(f"sort_by must be one of {valid_fields}")
         return v

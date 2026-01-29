@@ -30,7 +30,7 @@ const AppFilters: React.FC = () => {
 
   const validSortBys = [
     { name: "Name" },
-    { created_at: "Start Date" },
+    { started_at: "Start Date" },
     { updated_at: "Updated Date" },
     { app_priority: "Priority" },
   ];

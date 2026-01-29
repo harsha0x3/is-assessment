@@ -8,7 +8,7 @@ export const useApplications = () => {
 
   const rawAppPage = parseInt(searchParams.get("appPage") || "1", 10);
   const appPageSize = parseInt(searchParams.get("appPageSize") || "15", 10);
-  const appSortBy = searchParams.get("appSortBy") || "created_at";
+  const appSortBy = searchParams.get("appSortBy") || "started_at";
   const appSortOrder = (searchParams.get("appSortOrder") || "desc") as
     | "asc"
     | "desc";

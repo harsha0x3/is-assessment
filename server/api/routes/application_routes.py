@@ -59,7 +59,7 @@ async def create_application(
 async def new_list_all_apps(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    sort_by: Annotated[str, Query()] = "created_at",
+    sort_by: Annotated[str, Query()] = "started_at",
     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
     search: Annotated[str | None, Query()] = None,
     page: Annotated[int, Query()] = 1,
