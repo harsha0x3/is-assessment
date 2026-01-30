@@ -45,13 +45,19 @@ def build_application_csv_row(
     row = {
         "application_name": app.name,
         "description": app.description,
+        "environment": app.environment,
+        "region": app.region,
+        "vendor_company": app.vendor_company,
+        "app_priority": app.app_priority,
+        "app_technology": app.app_tech,
         "vertical": app.vertical,
         "imitra_ticket_id": app.imitra_ticket_id,
-        "titan_spoc": app.titan_spoc,
-        "vendor_name": app.vendor_company,
         "overall_status": app.status,
+        "titan_spoc": app.titan_spoc,
         "start_date": app.started_at,
         "app_url": app.app_url,
+        "user_type": app.user_type,
+        "data_type": app.data_type,
     }
 
     for dept_name in all_departments:
