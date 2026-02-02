@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
-from models.core.users import User
+from models.users import User
 from services.auth.deps import get_current_user, require_admin
 from schemas.department_schemas import NewUserDepartmentAssign
 from api.controllers.department_controller import add_user_to_multiple_departments

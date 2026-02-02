@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useMemo } from "react";
+import React, { lazy, Suspense, useMemo } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -57,7 +57,6 @@ const AppsTable: React.FC = () => {
   const navigate = useNavigate();
   const colHelper = createColumnHelper<NewAppListOut>();
   const [searchParams] = useSearchParams();
-  useEffect(() => {}, [searchParams]);
   const departmentView = searchParams.get("view");
   type DeptKey =
     | "vapt"
@@ -229,12 +228,11 @@ const AppsTable: React.FC = () => {
             <Button
               variant="link"
               className="p-0 h-auto text-left text-primary"
-              onClick={() =>
+              onClick={() => {
                 navigate(
-                  `/applications/details/${row.original.id}/overview?${searchParams.toString()}`,
-                  { state: { appName: row.original.name } },
-                )
-              }
+                  `details/${row.original.id}/overview?${searchParams.toString()}`,
+                );
+              }}
             >
               <span className="whitespace-normal wrap-break-word">
                 {Number(dueDays) > 0 && (
@@ -338,7 +336,7 @@ const AppsTable: React.FC = () => {
         },
       }),
     ];
-  }, [departmentView]);
+  }, [departmentView, searchParams]);
 
   const departmentColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     if (!departmentView)
@@ -402,7 +400,7 @@ const AppsTable: React.FC = () => {
                           className="hover:underline hover:text-ring hover:cursor-pointer transition-all"
                           onClick={() =>
                             navigate(
-                              `details/${row.original.id}/departments/${d.id}/comments?${searchParams.toString}`,
+                              `details/${row.original.id}/departments/${d.id}/comments?${searchParams.toString()}`,
                             )
                           }
                         >
@@ -418,7 +416,7 @@ const AppsTable: React.FC = () => {
         }),
       ];
     return DEPARTMENT_COLUMNS[departmentView as DeptKey] ?? [];
-  }, [departmentView, appStatus]);
+  }, [departmentView, appStatus, searchParams]);
 
   const columns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     if (!isAppsLoading) {
@@ -453,7 +451,7 @@ const AppsTable: React.FC = () => {
       ];
     }
     return [];
-  }, [appsData, isAppsLoading]);
+  }, [appsData, isAppsLoading, searchParams]);
   const table = useReactTable({
     data: appsData?.data.apps ?? [],
     columns,

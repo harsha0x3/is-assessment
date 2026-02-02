@@ -8,29 +8,15 @@ from db.base import Base
 from dotenv import load_dotenv
 import os
 
-from models.core import (
+from models import (
     users,
     applications,
-    checklist_assignments,
-    checklists,
-    controls,
-    user_responses,
-    user_priorities,
     departments,
     application_departments,
     comments,
     department_users,
     app_evidences,
     otps,
-)
-
-from models.pre_assessment import (
-    answers,
-    pre_assemments,
-    submissions,
-    questions,
-    sections,
-    pre_assess_drafts,
 )
 
 

@@ -27,8 +27,7 @@ export const useApplications = () => {
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
   const appPriority = searchParams.get("appPriority");
   const appSlaFilter = searchParams.get("appSlaFilter");
-  console.log("APP PRIORITY", appPriority);
-  console.log("APP PRIORITY TYPE", typeof appPriority);
+
   const appVertical = searchParams.get("appVertical");
 
   const appStatusList = useMemo(

@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 
-from api.controllers.user_responses_controller import UPLOAD_DIR
 from db.connection import init_db
 
 from slowapi.errors import RateLimitExceeded
@@ -102,9 +101,6 @@ async def add_csp_header(request, call_next):
 
     response.headers["Content-Security-Policy"] = csp
     return response
-
-
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.get("/health")

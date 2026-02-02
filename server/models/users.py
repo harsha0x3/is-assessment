@@ -50,26 +50,7 @@ class User(Base, BaseMixin):
     owned_applications = relationship(
         "Application", back_populates="owner", foreign_keys="Application.owner_id"
     )
-    assignments = relationship("ChecklistAssignment", back_populates="user")
-    responses = relationship("UserResponse", back_populates="user")
-    pre_assessment_submissions = relationship(
-        "Submission",
-        back_populates="submitted_user",
-        foreign_keys="Submission.user_id",
-    )
-    assessed_submissions = relationship(
-        "Submission",
-        back_populates="assessed_person",
-        foreign_keys="Submission.assessed_by",
-    )
-    priorities = relationship("UserPriority", back_populates="user")
 
-    created_applications = relationship(
-        "Application", back_populates="creator", foreign_keys="Application.creator_id"
-    )
-    owned_applications = relationship(
-        "Application", back_populates="owner", foreign_keys="Application.owner_id"
-    )
     departments = relationship(
         "Department", secondary="department_users", back_populates="users"
     )

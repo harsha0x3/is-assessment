@@ -6,7 +6,8 @@ export type AppStatuses =
   | "reopen"
   | "closed"
   | "cancelled"
-  | "go_live";
+  | "go_live"
+  | "hold";
 
 export type DeptStatuses =
   | "yet_to_connect"

@@ -24,6 +24,7 @@ export const AppStatusOptions: AppStatusOption[] = [
   { value: "closed", label: "Closed" },
   { value: "cancelled", label: "Cancelled" },
   { value: "go_live", label: "Go Live" },
+  { value: "hold", label: "Hold" },
 ];
 
 export const DeptStatusOptions: DeptStatusOption[] = [

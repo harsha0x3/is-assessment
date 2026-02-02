@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from schemas.notification_schemas import NewAppNotification, NewAppData
 from fastapi import HTTPException, status
 import asyncio
+from datetime import datetime
 
 load_dotenv()
 
@@ -36,14 +37,75 @@ def fetch_token():
 
 
 async def send_new_app_notif(payload: NewAppNotification, token: str):
+    def val(v: str | None | datetime):
+        return v if v else "Not specified"
+
+    sla_value = (
+        payload.sla.strftime("%d %b %Y")
+        if hasattr(payload.sla, "strftime")
+        else val(payload.sla)
+    )
+
     try:
         html_body = f"""
 <html>
-<body>
-<h2>Hello {payload.full_name},</h2>
-<p>A New application is created for IS Assessments.</p>
-</body>
+  <body style="font-family: Arial, Helvetica, sans-serif; color: #333; line-height: 1.5;">
+    <p>Dear {payload.full_name},</p>
+
+    <p>
+      This is to inform you that a new application has been registered in the
+      <strong>IS Assessment System</strong>.
+    </p>
+
+    <table
+      style="
+        border-collapse: collapse;
+        margin-top: 14px;
+        margin-bottom: 18px;
+        width: 100%;
+        max-width: 600px;
+      "
+    >
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Application Name</td>
+        <td style="padding: 8px;">{payload.app_name}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Description</td>
+        <td style="padding: 8px;">{val(payload.description)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Vertical</td>
+        <td style="padding: 8px;">{val(payload.vertical)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Vendor Company</td>
+        <td style="padding: 8px;">{val(payload.vendor_company)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">SLA</td>
+        <td style="padding: 8px;">{sla_value}</td>
+      </tr>
+    </table>
+
+    <p>
+      Please log in to the IS Assessment portal to review the application and
+      proceed with the necessary assessment activities relevant to your role.
+    </p>
+
+    <p style="margin-top: 24px;">
+      Regards,<br />
+      <strong>IS Assessment Team</strong>
+    </p>
+
+    <hr style="margin-top: 32px;" />
+
+    <p style="font-size: 12px; color: #777;">
+      This is an automated notification. Please do not reply to this email.
+    </p>
+  </body>
 </html>
+
 """
         email_msg = {
             "message": {
@@ -96,9 +158,13 @@ async def send_new_app_mails_to_all(payload: NewAppData, db: Session):
             for usr in all_usrs
         ]
 
-        asyncio.gather(tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
     except Exception as e:
         raise
+
+
+def send_new_app_mails_bg(payload: NewAppData, db: Session):
+    asyncio.run(send_new_app_mails_to_all(payload, db))
 
 
 # async def send_email(

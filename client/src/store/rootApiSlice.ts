@@ -13,10 +13,6 @@ const baseQueryWithAuth = fetchBaseQuery({
     const csrfToken = getCSRFToken();
     if (csrfToken) {
       headers.set("X-CSRF-Token", csrfToken);
-    } else {
-      console.error(
-        "::::::::********CSRF token not found***********:::::::::::"
-      );
     }
 
     return headers;

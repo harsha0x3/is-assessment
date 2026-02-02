@@ -2,7 +2,7 @@ import { getCSRFToken } from "./csrf";
 
 export async function downloadFile(
   url: string,
-  filename: string
+  filename: string,
 ): Promise<void> {
   try {
     const csrf_token = getCSRFToken() ?? "";
@@ -30,6 +30,6 @@ export async function downloadFile(
     document.body.removeChild(link);
     window.URL.revokeObjectURL(href);
   } catch (error) {
-    console.error("Download failed:", error);
+    throw error;
   }
 }

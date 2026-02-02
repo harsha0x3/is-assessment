@@ -8,9 +8,7 @@ from fastapi import (
     Path,
     status,
     Query,
-    File,
-    UploadFile,
-    Form,
+    BackgroundTasks,
 )
 from sqlalchemy.orm import Session
 from models import Application
@@ -38,7 +36,6 @@ from schemas.auth_schemas import UserOut
 from services.auth.deps import get_current_user, require_admin, require_manager
 from api.controllers import evidence_controller as e_ctrl
 import os
-from schemas import evidence_schemas as e_schemas
 
 ENV = os.getenv("ENV")
 
@@ -50,8 +47,15 @@ async def create_application(
     payload: Annotated[ApplicationCreate, "Request fields for creating an application"],
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(require_manager)],
+    background_tasks: BackgroundTasks,
 ):
-    data = create_app(payload=payload, db=db, creator=current_user, owner=current_user)
+    data = create_app(
+        payload=payload,
+        db=db,
+        creator=current_user,
+        owner=current_user,
+        background_tasks=background_tasks,
+    )
     return {"msg": "Application created successfully", "data": data}
 
 

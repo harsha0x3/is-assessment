@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from db.connection import get_db_conn
 from schemas.auth_schemas import UserOut
-from models.core.users import User
+from models.users import User
 
 from .jwt_handler import (
     decode_access_token,

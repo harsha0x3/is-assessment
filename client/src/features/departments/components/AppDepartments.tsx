@@ -39,9 +39,7 @@ const AppDepartments: React.FC = () => {
       appDepts.data[0];
 
     if (firstAllowedDept) {
-      navigate(`${firstAllowedDept.id}/comments?${searchParams.toString()}`, {
-        replace: true,
-      });
+      navigate(`${firstAllowedDept.id}/comments?${searchParams.toString()}`);
     }
   }, [isMobile, appId, deptId, appDepts, userDepts]);
 

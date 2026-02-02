@@ -51,7 +51,6 @@ class ApplicationOut(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     owner_id: str | None = None
-    ticket_id: str | None = None
     status: str = "pending"
     imitra_ticket_id: str | None
     titan_spoc: str | None
@@ -105,7 +104,6 @@ class ListApplicationsOut(BaseModel):
     id: str
     name: str
     description: str | None = None
-    ticket_id: str | None = None
     is_completed: bool
     status: str
     priority: int = 2
@@ -121,7 +119,6 @@ class NewAppListOut(BaseModel):
     id: str
     name: str
     description: str | None
-    ticket_id: str | None = None
     vertical: str | None = None
     imitra_ticket_id: str | None = None
     status: str

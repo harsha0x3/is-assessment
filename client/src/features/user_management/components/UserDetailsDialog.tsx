@@ -66,7 +66,6 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
   }, [user]);
 
   const onSave = async () => {
-    console.log("ON SAVE");
     try {
       if (editMode && user) {
         await updateUser({
@@ -82,8 +81,6 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
         setEditMode(false);
       }
       if (isNew) {
-        console.log("YES IS NEW");
-
         // if (password !== confirmPassword) {
         //   toast.error("Passwords doesn't match");
         // }

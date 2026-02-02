@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, BackgroundTasks
 from sqlalchemy import select, and_, desc, asc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
@@ -6,30 +6,28 @@ from models import (
     Application,
     ApplicationDepartments,
     Department,
-    Checklist,
-    ChecklistAssignment,
 )
 from schemas.app_schemas import (
     ApplicationCreate,
     ApplicationOut,
     ApplicationUpdate,
-    ListApplicationsOut,
     NewAppListOut,
     AppQueryParams,
     AppStatuses,
 )
 from .comments_controller import get_latest_app_dept_comment
 from schemas.auth_schemas import UserOut
-from schemas.checklist_schemas import ChecklistOut
 from .department_controller import get_departments_by_application
-from typing import Any
 from datetime import date, timedelta
+from services.notifications.email_notify import send_new_app_mails_bg
+from schemas.notification_schemas import NewAppData
 
 
 def create_app(
     payload: ApplicationCreate,
     db: Session,
     creator: UserOut,
+    background_tasks: BackgroundTasks,
     owner: UserOut | None = None,
 ) -> ApplicationOut:
     try:
@@ -41,7 +39,6 @@ def create_app(
 
         db.add(app)
         db.flush()
-        app.set_priority_for_user(user_id=creator.id, db=db, priority_val=2)
 
         all_depts = db.scalars(select(Department)).all()
 
@@ -56,6 +53,18 @@ def create_app(
         db.add_all(app_departments)
         db.commit()
         db.refresh(app)
+
+        background_tasks.add_task(
+            send_new_app_mails_bg,
+            NewAppData(
+                app_name=app.name,
+                description=app.description,
+                vertical=app.vertical,
+                vendor_company=app.vendor_company,
+                sla=app.due_date,
+            ),
+            db,
+        )
 
         return ApplicationOut.model_validate(app)
 
@@ -220,7 +229,6 @@ def list_all_apps(db: Session, params: AppQueryParams):
             if params.search_by == "ticket_id":
                 stmt = stmt.where(
                     or_(
-                        Application.ticket_id.ilike(search_value),
                         Application.imitra_ticket_id.ilike(search_value),
                     )
                 )
@@ -265,7 +273,6 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 name=app.name,
                 description=app.description,
                 vertical=app.vertical,
-                ticket_id=app.ticket_id,
                 imitra_ticket_id=app.imitra_ticket_id,
                 status=app.status,
                 app_priority=app.app_priority,
@@ -414,335 +421,3 @@ def change_app_status(app_id: str, status_val: str, db: Session):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error updating application status",
         )
-
-
-# -------------- OLD -------------
-
-
-def list_apps(db: Session, user: UserOut, params: AppQueryParams):
-    stmt = select(Application).distinct().where(Application.is_active)
-
-    if user.role != "admin":
-        # join checklists and assignments to filter by user_id
-        stmt = (
-            stmt.outerjoin(Application.checklists)
-            .outerjoin(Checklist.assignments)
-            .where(
-                or_(
-                    ChecklistAssignment.user_id == user.id,
-                    Application.owner_id == user.id,
-                )
-            )
-        )
-    # else:
-    # stmt = stmt.where(Application.creator_id == user.id)
-
-    total_count = db.scalar(select(func.count()).select_from(stmt.subquery()))
-    sort_column = getattr(Application, params.sort_by)
-    if params.sort_order == "desc":
-        sort_column = desc(sort_column)
-    else:
-        sort_column = asc(sort_column)
-
-    if params.search and params.search != "null" and params.search_by:
-        print("FOUND SEARCH Q", params.search)
-        print("FOUND SEARCH BY", params.search_by)
-        search_value = f"%{params.search}%"
-        search_column = getattr(Application, params.search_by, None)
-        if search_column is not None:
-            stmt = stmt.where(search_column.ilike(search_value))
-            print(stmt)
-
-    if params.page >= 1:
-        apps = db.scalars(
-            stmt.order_by(sort_column)
-            .limit(params.page_size)
-            .offset(params.page * params.page_size - params.page_size)
-        ).all()
-    else:
-        print("\nIN ELSE", stmt)
-        apps = db.scalars(stmt.order_by(sort_column)).all()
-
-    apps_out = []
-
-    for app in apps:
-        if user.role != "admin":
-            app_checklists = [
-                ChecklistOut(
-                    id=chk.id,
-                    app_name=app.name,
-                    checklist_type=chk.checklist_type,
-                    assigned_users=[
-                        UserOut.model_validate(a.user) for a in chk.assignments
-                    ],
-                    is_completed=chk.is_completed,
-                    priority=chk.get_priority_for_user(user_id=user.id, db=db),
-                    status=chk.status,
-                    comment=chk.comment,
-                    created_at=chk.created_at,
-                    updated_at=chk.updated_at,
-                )
-                for chk in app.checklists or []
-                if app.owner_id == user.id
-                or any(a.user_id == user.id for a in chk.assignments)
-            ]
-        else:
-            app_checklists = [
-                ChecklistOut(
-                    id=chk.id,
-                    app_name=app.name,
-                    checklist_type=chk.checklist_type,
-                    assigned_users=[
-                        UserOut.model_validate(a.user) for a in chk.assignments
-                    ],
-                    is_completed=chk.is_completed,
-                    priority=chk.get_priority_for_user(user_id=user.id, db=db),
-                    status=chk.status,
-                    comment=chk.comment,
-                    created_at=chk.created_at,
-                    updated_at=chk.updated_at,
-                )
-                for chk in app.checklists or []
-            ]
-
-        apps_out.append(
-            ListApplicationsOut(
-                id=app.id,
-                name=app.name,
-                description=app.description,
-                is_completed=app.is_completed,
-                status=app.status,
-                checklists=app_checklists,
-                ticket_id=app.ticket_id,
-                priority=app.get_priority_for_user(user_id=user.id, db=db),
-            )
-        )
-
-    return {
-        "apps": apps_out,
-        "assigned_users": [],
-        "total_count": total_count,
-    }
-
-
-def list_apps_with_details(
-    db: Session, user: UserOut, params: AppQueryParams
-) -> dict[str, Any | list[ApplicationOut]]:
-    stmt = select(Application).distinct().where(Application.is_active)
-
-    if user.role != "admin":
-        # join checklists and assignments to filter by user_id
-        stmt = (
-            stmt.outerjoin(Application.checklists)
-            .outerjoin(Checklist.assignments)
-            .where(
-                or_(
-                    ChecklistAssignment.user_id == user.id,
-                    Application.owner_id == user.id,
-                )
-            )
-        )
-    # else:
-    # stmt = stmt.where(Application.creator_id == user.id)
-
-    total_count = db.scalar(select(func.count()).select_from(stmt.subquery()))
-    sort_column = getattr(Application, params.sort_by)
-    if params.sort_order == "desc":
-        sort_column = desc(sort_column)
-    else:
-        sort_column = asc(sort_column)
-
-    if params.search and params.search != "null" and params.search_by:
-        print("FOUND SEARCH Q", params.search)
-        print("FOUND SEARCH BY", params.search_by)
-        search_value = f"%{params.search}%"
-        search_column = getattr(Application, params.search_by, None)
-        if search_column is not None:
-            stmt = stmt.where(search_column.ilike(search_value))
-
-    if params.page >= 1:
-        apps = db.scalars(
-            stmt.order_by(sort_column)
-            .limit(params.page_size)
-            .offset(params.page * params.page_size - params.page_size)
-        ).all()
-    else:
-        apps = db.scalars(stmt.order_by(sort_column)).all()
-
-    return {
-        "apps": [
-            ApplicationOut(
-                **app.to_dict(),
-            )
-            for app in apps
-        ],
-        "total_count": total_count,
-    }
-
-
-def update_app_status(app_id: str, db: Session):
-    try:
-        app = db.get(Application, app_id)
-        if not app:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="App not found"
-            )
-
-        checklists = app.checklists or []
-        if not checklists:
-            app.is_completed = False
-            app.status = "pending"
-            db.commit()
-            db.refresh(app)
-            return {"msg": f"App {app.name} marked pending (no checklists)"}
-
-        completed = [c.is_completed for c in checklists]
-        in_prog = [c.status == "in_progress" for c in checklists]
-
-        if all(completed):
-            app.status = "completed"
-            app.is_completed = True
-        elif any(completed) or any(in_prog):
-            app.status = "in_progress"
-            app.is_completed = False
-        else:
-            app.status = "pending"
-            app.is_completed = False
-
-        db.commit()
-        db.refresh(app)
-
-        return {"msg": f"App {app.name} marked {app.status}"}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update application status for {app_id}: {str(e)}",
-        )
-
-
-# def delete_app(app_id: str, db: Session, current_user: UserOut):
-#     try:
-#         if current_user.role != "admin":
-#             raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail=f"You are not authorised to deleted {current_user.full_name}",
-#             )
-#         app = db.scalar(select(Application).where(Application.id == app_id))
-#         if not app:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
-#             )
-#         if not app.is_active:
-#             db.delete(app)
-#             db.commit()
-#             del_app = ApplicationOut(
-#                 **app.to_dict(),
-#                 priority=app.get_priority_for_user(user_id=current_user.id, db=db),
-#             ).model_dump()
-#             del_app["msg"] = "Successfully deleted app"
-#             return del_app
-
-#         setattr(app, "is_active", False)
-#         checklists = app.checklists
-
-#         for checklist in checklists:
-#             if checklist.is_active:
-#                 setattr(checklist, "is_active", False)
-
-#             if checklist.assignments:
-#                 for ass in checklist.assignments:
-#                     ass.is_active = False
-
-#                 for control in checklist.controls:
-#                     if control.is_active:
-#                         control.is_active = False
-#                     if control.responses:
-#                         if control.responses.is_active:
-#                             control.responses.is_active = False
-
-#         db.commit()
-#         db.refresh(app)
-#         del_app = ApplicationOut(
-#             **app.to_dict(),
-#             priority=app.get_priority_for_user(user_id=current_user.id, db=db),
-#         ).model_dump()
-#         del_app["msg"] = "Successfully trashed app"
-#         return del_app
-
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Failed to delete the app {str(e)}",
-#         )
-
-
-# def restore_app(app_id: str, db: Session):
-#     try:
-#         app = db.scalar(
-#             select(Application).where(
-#                 and_(Application.id == app_id, not_(Application.is_active))
-#             )
-#         )
-
-#         if not app:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND,
-#                 detail=f"Application not found id recieved: {app_id}",
-#             )
-
-#         app.is_active = True
-#         if app.checklists:
-#             for checklist in app.checklists:
-#                 checklist.is_active = True
-#                 if checklist.assignments:
-#                     for ass in checklist.assignments:
-#                         ass.is_active = False
-#                 if checklist.controls:
-#                     for control in checklist.controls:
-#                         control.is_active = True
-#                         if control.responses:
-#                             control.responses.is_active = True
-
-#         db.commit()
-#         db.refresh(app)
-#         return {"msg": "App restored successfully"}
-
-#     except HTTPException:
-#         raise
-
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Error restoring application {str(e)}",
-#         )
-
-
-# def get_trashed_apps(db: Session):
-#     try:
-#         trashed_apps = db.scalars(
-#             select(Application).where(not_(Application.is_active))
-#         ).all()
-#         if not trashed_apps:
-#             raise HTTPException(
-#                 status_code=status.HTTP_204_NO_CONTENT, detail="No apps in trash"
-#             )
-#         return [
-#             ApplicationOut(
-#                 **trashed_app.to_dict(),
-#                 priority=2,
-#             )
-#             for trashed_app in trashed_apps
-#         ]
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Error fetching trashed apps {str(e)}",
-#         )

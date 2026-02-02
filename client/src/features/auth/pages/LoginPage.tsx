@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true });
+      navigate(from);
     }
   }, [isAuthenticated, navigate, from]);
 

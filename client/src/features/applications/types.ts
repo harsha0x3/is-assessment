@@ -130,6 +130,7 @@ export interface AppStatusSummary {
   completed: number;
   reopen: number;
   go_live: number;
+  hold: number;
 }
 
 // ---------- OLD -----------

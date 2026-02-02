@@ -46,7 +46,6 @@ const CommentList: React.FC<{
       setIsNewComment(false);
       setNewComment("");
     } catch (err) {
-      console.log("ERROR IN ADDING COMMENT", err);
       const errMsg: string =
         getApiErrorMessage(err) ?? "Error adding new comment";
       toast.error(errMsg);

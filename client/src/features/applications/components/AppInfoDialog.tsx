@@ -55,7 +55,7 @@ const AppInfoDialog: React.FC = () => {
       location.pathname.startsWith("/applications/details") &&
       !location.pathname.match(/overview|departments|evidences/)
     ) {
-      navigate(`overview?${searchParams.toString()}`, { replace: true });
+      navigate(`overview?${searchParams.toString()}`);
     }
   }, [location.pathname, navigate]);
 
@@ -107,9 +107,6 @@ const AppInfoDialog: React.FC = () => {
                       onClick={() =>
                         navigate(
                           `/applications/details/${appId}/${tab.value}?${searchParams.toString()}`,
-                          {
-                            state: { appName },
-                          },
                         )
                       }
                       className="flex-1 rounded-none"

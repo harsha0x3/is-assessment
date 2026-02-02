@@ -21,7 +21,6 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action: PayloadAction<UserWithDepartmentInfo>) => {
-      console.log("LOGIN SUCCESS PAYLOAD", action.payload);
       state.id = action.payload.id;
       state.full_name = action.payload.full_name;
       state.email = action.payload.email;

@@ -35,4 +35,8 @@ export const donutChartConfig: ChartConfig = {
     label: "Go Live",
     color: "var(--status-go-live-fg)",
   },
+  hold: {
+    label: "Hold",
+    color: "var(--status-hold-fg)",
+  },
 };
