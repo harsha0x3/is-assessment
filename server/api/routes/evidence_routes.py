@@ -79,7 +79,7 @@ async def add_department_evidences(
         )
 
 
-@router.post("/application/{app_id}/department/{dept_id}")
+@router.post("/application/{app_id}")
 async def add_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],

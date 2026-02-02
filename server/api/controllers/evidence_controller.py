@@ -78,7 +78,7 @@ async def save_evidence_file_s3(file: UploadFile, app_name: str):
         # filename_timestamp.ext
         final_filename = f"{safe_base}_{timestamp}{safe_ext}"
 
-        file_key = f"app_evidences/{app_name}/{final_filename}"
+        file_key = f"app_evidences/{sanitize_filename(app_name)[:40]}/{final_filename}"
 
         content_type, _ = mimetypes.guess_type(file.filename)
 
@@ -165,7 +165,9 @@ async def save_evidence_file_local(file: UploadFile, app_name: str):
         # filename_timestamp.ext
         final_filename = f"{safe_base}_{timestamp}{safe_ext}"
 
-        dir_path = os.path.join(UPLOADS_DIR, "evidences", app_name)
+        dir_path = os.path.join(
+            UPLOADS_DIR, "evidences", sanitize_filename(app_name)[:40]
+        )
         os.makedirs(dir_path, exist_ok=True)
 
         file_path = os.path.join(dir_path, final_filename)
