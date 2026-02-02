@@ -6,6 +6,7 @@ ALL_APP_STATUSES: list[str] = [
     "reopen",
     "closed",
     "cancelled",
+    "go_live",
 ]
 
 ALL_DEPT_STATUSES: list[str] = [
@@ -14,4 +15,5 @@ ALL_DEPT_STATUSES: list[str] = [
     "cleared",
     "closed",
     "hold",
+    "go_live",
 ]

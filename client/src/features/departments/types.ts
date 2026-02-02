@@ -40,4 +40,5 @@ export interface CommentOut {
 
 export interface DepartmentInfo extends AppDepartmentOut {
   comments: CommentOut[];
+  can_go_live: boolean;
 }

@@ -12,6 +12,11 @@ export const parseDate = (date: string | undefined | null) => {
   return parsedDate;
 };
 
+export const parseDateForInput = (date?: string | null) => {
+  if (!date) return "";
+  return new Date(date).toISOString().slice(0, 10);
+};
+
 export const daysBetweenDateAndToday = (
   date: string | null | undefined,
 ): number | "-" => {
@@ -24,6 +29,21 @@ export const daysBetweenDateAndToday = (
   today.setHours(0, 0, 0, 0);
 
   const diffMs = today.getTime() - startDate.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+};
+
+export const daysAfterDateAndToday = (
+  date: string | null | undefined,
+): number | "-" => {
+  if (!date) return "-";
+
+  const dueDate = new Date(date + "Z");
+  const today = new Date();
+
+  dueDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffMs = dueDate.getTime() - today.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
 

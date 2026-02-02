@@ -57,7 +57,7 @@ const DeptStatusHeaderFilter: React.FC<{ deptName: string }> = ({
           <PopoverTrigger asChild>
             <Button
               id={"status-filter-trigger"}
-              variant="outline"
+              variant="ghost"
               role="combobox"
               className="h-auto min-h-8 w-full justify-between bg-transparent border-none shadow-none font-semibold"
             >

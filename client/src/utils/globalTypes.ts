@@ -5,14 +5,16 @@ export type AppStatuses =
   | "completed"
   | "reopen"
   | "closed"
-  | "cancelled";
+  | "cancelled"
+  | "go_live";
 
 export type DeptStatuses =
   | "yet_to_connect"
   | "in_progress"
   | "cleared"
   | "closed"
-  | "hold";
+  | "hold"
+  | "go_live";
 
 export type AppStatusOption = {
   value: AppStatuses;

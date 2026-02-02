@@ -24,7 +24,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-    theme === "system" ? getSystemTheme() : theme
+    theme === "system" ? getSystemTheme() : theme,
   );
   useEffect(() => {
     if (theme === "system") {
@@ -48,7 +48,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       resolvedTheme,
       setTheme,
     }),
-    [theme, resolvedTheme]
+    [theme, resolvedTheme],
   );
 
   useEffect(() => {

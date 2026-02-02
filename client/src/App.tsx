@@ -11,6 +11,9 @@ import { useGetMeQuery } from "./features/auth/store/authApiSlice";
 const DashboardPage = lazy(
   () => import("./features/dashboard/pages/DashboardPage"),
 );
+const SecondaryDashboard = lazy(
+  () => import("./features/dashboard/pages/SecondaryDashboard"),
+);
 const UserManagementPage = lazy(
   () => import("./features/user_management/pages/UserManagementPage"),
 );
@@ -44,13 +47,24 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route path="/" element={<ProtectedLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/"
+            element={<Navigate to="/dashboard/primary" replace />}
+          />
           <Route element={<RootLayout />}>
             <Route
-              path="dashboard"
+              path="dashboard/primary"
               element={
-                <LazyRoute fallbackLabel="Loading dashboard…">
+                <LazyRoute fallbackLabel="Loading primary dashboard…">
                   <DashboardPage />
+                </LazyRoute>
+              }
+            />
+            <Route
+              path="dashboard/secondary"
+              element={
+                <LazyRoute fallbackLabel="Loading secondary dashboard…">
+                  <SecondaryDashboard />
                 </LazyRoute>
               }
             />

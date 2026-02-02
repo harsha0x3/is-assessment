@@ -12,6 +12,7 @@ export const AppStatusValues: AppStatuses[] = [
   "reopen",
   "closed",
   "cancelled",
+  "go_live",
 ];
 
 export const AppStatusOptions: AppStatusOption[] = [
@@ -21,6 +22,8 @@ export const AppStatusOptions: AppStatusOption[] = [
   { value: "not_yet_started", label: "Not Yet Started" },
   { value: "reopen", label: "Reopen" },
   { value: "closed", label: "Closed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "go_live", label: "Go Live" },
 ];
 
 export const DeptStatusOptions: DeptStatusOption[] = [
@@ -29,6 +32,7 @@ export const DeptStatusOptions: DeptStatusOption[] = [
   { value: "cleared", label: "Cleared" },
   { value: "closed", label: "Closed" },
   { value: "hold", label: "Hold" },
+  { value: "go_live", label: "Go Live" },
 ];
 
 export const STATUS_COLOR_MAP_FG: Record<
@@ -45,6 +49,7 @@ export const STATUS_COLOR_MAP_FG: Record<
   yet_to_connect: "var(--status-not-yet-started-fg)",
   cleared: "var(--status-completed-fg)",
   hold: "var(--status-hold-fg)",
+  go_live: "var(--status-go-live-fg)",
 };
 
 export const STATUS_COLOR_MAP_BG: Record<
@@ -61,6 +66,7 @@ export const STATUS_COLOR_MAP_BG: Record<
   yet_to_connect: "var(--status-not-yet-started-bg)",
   cleared: "var(--status-completed-bg)",
   hold: "var(--status-hold-bg)",
+  go_live: "var(--status-go-live-bg)",
 };
 
 export const PriorityLabelMap: Record<string, string> = {

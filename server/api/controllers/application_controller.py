@@ -275,6 +275,7 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 app_url=app.app_url,
                 vendor_company=app.vendor_company,
                 latest_comment=latest_comment,
+                due_date=app.due_date,
                 titan_spoc=app.titan_spoc,
                 environment=app.environment,
             )
@@ -304,6 +305,8 @@ def list_all_apps(db: Session, params: AppQueryParams):
 def update_app(
     payload: ApplicationUpdate, app_id: str, db: Session, current_user: UserOut
 ):
+    from datetime import datetime, timezone
+
     try:
         app = db.scalar(select(Application).where(Application.id == app_id))
         if not app:
@@ -316,10 +319,42 @@ def update_app(
                 detail=f"App is in trash {app_id}",
             )
 
+        prev_status = app.status
+
         for key, val in payload.model_dump(
             exclude_unset=True, exclude={"priority"}
         ).items():
-            setattr(app, key, val)
+            print(f"key - {key} || val - {val}")
+            if key == "started_at" and val:
+                app.started_at = datetime.now(timezone.utc).replace(
+                    year=val.year,
+                    month=val.month,
+                    day=val.day,
+                )
+
+            elif key == "completed_at" and val:
+                app.completed_at = datetime.now(timezone.utc).replace(
+                    year=val.year,
+                    month=val.month,
+                    day=val.day,
+                )
+
+            elif key == "due_date" and val:
+                app.due_date = datetime.now(timezone.utc).replace(
+                    year=val.year,
+                    month=val.month,
+                    day=val.day,
+                )
+
+            else:
+                setattr(app, key, val)
+
+        if app.status != prev_status and app.status in [
+            "completed",
+            "go_live",
+            "closed",
+        ]:
+            app.completed_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(app)

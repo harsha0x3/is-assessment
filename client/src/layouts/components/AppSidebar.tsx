@@ -8,24 +8,27 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboardIcon,
+  BarChart2,
+  ChevronRight,
+  Laptop,
   LayoutGridIcon,
+  Moon,
+  PieChart,
+  Sun,
   Users2Icon,
   type LucideIcon,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
-import Hint from "@/components/ui/hint";
 import { ISLogo } from "@/components/ui/ISLogo";
 import { SidebarFooter } from "@/components/ui/sidebar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import {
@@ -35,6 +38,22 @@ import {
 import UserDetailsDialog from "@/features/user_management/components/UserDetailsDialog";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/context/themeContext/useTheme";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { Theme } from "@/context/themeContext/types";
 
 type SidebarData = {
   title: string;
@@ -42,16 +61,45 @@ type SidebarData = {
   isActive: boolean;
   icon?: LucideIcon;
   roles: string[];
+  children?: SidebarData[];
 };
 
 const sidebarItems: SidebarData[] = [
   {
-    title: "Dashboard",
-    path: "/dashboard",
+    title: "OverAll Dashboard",
     isActive: false,
-    icon: LayoutDashboardIcon,
+    path: "/dashboard/primary",
+    icon: PieChart,
     roles: ["admin", "moderator", "user", "manager"],
   },
+  {
+    title: "Priority Dashboard",
+    isActive: false,
+    path: "/dashboard/secondary",
+    icon: BarChart2,
+    roles: ["admin", "moderator", "user", "manager"],
+  },
+  // {
+  //   title: "Dashboard",
+  //   path: "/dashboard/primary",
+  //   isActive: false,
+  // icon: PieChart,
+  //   roles: ["admin", "moderator", "user", "manager"],
+  //   children: [
+  //     {
+  //       title: "Primary",
+  //       isActive: false,
+  //       path: "/dashboard/primary",
+  //       roles: ["admin", "moderator", "user", "manager"],
+  //     },
+  //     {
+  //       title: "Secondary",
+  //       isActive: false,
+  //       path: "/dashboard/secondary",
+  //       roles: ["admin", "moderator", "user", "manager"],
+  //     },
+  //   ],
+  // },
   {
     title: "Apps",
     path: "/applications",
@@ -73,9 +121,7 @@ const AppSidebar: React.FC = ({
 }: React.ComponentProps<typeof Sidebar>) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isItemActive = (item: SidebarData) => {
-    return location.pathname.includes(item.path);
-  };
+
   const currentUserInfo = useSelector(selectAuth);
   const [logout] = useLogoutMutation();
 
@@ -85,6 +131,14 @@ const AppSidebar: React.FC = ({
   const { data: meData } = useGetMeQuery(undefined, {
     skip: !openUserDialog,
   });
+
+  const isItemActive = (path?: string) =>
+    path ? location.pathname.startsWith(path) : false;
+
+  const isAnyChildActive = (children?: SidebarData[]) =>
+    children?.some((child) => isItemActive(child.path));
+
+  const { theme, setTheme } = useTheme();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -96,34 +150,88 @@ const AppSidebar: React.FC = ({
         </span>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        <SidebarMenu>
+      <SidebarContent className="px-2 pt-3">
+        <SidebarMenu className="gap-2">
           {sidebarItems.map((item) => {
-            if (item.roles.includes(currentUserInfo.role)) {
+            if (!item.roles.includes(currentUserInfo.role)) return null;
+
+            // 🔽 DASHBOARD WITH CHILDREN
+            if (item.children) {
               return (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    isActive={isItemActive(item)}
-                    onClick={() => navigate(item.path)}
-                    className="hover:cursor-pointer"
-                  >
-                    {item.icon && (
-                      <Hint label={item.title} side="right">
-                        <item.icon />
-                      </Hint>
-                    )}
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <Collapsible
+                  key={item.title}
+                  asChild
+                  defaultOpen={item.isActive}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem key={item.title}>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isAnyChildActive(item.children)}
+                        tooltip={item.title}
+                        onClick={() => navigate(item.path)}
+                      >
+                        {item.icon && (
+                          <item.icon
+                            className={`${isAnyChildActive(item.children) ? "text-ring" : ""}`}
+                          />
+                        )}
+                        <span>{item.title}</span>
+                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="">
+                      <SidebarMenuSub className="gap-2 pt-2">
+                        {item.children.map((child) => {
+                          if (!child.roles.includes(currentUserInfo.role))
+                            return null;
+
+                          return (
+                            <SidebarMenuSubItem key={child.title}>
+                              <SidebarMenuSubButton
+                                isActive={isItemActive(child.path)}
+                                onClick={() => navigate(child.path!)}
+                                className="text-sm cursor-default"
+                              >
+                                <span>{child.title}</span>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
               );
             }
+
+            // 🔹 NORMAL ITEMS
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  isActive={isItemActive(item.path)}
+                  onClick={() => navigate(item.path!)}
+                  tooltip={item.title}
+                >
+                  {item.icon && (
+                    <item.icon
+                      className={`${isItemActive(item.path) ? "text-ring" : ""}`}
+                    />
+                  )}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
           })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="px-2 pb-2">
-        <Popover open={openProfile} onOpenChange={setOpenProfile}>
-          <PopoverTrigger asChild>
-            <button className="flex items-center gap-2 w-full rounded-md p-2 hover:bg-accent">
+        <DropdownMenu open={openProfile} onOpenChange={setOpenProfile}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant={"ghost"}
+              className="flex items-center gap-2 w-full rounded-md p-2 hover:bg-accent"
+            >
               <Avatar className="h-8 w-8">
                 <AvatarFallback>
                   {currentUserInfo.full_name?.charAt(0).toUpperCase()}
@@ -133,13 +241,13 @@ const AppSidebar: React.FC = ({
               <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                 {currentUserInfo.full_name}
               </span>
-            </button>
-          </PopoverTrigger>
+            </Button>
+          </DropdownMenuTrigger>
 
-          <PopoverContent side="right" align="end" className="w-40">
-            <div className="flex flex-col gap-1">
-              <button
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm"
+          <DropdownMenuContent side="right" align="end" className="">
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                className="flex items-center gap-2 px-0 rounded text-sm"
                 onClick={() => {
                   setOpenProfile(false);
                   setOpenUserDialog(true);
@@ -147,10 +255,11 @@ const AppSidebar: React.FC = ({
               >
                 <User className="h-4 w-4" />
                 Profile
-              </button>
+              </DropdownMenuItem>
 
-              <button
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-destructive"
+              <DropdownMenuItem
+                variant={"destructive"}
+                className="flex items-center gap-2 px-0 rounded text-sm"
                 onClick={async () => {
                   setOpenProfile(false);
                   try {
@@ -164,10 +273,35 @@ const AppSidebar: React.FC = ({
               >
                 <LogOut className="h-4 w-4" />
                 Logout
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
+              </DropdownMenuItem>
+
+              <DropdownMenuLabel className="flex flex-col items-start gap-2 hover:none">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Theme
+                </span>
+                <div className="flex justify-between items-center w-full">
+                  {["light", "dark", "system"].map((t) => {
+                    const isActive = theme === t;
+
+                    const Icon =
+                      t === "light" ? Sun : t === "dark" ? Moon : Laptop;
+
+                    return (
+                      <Button
+                        key={t}
+                        onClick={() => setTheme(t as Theme)}
+                        variant={isActive ? "default" : "ghost"}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Profile Dialog */}
         {meData?.data && (

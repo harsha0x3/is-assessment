@@ -29,7 +29,7 @@ import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
-import { Dot, Loader } from "lucide-react";
+import { ClockAlert, Dot, FlagTriangleRight, Loader } from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 import { createDepartmentStatusColumn } from "./DepartmentColumnFactory";
 const VerticalSearchFilter = lazy(
@@ -47,15 +47,17 @@ const SLAFilterHeader = lazy(() => import("./tableHeaders/SLAFilterHeader"));
 // }
 
 const AppsTable: React.FC = () => {
-  const { data: appsData, isLoading: isAppsLoading } = useApplicationsContext();
+  const {
+    data: appsData,
+    isLoading: isAppsLoading,
+    appStatus,
+  } = useApplicationsContext();
   // const { data: departments, isLoading: isLoadingDepts } =
   //   useGetAllDepartmentsQuery();
   const navigate = useNavigate();
   const colHelper = createColumnHelper<NewAppListOut>();
   const [searchParams] = useSearchParams();
-  useEffect(() => {
-    console.log("😊😊😊 Search params", searchParams);
-  }, [searchParams]);
+  useEffect(() => {}, [searchParams]);
   const departmentView = searchParams.get("view");
   type DeptKey =
     | "vapt"
@@ -220,24 +222,33 @@ const AppsTable: React.FC = () => {
         header: "Name",
         minSize: 280,
         maxSize: 550,
-        cell: ({ row, getValue }) => (
-          <Button
-            variant="link"
-            className="p-0 h-auto text-left text-primary"
-            onClick={() => {
-              navigate(
-                `/applications/details/${row.original.id}/overview?${searchParams.toString()}`,
-                {
-                  state: { appName: row.original.name },
-                },
-              );
-            }}
-          >
-            <span className="whitespace-normal wrap-break-word">
-              {getValue()}
-            </span>
-          </Button>
-        ),
+        cell: ({ row, getValue }) => {
+          const dueDays = daysBetweenDateAndToday(row.original.due_date);
+
+          return (
+            <Button
+              variant="link"
+              className="p-0 h-auto text-left text-primary"
+              onClick={() =>
+                navigate(
+                  `/applications/details/${row.original.id}/overview?${searchParams.toString()}`,
+                  { state: { appName: row.original.name } },
+                )
+              }
+            >
+              <span className="whitespace-normal wrap-break-word">
+                {Number(dueDays) > 0 && (
+                  <Hint label={`Overdue by ${dueDays} days`}>
+                    <span className="cursor-default">
+                      <ClockAlert className="inline mr-1 text-amber-500" />
+                    </span>
+                  </Hint>
+                )}
+                {getValue()}
+              </span>
+            </Button>
+          );
+        },
       }),
       ...(!departmentView
         ? [
@@ -303,7 +314,7 @@ const AppsTable: React.FC = () => {
                 return (
                   <div className=" w-full pl-4">
                     <Badge
-                      className="capitalize"
+                      className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
                       style={{
                         backgroundColor: STATUS_COLOR_MAP_BG[status],
                         color: STATUS_COLOR_MAP_FG[status],
@@ -335,7 +346,7 @@ const AppsTable: React.FC = () => {
         colHelper.accessor("departments", {
           header: "Departments",
           minSize: 220,
-          cell: ({ getValue }) => {
+          cell: ({ getValue, row }) => {
             const depts: AppDepartmentOut[] = getValue();
 
             const shortenDept = (dept: string) => {
@@ -364,19 +375,39 @@ const AppsTable: React.FC = () => {
                       label={
                         <div>
                           <p>{d.name}</p>
-                          <p>{parseStatus(d.status)}</p>
+                          <p className="capitalize">{parseStatus(d.status)}</p>
                         </div>
                       }
                     >
                       <div className="flex flex-col items-center cursor-default">
-                        <Dot
-                          key={d.id}
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{
-                            backgroundColor: STATUS_COLOR_MAP_FG[d.status],
-                          }}
-                        />
-                        <span>{shortenDept(d.name.toLowerCase())}</span>
+                        {appStatus === "go_live" ? (
+                          <FlagTriangleRight
+                            className="w-4 h-4"
+                            fill={
+                              d.status === "go_live"
+                                ? STATUS_COLOR_MAP_FG[d.status]
+                                : "none"
+                            }
+                          />
+                        ) : (
+                          <Dot
+                            key={d.id}
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{
+                              backgroundColor: STATUS_COLOR_MAP_FG[d.status],
+                            }}
+                          />
+                        )}
+                        <span
+                          className="hover:underline hover:text-ring hover:cursor-pointer transition-all"
+                          onClick={() =>
+                            navigate(
+                              `details/${row.original.id}/departments/${d.id}/comments?${searchParams.toString}`,
+                            )
+                          }
+                        >
+                          {shortenDept(d.name.toLowerCase())}
+                        </span>
                       </div>
                     </Hint>
                   ))}
@@ -387,7 +418,7 @@ const AppsTable: React.FC = () => {
         }),
       ];
     return DEPARTMENT_COLUMNS[departmentView as DeptKey] ?? [];
-  }, [departmentView]);
+  }, [departmentView, appStatus]);
 
   const columns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     if (!isAppsLoading) {

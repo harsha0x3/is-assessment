@@ -81,6 +81,10 @@
   --status-in-progress-bg: hsl(215 95% 94%);
   --status-in-progress-fg: hsl(215 90% 45%);
 
+  /* Torquoise — Go Live */
+  --status-go-live-bg: hsl(96 95% 94%);
+  --status-go-live-fg: hsl(96, 100%, 50%);
+
   /* Yellow — Hold */
   --status-hold-bg: hsl(42 95% 90%);
   --status-hold-fg: hsl(42 90% 42%);

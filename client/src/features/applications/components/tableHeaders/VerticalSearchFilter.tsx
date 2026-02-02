@@ -18,9 +18,9 @@ const VerticalSearchFilter: React.FC = () => {
       <PopoverTrigger asChild>
         <Button
           id={"vertical-filter-trigger"}
-          variant="outline"
+          variant="ghost"
           role="combobox"
-          className="h-auto min-h-8 w-full justify-between bg-transparent border-none shadow-none font-semibold"
+          className="h-auto min-h-8 w-full justify-between bg-none border-none shadow-none font-semibold"
         >
           <span className="text-ring">Vertical</span>
           <Filter

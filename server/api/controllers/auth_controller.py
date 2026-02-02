@@ -48,7 +48,8 @@ def login_user(
             )
         if not user.verify_password(log_user.password):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials wrong pass",
             )
 
         if not user.is_active:

@@ -176,11 +176,9 @@ def get_department_status_summary(
 #         )
 
 
-def get_priority_wise_grouped_summary(db: Session):
+def get_priority_wise_grouped_summary(db: Session, status_filter: str | None):
     try:
-        raw = defaultdict(lambda: defaultdict(int))
-
-        rows = db.execute(
+        stmt = (
             select(
                 Application.app_priority.label("priority"),
                 Application.status.label("status"),
@@ -188,7 +186,15 @@ def get_priority_wise_grouped_summary(db: Session):
             )
             .where(Application.is_active)
             .group_by(Application.app_priority, Application.status)
-        ).all()
+        )
+
+        if status_filter and status_filter != "all":
+            stmt = stmt.where(Application.status == status_filter)
+            # total_apps_stmt = total_apps_stmt.where(Application.status == status_filter)
+
+        rows = db.execute(stmt).all()
+
+        raw = defaultdict(lambda: defaultdict(int))
 
         # DB aggregation
         for row in rows:

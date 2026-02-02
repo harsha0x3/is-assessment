@@ -47,3 +47,4 @@ class CommentOut(BaseModel):
 
 class DepartmentInfo(AppDepartmentOut, BaseModel):
     comments: list[CommentOut] = []
+    can_go_live: bool = False

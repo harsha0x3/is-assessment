@@ -25,7 +25,7 @@ class ApplicationCreate(BaseModel):
     imitra_ticket_id: str | None = None
     titan_spoc: str | None = None
 
-    started_at: date | None = None
+    started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
 
@@ -56,10 +56,11 @@ class ApplicationOut(BaseModel):
     imitra_ticket_id: str | None
     titan_spoc: str | None
 
+    due_date: datetime | None = None
+
     app_priority: int | None = None
 
-    started_at: date | None = None
-    end_date: date | None = None
+    started_at: datetime | None = None
     completed_at: datetime | None = None
     app_url: str | None
 
@@ -90,8 +91,7 @@ class ApplicationUpdate(BaseModel):
     imitra_ticket_id: str | None = None
     titan_spoc: str | None = None
 
-    started_at: date | None = None
-    end_date: date | None = None
+    started_at: datetime | None = None
 
     completed_at: datetime | None = None
     due_date: datetime | None = None
@@ -111,7 +111,7 @@ class ListApplicationsOut(BaseModel):
     priority: int = 2
     app_priority: int | None = None
 
-    started_at: date | None = None
+    started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None = None
     checklists: list[ChecklistOut] | None = None
@@ -129,8 +129,10 @@ class NewAppListOut(BaseModel):
     app_url: str | None
     environment: str | None
 
-    started_at: date | None = None
+    started_at: datetime | None = None
     completed_at: datetime | None = None
+    due_date: datetime | None
+
     vendor_company: str | None = None
     titan_spoc: str | None
     departments: list[AppDepartmentOut] | None = None

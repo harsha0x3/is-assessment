@@ -158,10 +158,13 @@ const DepartmentInfo: React.FC = () => {
                           <>
                             <SelectItem
                               value={s.value}
+                              disabled={
+                                s.value == "go_live" && !data.data.can_go_live
+                              }
                               style={{
                                 color: STATUS_COLOR_MAP_FG[s.value],
                               }}
-                              className=""
+                              className="data-disabled:cursor-not-allowed data-disabled:opacity-50"
                             >
                               {s.label}
                             </SelectItem>

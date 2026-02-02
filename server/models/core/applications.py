@@ -1,10 +1,10 @@
-from sqlalchemy import ForeignKey, String, Text, select, and_, Integer, DateTime, Date
+from sqlalchemy import ForeignKey, String, Text, select, and_, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .user_priorities import UserPriority
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from datetime import datetime, date
+from datetime import datetime
 from db.base import Base, BaseMixin
 
 
@@ -33,9 +33,9 @@ class Application(Base, BaseMixin):
     titan_spoc: Mapped[str] = mapped_column(String(100), nullable=True)
     imitra_ticket_id: Mapped[str] = mapped_column(String(40), nullable=True)
 
-    started_at: Mapped[date] = mapped_column(Date, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    due_date: Mapped[date] = mapped_column(Date, nullable=True)
+    due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     app_url: Mapped[str] = mapped_column(Text, nullable=True)
 

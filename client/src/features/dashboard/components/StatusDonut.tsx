@@ -11,49 +11,91 @@ import { parseStatus } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader } from "lucide-react";
+import { ArrowRight, FlagTriangleRight, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const StatusCard: React.FC<{
   data: { name: string; count: number; percent: number };
 }> = ({ data }) => {
   const navigate = useNavigate();
+  useEffect(() => {
+    const all = document.querySelectorAll(".spotlight-card");
+    const handleMouseMove = (ev: MouseEvent) => {
+      all.forEach((e) => {
+        const blob = e.querySelector(".blob") as HTMLElement;
+        const fblob = e.querySelector(".fake-blob") as HTMLElement;
+
+        if (!blob || !fblob) return;
+
+        const rec = fblob.getBoundingClientRect();
+
+        blob.style.opacity = "1";
+
+        blob.animate(
+          [
+            {
+              transform: `translate(${ev.clientX - rec.left - rec.width / 2}px,  ${ev.clientY - rec.top - rec.height / 2}px)`,
+            },
+          ],
+          {
+            duration: 300,
+            fill: "forwards",
+          },
+        );
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
   return (
     <div
-      tabIndex={0}
-      className="
-        group/status
-        flex flex-col gap-1
-        border rounded-md px-3 py-2
+      className="spotlight-card relative overflow-hidden group/status  
+        border rounded-md
         shadow-card
         transition-all
+        duration-300
+        ease-in-out
         hover:shadow-md hover:-translate-y-0.5
-        focus-visible:ring-2 focus-visible:ring-primary
-      "
+        focus-visible:ring-2 focus-visible:ring-primary bg-border/30"
     >
-      {/* Title */}
-      <p className="font-medium capitalize flex items-center gap-2">
-        {parseStatus(data.name)}
-        <span
-          className="w-3.5 h-3.5 rounded-sm border"
-          style={{
-            backgroundColor: STATUS_COLOR_MAP_FG[data.name as AppStatuses],
-          }}
-        />
-      </p>
+      <div
+        tabIndex={0}
+        className="flex z-10 flex-col gap-1 px-3 py-2 group-hover:bg-card/90 max-w-80 border-none transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]"
+      >
+        {/* Title */}
+        <p className="font-medium capitalize flex items-center gap-2">
+          {parseStatus(data.name)}
+          {data.name === "go_live" ? (
+            <FlagTriangleRight
+              fill={STATUS_COLOR_MAP_FG[data.name as AppStatuses]}
+              className="w-5 h-5"
+            />
+          ) : (
+            <span
+              className="w-3.5 h-3.5 rounded-sm border"
+              style={{
+                backgroundColor: STATUS_COLOR_MAP_FG[data.name as AppStatuses],
+              }}
+            />
+          )}
+        </p>
 
-      {/* Count + Action */}
-      <div className="flex items-center justify-between">
-        <span className="text-xl font-semibold">{data.count}</span>
+        {/* Count + Action */}
+        <div className="flex items-center justify-between">
+          <span className="text-xl font-semibold">{data.count}</span>
 
-        <Button
-          onClick={() => navigate(`/applications?appStatus=${data.name}`)}
-          variant="link"
-          className="
+          <Button
+            onClick={() => navigate(`/applications?appStatus=${data.name}`)}
+            variant="link"
+            className="
           items-center
           group/view_button
           opacity-100
@@ -68,11 +110,14 @@ const StatusCard: React.FC<{
             text-sm
             p-0 h-auto
           "
-        >
-          <p>View details</p>{" "}
-          <ArrowRight className="opacity-0 group-hover/view_button:opacity-100 transition-opacity" />
-        </Button>
+          >
+            <p>View details</p>{" "}
+            <ArrowRight className="opacity-0 group-hover/view_button:opacity-100 transition-opacity" />
+          </Button>
+        </div>
       </div>
+      <div className="blob pointer-events-none absolute top-0 left-0 size-10 rounded-full bg-primary/60 opacity-0 blur-lg transition-all duration-300 ease-in-out dark:primary/60" />
+      <div className="fake-blob absolute top-0 pointer-events-none left-0 size-10 rounded-full" />
     </div>
   );
 };
@@ -87,7 +132,7 @@ const StatusDonut = ({
   const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
   return (
-    <>
+    <div className="">
       <CardHeader>
         <div className="w-full flex items-center">
           <CardTitle className="text-center text-lg flex-1">
@@ -205,7 +250,7 @@ const StatusDonut = ({
           ))}
         </div>
       </CardContent>
-    </>
+    </div>
   );
 };
 

@@ -52,7 +52,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
         dispatch(loginSuccess(result.data));
         reset();
       }
-      navigate("/dashboard");
+      navigate("/dashboard/primary");
       return;
     } catch (err: unknown) {
       const errMsg = getApiErrorMessage(err) ?? "Login Failed";
@@ -60,7 +60,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
     }
   };
   return (
-    <Card className="w-full max-w-md mx-auto p-4">
+    <Card className="w-full max-w-md mx-auto p-4 h-fit bg-transparent/30 backdrop-blur-xl">
       <CardHeader>
         <CardTitle className="text-center text-xl font-bold">
           Login to your Account
@@ -144,16 +144,40 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
           <Button
             type="submit"
             size="lg"
-            className="w-full"
+            className="w-full group/submit overflow-hidden"
             disabled={isLoading || !emailOrUsername || !password}
           >
             {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader className="w-4 h-4 animate-spin" />
-                Signing In...
+              <span>
+                Signing in.. <Loader className="animate-spin" />
               </span>
             ) : (
-              "Sign In"
+              <span className="relative h-6 overflow-hidden flex items-center justify-center">
+                {/* Default text */}
+                <span
+                  className="
+        flex items-center gap-2
+        translate-y-0
+        transition-transform duration-300 ease-out
+        group-hover/submit:-translate-y-full
+      "
+                >
+                  Sign In
+                </span>
+
+                {/* Hover text */}
+                <span
+                  className="
+        absolute inset-0
+        flex items-center gap-2
+        translate-y-full
+        transition-transform duration-300 ease-out
+        group-hover/submit:translate-y-0
+      "
+                >
+                  Sign In
+                </span>
+              </span>
             )}
           </Button>
         </form>

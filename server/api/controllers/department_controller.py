@@ -9,6 +9,7 @@ from models import (
     ApplicationDepartments,
     Comment,
 )
+from datetime import datetime, timezone
 from schemas import department_schemas as d_schemas
 
 
@@ -238,6 +239,11 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
                 )
             )
         )
+        all_dept_status = db.scalars(
+            select(ApplicationDepartments.status).where(
+                ApplicationDepartments.application_id == app_id
+            )
+        ).all()
 
         cmnt_query = db.scalars(
             select(Comment)
@@ -263,6 +269,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             updated_at=dept.updated_at,
             status=dept_status,
             comments=comments,
+            can_go_live=all(dept == "cleared" for dept in all_dept_status),
         )
     except HTTPException:
         raise
@@ -313,6 +320,7 @@ def change_department_app_status(
         if all(d.status == "cleared" for d in dept_apps):
             app.status = "completed"
             app.is_completed = True
+            app.completed_at = datetime.now(timezone.utc)
         elif app.status == "completed":
             app.status = "in_progress"
             app.is_completed = False

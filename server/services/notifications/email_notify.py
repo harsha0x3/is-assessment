@@ -3,8 +3,12 @@ from msal import ConfidentialClientApplication
 import httpx
 from dotenv import load_dotenv
 import json
-from schemas.auth_schemas import UserOut
+from models import User
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from schemas.notification_schemas import NewAppNotification, NewAppData
 from fastapi import HTTPException, status
+import asyncio
 
 load_dotenv()
 
@@ -31,47 +35,28 @@ def fetch_token():
     return {"success": True, "token": result.get("access_token")}
 
 
-async def send_email(
-    subject: str,
-    reciepient: UserOut,
-    message: str | None = None,
-):
+async def send_new_app_notif(payload: NewAppNotification, token: str):
     try:
-        token = fetch_token()
-        if not token:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Access token not found for sending mail",
-            )
-        access_token = token["token"]
-        reciepient_name = (
-            f"{reciepient.first_name} {reciepient.last_name}"
-            if reciepient.last_name
-            else f"{reciepient.first_name}"
-        )
         html_body = f"""
-                        <html>
-                        <body>
-                            <h2>Hello {reciepient_name},</h2>
-                            <p>{message}</p>
-                            <p>Thankyou.</p>
-                        </body>
-                        </html>
-
-                    """
-
+<html>
+<body>
+<h2>Hello {payload.full_name},</h2>
+<p>A New application is created for IS Assessments.</p>
+</body>
+</html>
+"""
         email_msg = {
             "message": {
-                "subject": subject,
+                "subject": "New Application for IS Assessment",
                 "body": {"contentType": "HTML", "content": html_body},
-                "toRecipients": [{"emailAddress": {"address": reciepient.email}}],
+                "toRecipients": [{"emailAddress": {"address": payload.email}}],
             }
         }
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 graph_endpoint,
                 headers={
-                    "Authorization": f"Bearer {access_token}",
+                    "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
                 },
                 content=json.dumps(email_msg),
@@ -87,7 +72,95 @@ async def send_email(
                 return {"success": False, "status_code": response.status_code}
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send mail {str(e)}",
-        )
+        raise
+
+
+async def send_new_app_mails_to_all(payload: NewAppData, db: Session):
+    try:
+        token = fetch_token()
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Access token not found for sending mail",
+            )
+        access_token = token["token"]
+
+        all_usrs = db.scalars(select(User).where(User.is_active)).all()
+        tasks = [
+            send_new_app_notif(
+                NewAppNotification(
+                    **payload.model_dump(), full_name=usr.full_name, email=usr.email
+                ),
+                token=str(access_token),
+            )
+            for usr in all_usrs
+        ]
+
+        asyncio.gather(tasks)
+    except Exception as e:
+        raise
+
+
+# async def send_email(
+#     subject: str,
+#     reciepient: UserOut,
+#     message: str | None = None,
+# ):
+#     try:
+# token = fetch_token()
+# if not token:
+#     raise HTTPException(
+#         status_code=status.HTTP_404_NOT_FOUND,
+#         detail="Access token not found for sending mail",
+#     )
+# access_token = token["token"]
+#         reciepient_name = (
+#             f"{reciepient.first_name} {reciepient.last_name}"
+#             if reciepient.last_name
+#             else f"{reciepient.first_name}"
+#         )
+#         html_body = f"""
+#                         <html>
+#                         <body>
+#                             <h2>Hello {reciepient_name},</h2>
+#                             <p>{message}</p>
+#                             <p>Thankyou.</p>
+#                         </body>
+#                         </html>
+
+#                     """
+
+# email_msg = {
+#     "message": {
+#         "subject": subject,
+#         "body": {"contentType": "HTML", "content": html_body},
+#         "toRecipients": [{"emailAddress": {"address": reciepient.email}}],
+#     }
+# }
+# async with httpx.AsyncClient(timeout=10.0) as client:
+#     response = await client.post(
+#         graph_endpoint,
+#         headers={
+#             "Authorization": f"Bearer {access_token}",
+#             "Content-Type": "application/json",
+#         },
+#         content=json.dumps(email_msg),
+#     )
+#     if response.status_code == 202:
+#         print({"success": True, "status_code": response.status_code})
+#         print(response.__dict__)
+#         return {"success": True, "status_code": response.status_code}
+#     else:
+#         print({"success": False, "status_code": response.status_code})
+#         print(response.__dict__)
+
+#         return {"success": False, "status_code": response.status_code}
+
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to send mail {str(e)}",
+#         )
+
+
+# ggqtLBDV-a5GVv-

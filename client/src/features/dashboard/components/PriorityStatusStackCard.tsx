@@ -44,63 +44,65 @@ const PriorityStatusBarCard: React.FC<Props> = ({ data }) => {
     }));
 
   return (
-    <Card className="h-full px-0 w-md gap-2">
-      <CardHeader className="pb-2 px-0">
-        <CardTitle className="text-sm text-center capitalize">
-          {data.priority} Priority
-        </CardTitle>
-      </CardHeader>
+    <div className="p-2">
+      <Card className="h-full px-0 w-md gap-2 backdrop-blur-lg hover:shadow-lg hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 transition-all duration-200 ease-in">
+        <CardHeader className="pb-2 px-0">
+          <CardTitle className="text-sm text-center capitalize">
+            {data.priority} Priority
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent className="h-64 w-md px-0">
-        <ChartContainer config={chartConfig} className="h-full w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 0, left: 0, bottom: 10 }}
-            >
-              <XAxis
-                dataKey="status"
-                tickFormatter={(v) =>
-                  parseStatus(v)
-                    .toLowerCase()
-                    .replace(/^\w/, (c) => c.toUpperCase())
-                }
-                tick={{ fontSize: 9 }}
-                interval={0}
-                angle={-30}
-                textAnchor="end"
-                height={40}
-              />
-
-              <YAxis allowDecimals={false} domain={[0, "dataMax + 2"]} />
-              <Bar
-                dataKey="count"
-                barSize={20}
-                radius={[4, 4, 0, 0]}
-                className="hover:cursor-pointer"
+        <CardContent className="h-64 w-md px-0">
+          <ChartContainer config={chartConfig} className="h-full w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 0, left: 0, bottom: 10 }}
               >
-                {chartData.map((entry) => (
-                  <Cell
-                    key={entry.status}
-                    fill={STATUS_COLOR_MAP_FG[entry.status as StatusKey]}
-                    onClick={() =>
-                      navigate(
-                        `/applications?appPriority=${PriorityValueMap[String(data.priority).toLowerCase()]}&appStatus=${entry.status}`,
-                      )
-                    }
-                  />
-                ))}
-                <LabelList
-                  dataKey="count"
-                  position="top"
-                  style={{ fontSize: 10, color: "white" }}
+                <XAxis
+                  dataKey="status"
+                  tickFormatter={(v) =>
+                    parseStatus(v)
+                      .toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase())
+                  }
+                  tick={{ fontSize: 9 }}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={40}
                 />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+
+                <YAxis allowDecimals={false} domain={[0, "dataMax + 2"]} />
+                <Bar
+                  dataKey="count"
+                  barSize={20}
+                  radius={[4, 4, 0, 0]}
+                  className="hover:cursor-pointer"
+                >
+                  {chartData.map((entry) => (
+                    <Cell
+                      key={entry.status}
+                      fill={STATUS_COLOR_MAP_FG[entry.status as StatusKey]}
+                      onClick={() =>
+                        navigate(
+                          `/applications?appPriority=${PriorityValueMap[String(data.priority).toLowerCase()]}&appStatus=${entry.status}`,
+                        )
+                      }
+                    />
+                  ))}
+                  <LabelList
+                    dataKey="count"
+                    position="top"
+                    style={{ fontSize: 10, color: "white" }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

@@ -96,6 +96,7 @@ export interface NewAppListOut {
   latest_comment?: CommentOut;
   titan_spoc?: string | null;
   environment?: string;
+  due_date?: string | null;
 }
 
 export interface AppQueryParams {
@@ -128,6 +129,7 @@ export interface AppStatusSummary {
   cancelled: number;
   completed: number;
   reopen: number;
+  go_live: number;
 }
 
 // ---------- OLD -----------

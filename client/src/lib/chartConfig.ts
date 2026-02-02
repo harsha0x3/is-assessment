@@ -31,4 +31,8 @@ export const donutChartConfig: ChartConfig = {
     label: "Cancelled",
     color: "var(--status-cancelled-fg)",
   },
+  go_live: {
+    label: "Go Live",
+    color: "var(--status-go-live-fg)",
+  },
 };

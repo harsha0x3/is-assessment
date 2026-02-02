@@ -33,8 +33,9 @@ def get_department_status_summary(
 def priority_wise_summary(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
+    status_filter: Annotated[str | None, Query(...)] = None,
 ):
-    return dc.get_priority_wise_grouped_summary(db=db)
+    return dc.get_priority_wise_grouped_summary(db=db, status_filter=status_filter)
 
 
 @router.get("/summary/vertical-wise")

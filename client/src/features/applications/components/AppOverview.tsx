@@ -40,7 +40,7 @@ import {
   STATUS_COLOR_MAP_FG,
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
-import { daysBetweenDateAndToday } from "@/utils/helpers";
+import { daysBetweenDateAndToday, parseDateForInput } from "@/utils/helpers";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -102,6 +102,8 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
   const isAdmin = ["admin", "manager"].includes(currentUserInfo.role);
   const isNew = !appId && isAdmin;
   const startedAt = watch("started_at");
+  const slaDate = watch("due_date");
+  const dueDays = slaDate ? daysBetweenDateAndToday(slaDate) : 0;
 
   useEffect(() => {
     reset(appDetails?.data || {});
@@ -460,7 +462,9 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                       <FieldLabel htmlFor="started_at">Start Date</FieldLabel>
                       <Input
                         {...field}
-                        value={field.value ? field.value.split("T")[0] : ""}
+                        value={
+                          field.value ? parseDateForInput(field.value) : ""
+                        }
                         type="date"
                         id="started_at"
                         readOnly={!(isNew || isEditing)}
@@ -468,11 +472,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         placeholder="Application Technology"
                         autoComplete="off"
                       />
-                      {startedAt && (
-                        <p className="text-xs text-muted-foreground">
-                          {daysBetweenDateAndToday(startedAt)} days since start
-                        </p>
-                      )}
+
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -493,12 +493,14 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         <FieldLabel htmlFor="completed_at">End Date</FieldLabel>
                         <Input
                           {...field}
-                          value={field.value ?? ""}
+                          value={parseDateForInput(field.value) ?? ""}
                           type="date"
                           id="completed_at"
-                          readOnly={!(isNew || isEditing)}
+                          readOnly={
+                            !((isNew || isEditing) && field.value == null)
+                          }
                           aria-invalid={fieldState.invalid}
-                          placeholder="Application Technology"
+                          placeholder=""
                           autoComplete="off"
                         />
                         {fieldState.invalid && (
@@ -508,6 +510,29 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                     )}
                   />
                 )}
+                {/* Due Date */}
+                <Controller
+                  name="due_date"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="due_date">SLA</FieldLabel>
+                      <Input
+                        {...field}
+                        value={parseDateForInput(field.value) ?? ""}
+                        type="date"
+                        id="due_date"
+                        readOnly={!(isNew || isEditing)}
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Due date for assessment completion"
+                        autoComplete="off"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
 
                 {/* Environment */}
                 <Controller
@@ -647,8 +672,8 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
               </div>
             </div>
           </ScrollArea>
-          {["admin", "manager"].includes(currentUserInfo.role) && (
-            <div className="rounded-md bg-accent py-2 mx-1">
+          <div className="rounded-md bg-accent py-2 mx-1 flex items-center justify-between px-4">
+            {["admin", "manager"].includes(currentUserInfo.role) && (
               <div className="flex items-center gap-3 justify-between">
                 {!isNew && (
                   <div
@@ -695,8 +720,20 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                   </Field>
                 )}
               </div>
-            </div>
-          )}
+            )}
+            {slaDate && (
+              <p className="text-amber-500 text-xs">
+                {Number(dueDays) > 0
+                  ? `${dueDays} days Overdue`
+                  : `${Math.abs(Number(dueDays))} days left until overdue`}
+              </p>
+            )}
+            {startedAt && (
+              <p className="text-xs text-muted-foreground">
+                {daysBetweenDateAndToday(startedAt)} days since start
+              </p>
+            )}
+          </div>
         </div>
       </FieldGroup>
     </form>

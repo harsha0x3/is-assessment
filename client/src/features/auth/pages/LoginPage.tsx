@@ -45,27 +45,34 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="mt-24 space-y-10 w-full">
-      <h1 className="text-2xl text-center font-bold">IS-Assessments Manager</h1>
+    <div className="space-y-10 w-full h-screen bg-linear-to-br from-30% from-primary/90 to-30% to-card flex flex-col sm:flex-row">
+      <div className="sm:mr-5">
+        <h1 className="text-4xl text-center font-bold w-full mt-20">
+          IS-Assessments Manager
+        </h1>
+        {/* <img src="/is_logo.svg" alt="" /> */}
+      </div>
 
-      {authStep === "login" && (
-        <LoginForm onForgotPasswordClick={handleForgotPasswordClick} />
-      )}
+      <div className="flex w-full h-full items-center">
+        {authStep === "login" && (
+          <LoginForm onForgotPasswordClick={handleForgotPasswordClick} />
+        )}
 
-      {authStep === "forgot-password" && (
-        <ForgotPasswordForm
-          onBack={handleBackToLogin}
-          onSuccess={handleForgotPasswordSuccess}
-        />
-      )}
+        {authStep === "forgot-password" && (
+          <ForgotPasswordForm
+            onBack={handleBackToLogin}
+            onSuccess={handleForgotPasswordSuccess}
+          />
+        )}
 
-      {authStep === "reset-password" && resetEmail && (
-        <ResetPasswordForm
-          email={resetEmail}
-          onBack={handleBackToLogin}
-          onSuccess={handleResetPasswordSuccess}
-        />
-      )}
+        {authStep === "reset-password" && resetEmail && (
+          <ResetPasswordForm
+            email={resetEmail}
+            onBack={handleBackToLogin}
+            onSuccess={handleResetPasswordSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 };

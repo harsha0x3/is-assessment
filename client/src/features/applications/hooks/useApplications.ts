@@ -161,6 +161,7 @@ export const useApplications = () => {
     appVertical,
     filteredAppsSummary,
     appSlaFilter,
+    appStatus,
   };
 };
 

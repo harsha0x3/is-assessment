@@ -21,8 +21,15 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
         params: params ?? undefined,
       }),
     }),
-    getPriorityWiseSummary: builder.query<PriorityCountItem[], void>({
-      query: () => `/dashboard/summary/priority-wise`,
+    getPriorityWiseSummary: builder.query<
+      PriorityCountItem[],
+      { status_filter?: string }
+    >({
+      query: (params) => ({
+        url: `/dashboard/summary/priority-wise`,
+        method: "GET",
+        params: params,
+      }),
     }),
     getVerticalWiseSummary: builder.query<VerticalStatusSummary[], void>({
       query: () => `/dashboard/summary/vertical-wise`,

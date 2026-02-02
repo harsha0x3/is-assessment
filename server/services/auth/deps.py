@@ -41,6 +41,11 @@ def get_current_user(
     if not payload and refresh_token:
         try:
             payload = verify_refresh_token(refresh_token)
+            if not payload:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid or expired token.",
+                )
             user = db.get(User, payload.get("sub"))
 
             if not user or not user.is_active:
@@ -65,10 +70,10 @@ def get_current_user(
                 detail="Invalid access and refresh token. Login again.",
             )
 
-    elif not payload:
+    if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired access token.",
+            detail="Invalid or expired token.",
         )
 
     # Fetch the user (works for both valid or refreshed tokens)
@@ -78,6 +83,8 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Inactive or non-existent user",
         )
+
+    request.scope["headers"].append((b"x-user-id", str(user.id).encode()))
 
     if user.must_change_password:
         raise HTTPException(status_code=403, detail="PASSWORD_RESET_REQUIRED")

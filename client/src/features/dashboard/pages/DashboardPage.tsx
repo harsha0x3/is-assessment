@@ -2,9 +2,8 @@ import React, { Suspense, useMemo, useState } from "react";
 import {
   useGetApplicationSummaryQuery,
   useGetDepartmentSummaryQuery,
-  useGetPriorityWiseSummaryQuery,
 } from "../store/dashboardApiSlice";
-import { buildDonutData, buildPriorityStackedData } from "@/lib/chartHelpers";
+import { buildDonutData } from "@/lib/chartHelpers";
 import { Loader } from "lucide-react";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,29 +24,11 @@ import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/utils/helpers";
+import { CardLoader, SectionLoader } from "../components/Loaders";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
   () => import("../components/DepartmentStatusCard"),
-);
-const PriorityStatusStackCard = React.lazy(
-  () => import("../components/PriorityStatusStackCard"),
-);
-const VerticalWiseSummary = React.lazy(
-  () => import("../components/VerticalWiseSummary"),
-);
-
-const SectionLoader = ({ label }: { label?: string }) => (
-  <div className="flex items-center justify-center h-40 gap-2 text-muted-foreground">
-    <Loader className="h-4 w-4 animate-spin" />
-    {label ?? "Loading..."}
-  </div>
-);
-
-const CardLoader = () => (
-  <Card className="h-72 w-95 flex items-center justify-center">
-    <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
-  </Card>
 );
 
 const DashboardPage: React.FC = () => {
@@ -69,16 +50,6 @@ const DashboardPage: React.FC = () => {
     status_filter: deptStatusFilter,
     sla_filter: debouncedSla,
   });
-  const {
-    data: prioritySummary,
-    isLoading: isLoadingPrioritySummary,
-    error: prioritySummaryErr,
-  } = useGetPriorityWiseSummaryQuery();
-
-  const chartData = useMemo(
-    () => (prioritySummary ? buildPriorityStackedData(prioritySummary) : []),
-    [prioritySummary],
-  );
 
   const orderedDepartments = useMemo(() => {
     return [...(deptSummay?.departments ?? [])].sort((a, b) =>
@@ -90,20 +61,6 @@ const DashboardPage: React.FC = () => {
 
   if (isLoadingAppsSummary || isLoadingDeptSummay) {
     return <PageLoader label="Loading Data. Please wait" />;
-  }
-
-  if (appsSummaryErr || deptSummayErr || prioritySummaryErr) {
-    return (
-      <p>
-        {appsSummaryErr
-          ? getApiErrorMessage(appsSummaryErr)
-          : deptSummayErr
-            ? getApiErrorMessage(deptSummayErr)
-            : prioritySummaryErr
-              ? getApiErrorMessage(prioritySummaryErr)
-              : "Error fetching summary"}
-      </p>
-    );
   }
 
   return (
@@ -176,6 +133,7 @@ const DashboardPage: React.FC = () => {
                     return (
                       <>
                         <SelectItem
+                          key={idx}
                           value={s.value}
                           style={{
                             color: STATUS_COLOR_MAP_FG[s.value],
@@ -221,73 +179,36 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
-            <Suspense
-              fallback={
-                <>
-                  <CardLoader />
-                  <CardLoader />
-                  <CardLoader />
-                </>
-              }
-            >
-              {orderedDepartments.map((dept) => (
-                <DepartmentStatusCard
-                  key={dept.department}
-                  department={dept.department}
-                  deptId={dept.department_id}
-                  statuses={dept.statuses}
-                  deptStatusFilter={deptStatusFilter}
-                  appSlaFilter={deptSlaFilter}
-                />
-              ))}
-            </Suspense>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="px-0">
-        <CardHeader>
-          <CardTitle className="text-center">
-            Priority Wise Status Summary
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
-          {isLoadingPrioritySummary && (
-            <>
-              <CardLoader />
-              <CardLoader />
-            </>
+          {deptSummayErr ? (
+            <div>
+              {getApiErrorMessage(deptSummayErr) ??
+                "Error getting Department wise summary"}
+            </div>
+          ) : (
+            <div className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
+              <Suspense
+                fallback={
+                  <>
+                    <CardLoader />
+                    <CardLoader />
+                    <CardLoader />
+                  </>
+                }
+              >
+                {orderedDepartments.map((dept) => (
+                  <DepartmentStatusCard
+                    key={dept.department}
+                    department={dept.department}
+                    deptId={dept.department_id}
+                    statuses={dept.statuses}
+                    deptStatusFilter={deptStatusFilter}
+                    appSlaFilter={deptSlaFilter}
+                  />
+                ))}
+              </Suspense>
+            </div>
           )}
-
-          {prioritySummaryErr && (
-            <p>{getApiErrorMessage(prioritySummaryErr)}</p>
-          )}
-
-          <Suspense
-            fallback={
-              <>
-                <CardLoader />
-                <CardLoader />
-              </>
-            }
-          >
-            {chartData.map((item) => (
-              <PriorityStatusStackCard key={item.priority} data={item} />
-            ))}
-          </Suspense>
         </CardContent>
-      </Card>
-
-      <Card>
-        <Suspense
-          fallback={
-            <SectionLoader label="Loading vertical wise applications summary" />
-          }
-        >
-          <VerticalWiseSummary />
-        </Suspense>
       </Card>
     </div>
   );
