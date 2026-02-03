@@ -17,6 +17,9 @@ from models import (
     department_users,
     app_evidences,
     otps,
+    questions,
+    app_dept_questions,
+    app_dept_answers,
 )
 
 

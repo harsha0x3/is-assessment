@@ -21,63 +21,63 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # ---------- user_responses ----------
-    # op.drop_constraint(
-    #     op.f("user_responses_ibfk_3"),
-    #     "user_responses",
-    #     type_="foreignkey",
-    # )
-    # op.drop_constraint(
-    #     op.f("user_responses_ibfk_1"),
-    #     "user_responses",
-    #     type_="foreignkey",
-    # )
-    # op.drop_constraint(
-    #     op.f("user_responses_ibfk_2"),
-    #     "user_responses",
-    #     type_="foreignkey",
-    # )
+    op.drop_constraint(
+        op.f("user_responses_ibfk_3"),
+        "user_responses",
+        type_="foreignkey",
+    )
+    op.drop_constraint(
+        op.f("user_responses_ibfk_1"),
+        "user_responses",
+        type_="foreignkey",
+    )
+    op.drop_constraint(
+        op.f("user_responses_ibfk_2"),
+        "user_responses",
+        type_="foreignkey",
+    )
 
-    # op.drop_index(op.f("ix_user_responses_checklist_id"), table_name="user_responses")
-    # op.drop_index(op.f("ix_user_responses_control_id"), table_name="user_responses")
-    # op.drop_index(op.f("ix_user_responses_user_id"), table_name="user_responses")
+    op.drop_index(op.f("ix_user_responses_checklist_id"), table_name="user_responses")
+    op.drop_index(op.f("ix_user_responses_control_id"), table_name="user_responses")
+    op.drop_index(op.f("ix_user_responses_user_id"), table_name="user_responses")
 
-    # # op.drop_table("user_responses")
+    op.drop_table("user_responses")
 
     # # ---------- answers ----------
-    # op.drop_constraint(op.f("answers_ibfk_1"), "answers", type_="foreignkey")
-    # op.drop_constraint(op.f("answers_ibfk_2"), "answers", type_="foreignkey")
-    # op.drop_table("answers")
+    op.drop_constraint(op.f("answers_ibfk_1"), "answers", type_="foreignkey")
+    op.drop_constraint(op.f("answers_ibfk_2"), "answers", type_="foreignkey")
+    op.drop_table("answers")
 
     # ---------- questions ----------
-    # op.drop_constraint(op.f("questions_ibfk_1"), "questions", type_="foreignkey")
-    # op.drop_table("questions")
+    op.drop_constraint(op.f("questions_ibfk_1"), "questions", type_="foreignkey")
+    op.drop_table("questions")
 
     # ---------- sections ----------
-    # op.drop_constraint(op.f("sections_ibfk_1"), "sections", type_="foreignkey")
-    # op.drop_table("sections")
+    op.drop_constraint(op.f("sections_ibfk_1"), "sections", type_="foreignkey")
+    op.drop_table("sections")
 
     # # ---------- controls ----------
-    # op.drop_constraint(op.f("controls_ibfk_1"), "controls", type_="foreignkey")
-    # op.drop_index(op.f("ix_controls_checklist_id"), table_name="controls")
-    # op.drop_table("controls")
+    op.drop_constraint(op.f("controls_ibfk_1"), "controls", type_="foreignkey")
+    op.drop_index(op.f("ix_controls_checklist_id"), table_name="controls")
+    op.drop_table("controls")
 
     # # ---------- checklist_assignments ----------
-    # op.drop_constraint(
-    #     op.f("checklist_assignments_ibfk_1"),
-    #     "checklist_assignments",
-    #     type_="foreignkey",
-    # )
-    # op.drop_constraint(
-    #     op.f("checklist_assignments_ibfk_2"),
-    #     "checklist_assignments",
-    #     type_="foreignkey",
-    # )
-    # op.drop_table("checklist_assignments")
+    op.drop_constraint(
+        op.f("checklist_assignments_ibfk_1"),
+        "checklist_assignments",
+        type_="foreignkey",
+    )
+    op.drop_constraint(
+        op.f("checklist_assignments_ibfk_2"),
+        "checklist_assignments",
+        type_="foreignkey",
+    )
+    op.drop_table("checklist_assignments")
 
     # # ---------- submissions ----------
-    # op.drop_constraint(op.f("submissions_ibfk_1"), "submissions", type_="foreignkey")
-    # op.drop_constraint(op.f("submissions_ibfk_2"), "submissions", type_="foreignkey")
-    # op.drop_constraint(op.f("submissions_ibfk_3"), "submissions", type_="foreignkey")
+    op.drop_constraint(op.f("submissions_ibfk_1"), "submissions", type_="foreignkey")
+    op.drop_constraint(op.f("submissions_ibfk_2"), "submissions", type_="foreignkey")
+    op.drop_constraint(op.f("submissions_ibfk_3"), "submissions", type_="foreignkey")
     op.drop_constraint(op.f("applications_ibfk_3"), "applications", type_="foreignkey")
 
     op.drop_table("submissions")
