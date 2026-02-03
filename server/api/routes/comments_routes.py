@@ -84,6 +84,7 @@ async def create_comment(
                     severity=severity or "medium",
                     application_id=app_id,
                     comment_id=comment.id,
+                    department_id=dept_id,
                 )
 
                 evidence = await add_evidence(payload=evidence_payload, db=db)
@@ -96,6 +97,7 @@ async def create_comment(
                     severity=severity or "medium",
                     application_id=app_id,
                     comment_id=comment.id,
+                    department_id=dept_id,
                 )
                 for e_file in evidences
             ]

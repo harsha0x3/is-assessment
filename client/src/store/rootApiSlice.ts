@@ -38,6 +38,7 @@ export const rootApiSlice = createApi({
     "Comments",
     "DepartmentInfo",
     "Evidences",
+    "DeptQuestionnaire",
   ],
 
   endpoints: () => ({}),

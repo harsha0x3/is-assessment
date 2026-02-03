@@ -2,11 +2,7 @@ from fastapi import HTTPException, status, BackgroundTasks
 from sqlalchemy import select, and_, desc, asc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
-from models import (
-    Application,
-    ApplicationDepartments,
-    Department,
-)
+from models import Application, ApplicationDepartments, Department, AppDeptQuestions
 from schemas.app_schemas import (
     ApplicationCreate,
     ApplicationOut,
@@ -21,6 +17,7 @@ from .department_controller import get_departments_by_application
 from datetime import date, timedelta
 from services.notifications.email_notify import send_new_app_mails_bg
 from schemas.notification_schemas import NewAppData
+from .dept_questionnaire_controller import get_default_dept_questionnaire
 
 
 def create_app(
@@ -31,6 +28,7 @@ def create_app(
     owner: UserOut | None = None,
 ) -> ApplicationOut:
     try:
+        print("INSIDE CREATE APP CONTROLLER")
         app = Application(
             **payload.model_dump(exclude={"priority"}),
             creator_id=creator.id,
@@ -43,6 +41,7 @@ def create_app(
         all_depts = db.scalars(select(Department)).all()
 
         app_departments = []
+        app_questions = []
 
         for dept in all_depts:
             new_app_dept = ApplicationDepartments(
@@ -50,7 +49,23 @@ def create_app(
                 department_id=dept.id,
             )
             app_departments.append(new_app_dept)
+            # 2️⃣ Fetch default questions for dept
+            default_questions = get_default_dept_questionnaire(db, dept.id)
+
+            # 3️⃣ Create app-specific question rows
+            for dq in default_questions:
+                app_questions.append(
+                    AppDeptQuestions(
+                        application_id=app.id,
+                        department_id=dept.id,
+                        question_id=dq.question_id,
+                        sequence_number=dq.sequence_number,
+                        is_default=dq.is_default,
+                    )
+                )
+
         db.add_all(app_departments)
+        db.add_all(app_questions)
         db.commit()
         db.refresh(app)
 
@@ -69,6 +84,7 @@ def create_app(
         return ApplicationOut.model_validate(app)
 
     except IntegrityError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="App with the same exists"
         )

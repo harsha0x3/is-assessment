@@ -105,6 +105,7 @@ def get_current_user(
             print(" NOPE NOT FOUND INSIDE NOT FOUND CSRF HEADER")
 
         if not csrf_token or not csrf_header or csrf_token != csrf_header:
+            print("No CSRF FOUND OR INVALID")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="CSRF token missing or invalid",

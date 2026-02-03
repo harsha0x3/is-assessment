@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 
 from db.connection import init_db
@@ -24,6 +23,7 @@ from api.routes import (
     user_management_routes,
     export_routes,
     evidence_routes,
+    dept_questionnaire_routes,
 )
 
 
@@ -117,3 +117,4 @@ app.include_router(file_serving.router)
 app.include_router(user_management_routes.router)
 app.include_router(export_routes.router)
 app.include_router(evidence_routes.router)
+app.include_router(dept_questionnaire_routes.router)

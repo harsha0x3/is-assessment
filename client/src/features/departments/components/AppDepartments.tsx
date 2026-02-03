@@ -45,7 +45,9 @@ const AppDepartments: React.FC = () => {
 
   const activeSubTab = location.pathname.includes("evidences")
     ? "evidences"
-    : "comments";
+    : location.pathname.includes("comments")
+      ? "comments"
+      : "questionnaire";
 
   return (
     <div className="w-full text-center">
@@ -95,6 +97,15 @@ const AppDepartments: React.FC = () => {
             className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
           >
             Evidences
+          </TabsTrigger>
+          <TabsTrigger
+            value="questionnaire"
+            onClick={() =>
+              navigate(`${deptId}/questionnaire?${searchParams.toString()}`)
+            }
+            className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
+          >
+            Questionnaire
           </TabsTrigger>
         </TabsList>
         <div className="text-left">
