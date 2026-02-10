@@ -40,3 +40,4 @@ class Department(Base):
         "user_links",
         "user",
     )
+    question_set = relationship("DeptQuestionSet")

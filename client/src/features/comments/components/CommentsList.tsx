@@ -108,7 +108,7 @@ const CommentList: React.FC<{
           ref={textareaRef}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          className="my-2"
+          className="my-2 max-h-120"
         />
       )}
       {commentsToShow &&

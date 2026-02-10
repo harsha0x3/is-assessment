@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 
 from models import (
+    dept_questions,
     users,
     applications,
     departments,
@@ -17,9 +18,9 @@ from models import (
     department_users,
     app_evidences,
     otps,
-    questions,
-    app_dept_questions,
     app_dept_answers,
+    application_questions,
+    application_answers,
 )
 
 

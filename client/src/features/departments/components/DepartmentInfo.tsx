@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import CommentList from "@/features/comments/components/CommentsList";
 import Hint from "@/components/ui/hint";
 import {
+  DepartmentCategoryMap,
+  DepartmentCategoryStatusMap,
   DeptStatusOptions,
   STATUS_COLOR_MAP_BG,
   STATUS_COLOR_MAP_FG,
@@ -30,6 +32,7 @@ import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
 import { parseStatus } from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const DepartmentInfo: React.FC = () => {
   const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
@@ -40,8 +43,15 @@ const DepartmentInfo: React.FC = () => {
     { skip: !(!!deptId && !!appId) || appId?.trim() === "" },
   );
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [isEditingCategoryStatus, setIsEditingCategoryStatus] = useState(false);
   const [statusValue, setStatusValue] = useState<DeptStatuses>();
   const [prevStatus, setPrevStatusVal] = useState<DeptStatuses>();
+  const [prevCategory, setPrevCategory] = useState<string>();
+  const [categoryVal, setCategoryVal] = useState<string>();
+  const [categoryStatus, setCategoryStatus] = useState<string>();
+  const [prevCategoryStatus, setPrevCategoryStatus] = useState<string>();
+
   const userDepts = useSelector(selectUserDepts);
 
   useEffect(() => {
@@ -62,8 +72,14 @@ const DepartmentInfo: React.FC = () => {
   }
 
   const handleStatusSave = async () => {
-    if (statusValue === data?.data.status) {
+    if (
+      statusValue === data?.data.status &&
+      categoryVal === data?.data.app_category &&
+      categoryStatus === data?.data.category_status
+    ) {
       setIsEditingStatus(false);
+      setIsEditingCategory(false);
+      setIsEditingCategoryStatus(false);
       return;
     }
 
@@ -71,7 +87,11 @@ const DepartmentInfo: React.FC = () => {
       await updateDepartmentStatus({
         appId,
         deptId: deptIdNumber,
-        payload: { status_val: statusValue ?? "" },
+        payload: {
+          status: statusValue,
+          app_category: categoryVal,
+          category_status: categoryStatus,
+        },
       }).unwrap();
 
       setIsEditingStatus(false);
@@ -86,7 +106,7 @@ const DepartmentInfo: React.FC = () => {
   }
 
   return (
-    <Card className="gap-2 pt-4">
+    <Card className="flex flex-col min-h-0 h-full w-full gap-2 pt-4">
       <CardHeader>
         {isLoading ? (
           <div>
@@ -100,6 +120,7 @@ const DepartmentInfo: React.FC = () => {
             {/* <CardTitle className="text-center w-full text-lg">
             {data?.data.name}
           </CardTitle> */}
+            {/* App status */}
             <div className="text-sm w-full flex items-center gap-2">
               <span>Status:</span>
 
@@ -205,12 +226,179 @@ const DepartmentInfo: React.FC = () => {
                 </div>
               )}
             </div>
+            {/* App Category */}
+            <div className="text-sm w-full flex items-center gap-2">
+              <span>Category:</span>
+
+              {!isEditingCategory ? (
+                <>
+                  <Badge variant="outline" className="capitalize">
+                    {parseStatus(data.data.app_category ?? "-")}
+                  </Badge>
+
+                  {userDepts.includes(deptIdNumber) && (
+                    <Hint label="Update applicaiton category">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsEditingCategory(true);
+                          setPrevCategory(categoryVal);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Hint>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={categoryVal}
+                    onValueChange={(value) => setCategoryVal(value)}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DepartmentCategoryMap[data.data.name.toLowerCase()]?.map(
+                        (s, idx) => {
+                          return (
+                            <>
+                              <SelectItem
+                                value={s}
+                                className="data-disabled:cursor-not-allowed data-disabled:opacity-50 capitalize"
+                              >
+                                {s}
+                              </SelectItem>
+                              {idx !==
+                                DepartmentCategoryMap[data.data.name]?.length -
+                                  1 && <Separator />}
+                            </>
+                          );
+                        },
+                      )}
+                    </SelectContent>
+                  </Select>
+
+                  <Hint label="Save status">
+                    <Button
+                      size="sm"
+                      onClick={handleStatusSave}
+                      disabled={isUpdatingStatus}
+                      variant="ghost"
+                      className="text-blue-500"
+                    >
+                      <Save />
+                    </Button>
+                  </Hint>
+
+                  <Hint label="Cancel">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setIsEditingCategory(false);
+                        setCategoryVal(prevCategory);
+                      }}
+                      className="text-red-500"
+                    >
+                      <X />
+                    </Button>
+                  </Hint>
+                </div>
+              )}
+            </div>
+            {/* App Category Status*/}
+            <div className="text-sm w-full flex items-center gap-2">
+              <span>Category Status:</span>
+
+              {!isEditingCategoryStatus ? (
+                <>
+                  <Badge variant="outline" className="capitalize">
+                    {parseStatus(data.data.category_status ?? "-")}
+                  </Badge>
+
+                  {userDepts.includes(deptIdNumber) && (
+                    <Hint label="Update applicaiton category status">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsEditingCategoryStatus(true);
+                          setPrevCategoryStatus(categoryStatus);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Hint>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={categoryStatus}
+                    onValueChange={(value) => setCategoryStatus(value)}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DepartmentCategoryStatusMap[
+                        data.data.name.toLowerCase()
+                      ]?.map((s, idx) => {
+                        return (
+                          <>
+                            <SelectItem
+                              value={s}
+                              className="data-disabled:cursor-not-allowed data-disabled:opacity-50 capitalize"
+                            >
+                              {s}
+                            </SelectItem>
+                            {idx !==
+                              DepartmentCategoryStatusMap[data.data.name]
+                                ?.length -
+                                1 && <Separator />}
+                          </>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <Hint label="Save status">
+                    <Button
+                      size="sm"
+                      onClick={handleStatusSave}
+                      disabled={isUpdatingStatus}
+                      variant="ghost"
+                      className="text-blue-500"
+                    >
+                      <Save />
+                    </Button>
+                  </Hint>
+
+                  <Hint label="Cancel">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setIsEditingCategoryStatus(false);
+                        setCategoryStatus(prevCategoryStatus);
+                      }}
+                      className="text-red-500"
+                    >
+                      <X />
+                    </Button>
+                  </Hint>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <p>Failed to get Department Info</p>
         )}
       </CardHeader>
-      <CardContent className="max-h-98 xl:max-h-125 2xl:max-h-135 overflow-auto">
+      <CardContent className="flex-1 px-4 overflow-auto">
         {isLoading ? (
           <div>
             <Loader className="animate-spin" />
@@ -219,11 +407,13 @@ const DepartmentInfo: React.FC = () => {
         ) : error ? (
           <p>{"Error getting Department Comments"}</p>
         ) : data?.data ? (
-          <CommentList
-            appId={appId}
-            deptId={deptIdNumber}
-            commentsData={data.data.comments}
-          />
+          <ScrollArea className="min-h-0 px-4 h-full w-full">
+            <CommentList
+              appId={appId}
+              deptId={deptIdNumber}
+              commentsData={data.data.comments}
+            />
+          </ScrollArea>
         ) : (
           <p>Failed to get Department Comments</p>
         )}

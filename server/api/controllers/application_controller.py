@@ -2,7 +2,12 @@ from fastapi import HTTPException, status, BackgroundTasks
 from sqlalchemy import select, and_, desc, asc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
-from models import Application, ApplicationDepartments, Department, AppDeptQuestions
+from models import (
+    Application,
+    ApplicationDepartments,
+    Department,
+    AppQuestionSet,
+)
 from schemas.app_schemas import (
     ApplicationCreate,
     ApplicationOut,
@@ -17,7 +22,6 @@ from .department_controller import get_departments_by_application
 from datetime import date, timedelta
 from services.notifications.email_notify import send_new_app_mails_bg
 from schemas.notification_schemas import NewAppData
-from .dept_questionnaire_controller import get_default_dept_questionnaire
 
 
 def create_app(
@@ -39,9 +43,10 @@ def create_app(
         db.flush()
 
         all_depts = db.scalars(select(Department)).all()
+        app_questions_set = db.scalars(select(AppQuestionSet).limit(1)).first()
+        app.question_set_id = app_questions_set.id if app_questions_set else None
 
         app_departments = []
-        app_questions = []
 
         for dept in all_depts:
             new_app_dept = ApplicationDepartments(
@@ -49,23 +54,8 @@ def create_app(
                 department_id=dept.id,
             )
             app_departments.append(new_app_dept)
-            # 2️⃣ Fetch default questions for dept
-            default_questions = get_default_dept_questionnaire(db, dept.id)
-
-            # 3️⃣ Create app-specific question rows
-            for dq in default_questions:
-                app_questions.append(
-                    AppDeptQuestions(
-                        application_id=app.id,
-                        department_id=dept.id,
-                        question_id=dq.question_id,
-                        sequence_number=dq.sequence_number,
-                        is_default=dq.is_default,
-                    )
-                )
 
         db.add_all(app_departments)
-        db.add_all(app_questions)
         db.commit()
         db.refresh(app)
 
@@ -229,13 +219,46 @@ def list_all_apps(db: Session, params: AppQueryParams):
         if params.status and len(params.status) > 0:
             stmt = stmt.where(Application.status.in_(params.status))
 
-        if params.sla_filter and params.sla_filter > 0:
-            sla_cutoff = date.today() - timedelta(days=params.sla_filter)
+        today = date.today()
 
-            stmt = stmt.where(
-                Application.started_at.is_not(None),
-                func.date(Application.started_at) <= sla_cutoff,
-            )
+        if params.sla_filter and params.sla_filter > 0:
+            # Always ignore rows with NULL started_at
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            if params.sla_filter == 30:
+                # 0–30 days
+                lower = today - timedelta(days=30)
+
+                stmt = stmt.where(
+                    func.date(Application.started_at) >= lower,
+                    func.date(Application.started_at) <= today,
+                )
+
+            elif params.sla_filter == 60:
+                # 30–60 days
+                upper = today - timedelta(days=30)
+                lower = today - timedelta(days=60)
+
+                stmt = stmt.where(
+                    func.date(Application.started_at) >= lower,
+                    func.date(Application.started_at) < upper,
+                )
+
+            elif params.sla_filter == 90:
+                # 60–90 days
+                upper = today - timedelta(days=60)
+                lower = today - timedelta(days=90)
+
+                stmt = stmt.where(
+                    func.date(Application.started_at) >= lower,
+                    func.date(Application.started_at) < upper,
+                )
+
+            elif params.sla_filter == 91:
+                # 90+ days
+                cutoff = today - timedelta(days=90)
+
+                stmt = stmt.where(func.date(Application.started_at) < cutoff)
 
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:

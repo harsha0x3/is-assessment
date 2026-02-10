@@ -2,16 +2,17 @@
 
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
-import type { AppDeptQuestionWithAnswer } from "../types";
+
 import QuestionItem from "./QuestionItem";
+import type { DeptQuestionWithAnswer } from "../types";
 
 interface Props {
   appId: string;
   deptId: number;
-  questions: AppDeptQuestionWithAnswer[];
+  questions: DeptQuestionWithAnswer[];
 }
 
-const QuestionnaireList: React.FC<Props> = ({ deptId, questions }) => {
+const QuestionnaireList: React.FC<Props> = ({ deptId, questions, appId }) => {
   const userDepts = useSelector(selectUserDepts);
   const canAnswer = userDepts.includes(deptId);
 
@@ -26,7 +27,12 @@ const QuestionnaireList: React.FC<Props> = ({ deptId, questions }) => {
   return (
     <div className="space-y-3">
       {questions.map((q) => (
-        <QuestionItem key={q.id} question={q} canAnswer={canAnswer} />
+        <QuestionItem
+          key={q.id}
+          question={q}
+          canAnswer={canAnswer}
+          appId={appId}
+        />
       ))}
     </div>
   );

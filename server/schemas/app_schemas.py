@@ -2,7 +2,7 @@
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Literal
 
-from datetime import datetime, date
+from datetime import datetime
 from .department_schemas import AppDepartmentOut, DepartmentOut
 from .checklist_schemas import ChecklistOut
 from .comment_schemas import CommentOut

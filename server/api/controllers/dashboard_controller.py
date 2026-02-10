@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from collections import defaultdict
@@ -99,17 +99,87 @@ def get_department_status_summary(
             stmt = stmt.where(Application.status == status_filter)
             total_apps_stmt = total_apps_stmt.where(Application.status == status_filter)
 
-        if sla_filter is not None and sla_filter > 0:
-            sla_cutoff = date.today() - timedelta(days=sla_filter)
+        today = date.today()
 
-            stmt = stmt.where(
-                Application.started_at.is_not(None),
-                func.date(Application.started_at) <= sla_cutoff,
-            )
-            total_apps_stmt = total_apps_stmt.where(
-                Application.started_at.is_not(None),
-                func.date(Application.started_at) <= sla_cutoff,
-            )
+        if sla_filter and sla_filter > 0:
+            # Always ignore rows with NULL started_at
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            if sla_filter == 30:
+                # 0–30 days
+                lower = today - timedelta(days=30)
+
+                stmt = stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) <= today,
+                        Application.started_at.is_not(None),
+                    )
+                )
+                total_apps_stmt = total_apps_stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) <= today,
+                        Application.started_at.is_not(None),
+                    )
+                )
+
+            elif sla_filter == 60:
+                # 30–60 days
+                upper = today - timedelta(days=30)
+                lower = today - timedelta(days=60)
+
+                stmt = stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) < upper,
+                        Application.started_at.is_not(None),
+                    )
+                )
+                total_apps_stmt = total_apps_stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) < upper,
+                        Application.started_at.is_not(None),
+                    )
+                )
+
+            elif sla_filter == 90:
+                # 60–90 days
+                upper = today - timedelta(days=60)
+                lower = today - timedelta(days=90)
+
+                stmt = stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) < upper,
+                        Application.started_at.is_not(None),
+                    )
+                )
+                total_apps_stmt = total_apps_stmt.where(
+                    and_(
+                        func.date(Application.started_at) >= lower,
+                        func.date(Application.started_at) < upper,
+                        Application.started_at.is_not(None),
+                    )
+                )
+
+            elif sla_filter == 91:
+                # 90+ days
+                cutoff = today - timedelta(days=90)
+
+                stmt = stmt.where(
+                    and_(
+                        func.date(Application.started_at) < cutoff,
+                        Application.started_at.is_not(None),
+                    )
+                )
+                total_apps_stmt = total_apps_stmt.where(
+                    and_(
+                        func.date(Application.started_at) < cutoff,
+                        Application.started_at.is_not(None),
+                    )
+                )
 
         rows = db.execute(stmt).all()
 

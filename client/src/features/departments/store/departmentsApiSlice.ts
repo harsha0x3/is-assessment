@@ -4,6 +4,7 @@ import type {
   DepartmentCreate,
   DepartmentInfo,
   DepartmentOut,
+  DepartmentStatusPayload,
   NewUserDepartmentAssign,
 } from "../types";
 
@@ -77,7 +78,7 @@ const departmentsApiSlice = rootApiSlice.injectEndpoints({
     }),
     updateDepartmentStatus: builder.mutation<
       ApiResponse<null>,
-      { appId: string; deptId: number; payload: { status_val: string } }
+      { appId: string; deptId: number; payload: DepartmentStatusPayload }
     >({
       query: ({ appId, deptId, payload }) => ({
         url: `/departments/${deptId}/application/${appId}/status`,

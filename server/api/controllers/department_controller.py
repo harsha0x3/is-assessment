@@ -108,7 +108,7 @@ def is_user_in_department(user_id: str, department_id: int, db: Session) -> bool
 def get_departments_by_application(app_id: str, db: Session):
     try:
         stmt = (
-            select(Department, ApplicationDepartments.status)
+            select(Department, ApplicationDepartments)
             .join(ApplicationDepartments)
             .where(ApplicationDepartments.application_id == app_id)
         )
@@ -127,9 +127,11 @@ def get_departments_by_application(app_id: str, db: Session):
                 description=dep.description,
                 created_at=dep.created_at,
                 updated_at=dep.updated_at,
-                status=status,
+                status=app_dept.status,
+                app_category=app_dept.app_category,
+                category_status=app_dept.category_status,
             )
-            for dep, status in results
+            for dep, app_dept in results
         ]
 
     except HTTPException:
@@ -227,7 +229,7 @@ def add_user_to_multiple_departments(
 def get_department_info(db: Session, app_id: str, dept_id: int):
     try:
         stmt = (
-            select(Department, ApplicationDepartments.status)
+            select(Department, ApplicationDepartments)
             .join(
                 ApplicationDepartments,
                 ApplicationDepartments.department_id == Department.id,
@@ -259,7 +261,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
         if not result:
             raise HTTPException(status_code=404, detail="Department not found")
 
-        dept, dept_status = result
+        dept, app_dept = result
 
         return d_schemas.DepartmentInfo(
             id=dept.id,
@@ -267,7 +269,9 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             description=dept.description,
             created_at=dept.created_at,
             updated_at=dept.updated_at,
-            status=dept_status,
+            status=app_dept.status,
+            app_category=app_dept.app_category,
+            category_status=app_dept.category_status,
             comments=comments,
             can_go_live=all(dept == "cleared" for dept in all_dept_status),
         )
@@ -282,7 +286,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
 
 
 def change_department_app_status(
-    app_id: str, dept_id: int, status_val: str, db: Session
+    app_id: str, dept_id: int, payload: d_schemas.DeptStatusPayload, db: Session
 ):
     try:
         dept_app = db.scalar(
@@ -298,7 +302,11 @@ def change_department_app_status(
                 detail="Application and department are not mapped",
             )
 
-        dept_app.status = status_val
+        for key, val in payload.model_dump(
+            exclude_unset=True, exclude_none=True
+        ).items():
+            if hasattr(dept_app, key):
+                setattr(dept_app, key, val)
 
         dept_apps = (
             db.execute(

@@ -1,20 +1,19 @@
-// src\features\deptQuestionnaire\components\DepartmentQuestionnaire.tsx
-
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { getApiErrorMessage } from "@/utils/handleApiError";
-import { useGetDeptQuestionnaireWithAnswersQuery } from "../store/deptQuestionnaireApiSlice";
-import QuestionnaireList from "./QuestionnaireList";
+import { useGetQuestionsWithAnswersQuery } from "../store/appQuestionnaireApiSlice";
+import AppQuestionItem from "./AppQuestionItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const DepartmentQuestionnaire: React.FC = () => {
-  const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
-  const deptIdNumber = Number(deptId);
+const AppQuestionnaire: React.FC = () => {
+  const { appId } = useParams<{ appId: string }>();
 
-  const { data, isLoading, error } = useGetDeptQuestionnaireWithAnswersQuery(
-    { appId: appId!, deptId: deptIdNumber },
-    { skip: !appId || !deptId },
+  const { data, isLoading, error } = useGetQuestionsWithAnswersQuery(
+    appId ?? "",
+    {
+      skip: !appId,
+    },
   );
 
   if (isLoading) {
@@ -34,21 +33,25 @@ const DepartmentQuestionnaire: React.FC = () => {
   return (
     <Card className="flex flex-col min-h-0 h-full w-full">
       <CardHeader className="text-lg font-semibold">
-        Department Questionnaire
+        Application Questionnaire
       </CardHeader>
 
-      {/* 👇 This mirrors DepartmentInfo behavior */}
       <CardContent className="flex-1 p-0 overflow-auto">
         <ScrollArea className="min-h-0 px-4 h-full w-full">
-          <QuestionnaireList
-            appId={appId!}
-            deptId={deptIdNumber}
-            questions={data ?? []}
-          />
+          <div className="space-y-4 py-4">
+            {(data ?? []).map((q) => (
+              <AppQuestionItem
+                key={q.id}
+                question={q}
+                canAnswer={true}
+                applicationId={appId!}
+              />
+            ))}
+          </div>
         </ScrollArea>
       </CardContent>
     </Card>
   );
 };
 
-export default DepartmentQuestionnaire;
+export default AppQuestionnaire;

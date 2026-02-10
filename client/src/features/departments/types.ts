@@ -17,6 +17,8 @@ export interface DepartmentOut {
 
 export interface AppDepartmentOut extends DepartmentOut {
   status: DeptStatuses;
+  app_category?: string;
+  category_status?: string;
 }
 
 export interface NewUserDepartmentAssign {
@@ -41,4 +43,10 @@ export interface CommentOut {
 export interface DepartmentInfo extends AppDepartmentOut {
   comments: CommentOut[];
   can_go_live: boolean;
+}
+
+export interface DepartmentStatusPayload {
+  status?: string;
+  app_category?: string;
+  category_status?: string;
 }

@@ -7,7 +7,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SLAFilterHeader: React.FC = () => {
   const { appSlaFilter, updateSearchParams } = useApplicationsContext();
@@ -31,30 +37,31 @@ const SLAFilterHeader: React.FC = () => {
         <div className="flex flex-col gap-2 min-w-64">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
-              Applications older than
+              Applications SLA
             </p>
             <span className="text-sm font-semibold">
               {Number(appSlaFilter) === 0 ? "Any age" : `${appSlaFilter} days`}
             </span>
           </div>
 
-          <Input
-            type="range"
-            min={0}
-            max={90}
-            step={15}
-            value={Number(appSlaFilter)}
-            onChange={(e) =>
-              updateSearchParams({ appSlaFilter: Number(e.target.value) })
-            }
-          />
-
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>0</span>
-            <span>30</span>
-            <span>60</span>
-            <span>90+</span>
-          </div>
+          <Select
+            value={appSlaFilter ?? "all"}
+            onValueChange={(val) => {
+              if (val) updateSearchParams({ appSlaFilter: Number(val) });
+              else updateSearchParams({ appSlaFilter: undefined });
+            }}
+          >
+            <SelectTrigger className="w-full max-w-48 ">
+              <SelectValue placeholder="Select duration" className="w-48" />
+            </SelectTrigger>
+            <SelectContent className="w-48">
+              <SelectItem value="0">Any age</SelectItem>
+              <SelectItem value="30">0 - 30 days</SelectItem>
+              <SelectItem value="60">30 - 60 days</SelectItem>
+              <SelectItem value="90">60 - 90 days</SelectItem>
+              <SelectItem value="91">90+ days</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </PopoverContent>
     </Popover>

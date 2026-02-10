@@ -1,23 +1,31 @@
-// src\features\deptQuestionnaire\componenets\QuestionItem.tsx
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Pencil, Save, X, Loader } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import { toast } from "sonner";
-import { useSubmitAnswerMutation } from "../store/deptQuestionnaireApiSlice";
+import type { AppQuestionWithAnswer } from "../types";
+import { useSubmitAnswerMutation } from "../store/appQuestionnaireApiSlice";
 import { getApiErrorMessage } from "@/utils/handleApiError";
-import type { DeptQuestionWithAnswer } from "../types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
-  appId: string;
-  question: DeptQuestionWithAnswer;
+  question: AppQuestionWithAnswer;
   canAnswer: boolean;
+  applicationId: string;
 }
 
-const QuestionItem: React.FC<Props> = ({ question, canAnswer, appId }) => {
+const AppQuestionItem: React.FC<Props> = ({
+  question,
+  canAnswer,
+  applicationId,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [answerText, setAnswerText] = useState(
     question.answer?.answer_text ?? "",
@@ -28,9 +36,11 @@ const QuestionItem: React.FC<Props> = ({ question, canAnswer, appId }) => {
   const handleSave = async () => {
     try {
       await submitAnswer({
-        appId,
-        deptQuestionId: question.id,
-        answer: { answer_text: answerText },
+        applicationId,
+        payload: {
+          app_question_id: Number(question.id),
+          answer_text: answerText,
+        },
       }).unwrap();
 
       setIsEditing(false);
@@ -65,7 +75,9 @@ const QuestionItem: React.FC<Props> = ({ question, canAnswer, appId }) => {
       {!isEditing ? (
         <p className="text-sm whitespace-pre-wrap">
           {question.answer?.answer_text ? (
-            question.answer.answer_text
+            <strong className="text-lg capitalize">
+              {question.answer.answer_text}
+            </strong>
           ) : (
             <span className="text-muted-foreground italic">
               No answer provided
@@ -73,12 +85,19 @@ const QuestionItem: React.FC<Props> = ({ question, canAnswer, appId }) => {
           )}
         </p>
       ) : (
-        <>
-          <Textarea
-            value={answerText}
-            onChange={(e) => setAnswerText(e.target.value)}
-            className="min-h-20"
-          />
+        <div className="flex flex-row items-center justify-between">
+          <Select
+            onValueChange={(val) => setAnswerText(val)}
+            value={question.answer?.answer_text?.toLowerCase()}
+          >
+            <SelectTrigger className="w-full max-w-48">
+              <SelectValue placeholder="Select answer" className="w-48" />
+            </SelectTrigger>
+            <SelectContent className="w-48">
+              <SelectItem value="yes">Yes</SelectItem>
+              <SelectItem value="no">No</SelectItem>
+            </SelectContent>
+          </Select>
 
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave} disabled={isLoading}>
@@ -101,10 +120,10 @@ const QuestionItem: React.FC<Props> = ({ question, canAnswer, appId }) => {
               <X className="h-4 w-4" />
             </Button>
           </div>
-        </>
+        </div>
       )}
     </Card>
   );
 };
 
-export default QuestionItem;
+export default AppQuestionItem;

@@ -7,6 +7,7 @@ import { useUpdateCommentMutation } from "../store/commentsApiSlice";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import type { CommentOut } from "../types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -37,13 +38,18 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
 
           {/* Content or Edit Mode */}
           {!isEditing ? (
-            <p className="mt-2 text-[14px]">{comment.content}</p>
+            <div className="mt-2 text-[14px] overflow-auto pr-3">
+              <ScrollArea className="max-h-120">
+                <p>{comment.content}</p>
+              </ScrollArea>
+            </div>
           ) : (
             <div className="mt-3 space-y-2">
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows={3}
+                className="max-h-120"
               />
 
               <div className="flex gap-2 justify-end">

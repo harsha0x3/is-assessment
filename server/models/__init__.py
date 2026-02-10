@@ -9,6 +9,9 @@ from .app_evidences import ApplicationEvidence
 
 from .otps import PasswordResetOtp
 
-from .questions import Question
-from .app_dept_questions import AppDeptQuestions
-from .app_dept_answers import AppDeptAnswers
+from .dept_questions import DeptQuestion, DeptQuestionSet
+
+from .app_dept_answers import AppDeptAnswer
+
+from .application_questions import ApplicationQuestion, AppQuestionSet
+from .application_answers import ApplicationAnswer

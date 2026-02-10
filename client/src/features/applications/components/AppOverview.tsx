@@ -648,7 +648,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                 />
 
                 {/* Infra Host */}
-                {/* <Controller
+                <Controller
                   name="infra_host"
                   control={control}
                   render={({ field, fieldState }) => (
@@ -668,7 +668,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                       )}
                     </Field>
                   )}
-                /> */}
+                />
               </div>
             </div>
           </ScrollArea>

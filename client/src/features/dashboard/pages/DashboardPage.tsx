@@ -22,7 +22,6 @@ import {
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/loaders/PageLoader";
-import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/utils/helpers";
 import { CardLoader, SectionLoader } from "../components/Loaders";
 
@@ -161,22 +160,24 @@ const DashboardPage: React.FC = () => {
                   {deptSlaFilter === 0 ? "Any age" : `${deptSlaFilter} days`}
                 </span>
               </div>
-
-              <Input
-                type="range"
-                min={0}
-                max={90}
-                step={15}
-                value={deptSlaFilter}
-                onChange={(e) => setDeptSlaFilter(Number(e.target.value))}
-              />
-
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>0</span>
-                <span>30</span>
-                <span>60</span>
-                <span>90+</span>
-              </div>
+              <Select
+                value={String(deptSlaFilter) ?? "all"}
+                onValueChange={(val) => {
+                  if (val) setDeptSlaFilter(Number(val));
+                  else setDeptSlaFilter(0);
+                }}
+              >
+                <SelectTrigger className="w-full max-w-48 ">
+                  <SelectValue placeholder="Select duration" className="w-48" />
+                </SelectTrigger>
+                <SelectContent className="w-48">
+                  <SelectItem value="0">Any age</SelectItem>
+                  <SelectItem value="30">0 - 30 days</SelectItem>
+                  <SelectItem value="60">30 - 60 days</SelectItem>
+                  <SelectItem value="90">60 - 90 days</SelectItem>
+                  <SelectItem value="91">90+ days</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           {deptSummayErr ? (

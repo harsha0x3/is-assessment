@@ -1,5 +1,6 @@
-from sqlalchemy import String, ForeignKey, UniqueConstraint, Integer
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
+
 from db.base import Base, BaseMixin
 
 
@@ -14,12 +15,8 @@ class ApplicationDepartments(Base, BaseMixin):
     )
     status: Mapped[str] = mapped_column(String(40), default="yet_to_connect")
 
-    # -- Relationships --
-    question_links = relationship(
-        "AppDeptQuestions",
-        back_populates="app_department",
-        cascade="all, delete-orphan",
-    )
+    app_category: Mapped[str] = mapped_column(String(40), nullable=True)
+    category_status: Mapped[str] = mapped_column(String(40), nullable=True)
 
     # -- Table Constraints --
     __table_args__ = (

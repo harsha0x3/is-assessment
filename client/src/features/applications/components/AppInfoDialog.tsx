@@ -43,6 +43,7 @@ const AppInfoDialog: React.FC = () => {
     { name: "Overview", value: "overview" },
     { name: "Departments", value: "departments" },
     { name: "Evidences", value: "evidences" },
+    { name: "Questionnaire", value: "questionnaire" },
   ];
 
   const currentTab = useMemo(() => {
@@ -53,7 +54,7 @@ const AppInfoDialog: React.FC = () => {
   useEffect(() => {
     if (
       location.pathname.startsWith("/applications/details") &&
-      !location.pathname.match(/overview|departments|evidences/)
+      !location.pathname.match(/overview|departments|evidences|questionnaire/)
     ) {
       navigate(`overview?${searchParams.toString()}`);
     }
@@ -196,6 +197,22 @@ const AppInfoDialog: React.FC = () => {
                     }
                   >
                     All Evidences
+                  </NavLink>
+
+                  {/* Questionnaire */}
+                  <NavLink
+                    to={`/applications/details/${appId}/questionnaire?${searchParams.toString()}`}
+                    state={{ appName }}
+                    className={({ isActive }) =>
+                      cn(
+                        "px-4 py-2 rounded-md transition-colors",
+                        "hover:bg-muted",
+                        isActive &&
+                          "bg-background font-semibold text-primary border-l-4 border-primary",
+                      )
+                    }
+                  >
+                    Questionnaire
                   </NavLink>
                 </nav>
               </div>

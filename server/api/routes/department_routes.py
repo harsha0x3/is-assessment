@@ -7,7 +7,6 @@ from schemas import department_schemas as d_schemas
 from services.auth.deps import require_moderator, require_admin, get_current_user
 from schemas.auth_schemas import UserOut
 from typing import Annotated
-from pydantic import BaseModel
 from services.auth.permissions import is_user_of_dept
 from fastapi import HTTPException
 
@@ -98,10 +97,6 @@ async def get_department_info(
     return {"msg": "", "data": data}
 
 
-class StatusUpdateRequest(BaseModel):
-    status_val: str
-
-
 @router.patch(
     "/{dept_id}/application/{app_id}/status",
     status_code=status.HTTP_200_OK,
@@ -109,7 +104,7 @@ class StatusUpdateRequest(BaseModel):
 def update_department_status(
     app_id: Annotated[str, ""],
     dept_id: Annotated[int, ""],
-    payload: Annotated[StatusUpdateRequest, ""],
+    payload: Annotated[d_schemas.DeptStatusPayload, ""],
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(require_moderator)],
 ):
@@ -122,7 +117,7 @@ def update_department_status(
         data = dept_ctrl.change_department_app_status(
             app_id=app_id,
             dept_id=dept_id,
-            status_val=payload.status_val,
+            payload=payload,
             db=db,
         )
         return {"msg": "Department status updated successfully", "data": data}

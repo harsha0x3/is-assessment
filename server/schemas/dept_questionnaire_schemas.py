@@ -2,6 +2,15 @@ from pydantic import BaseModel, ConfigDict
 from .auth_schemas import UserOut
 
 
+class NewDeptQuestionSet(BaseModel):
+    name: str
+
+
+class NewDeptQuestion(BaseModel):
+    text: str
+    sequence_number: int
+
+
 class NewAppDeptLink(BaseModel):
     question_id: int
     sequence_number: int | None = None
@@ -38,6 +47,30 @@ class AppDeptQuestionOut(BaseModel):
 
 class AppDeptQuestionWithAnswer(AppDeptQuestionOut, BaseModel):
     answer: AnswerOut | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DeptQuestionOut(BaseModel):
+    id: int
+    text: str
+    sequence_number: int | None = None
+    is_mandatory: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppDeptAnswerOut(BaseModel):
+    id: int
+    dept_question_id: int
+    answer_text: str | None
+    author: UserOut | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DeptQuestionWithAnswerOut(DeptQuestionOut):
+    answer: AppDeptAnswerOut | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

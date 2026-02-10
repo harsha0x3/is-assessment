@@ -80,3 +80,19 @@ export const PriorityValueMap: Record<string, string> = {
   medium: "2",
   high: "3",
 };
+
+export const DepartmentCategoryMap: Record<string, string[]> = {
+  iam: ["sso", "scim"],
+  tprm: ["privacy", "non-privacy"],
+  vapt: ["mobile", "web", "ai"],
+  "soc integration": ["pii", "external-hosting", "internal-hosting"],
+  "security controls": [],
+};
+
+export const DepartmentCategoryStatusMap: Record<string, string[]> = {
+  iam: [],
+  tprm: [],
+  vapt: ["pending"],
+  "soc integration": [],
+  "security controls": [],
+};

@@ -21,6 +21,8 @@ class DepartmentOut(BaseModel):
 
 class AppDepartmentOut(DepartmentOut, BaseModel):
     status: str
+    app_category: str | None
+    category_status: str | None
 
 
 class NewUserDepartmentAssign(BaseModel):
@@ -48,3 +50,9 @@ class CommentOut(BaseModel):
 class DepartmentInfo(AppDepartmentOut, BaseModel):
     comments: list[CommentOut] = []
     can_go_live: bool = False
+
+
+class DeptStatusPayload(BaseModel):
+    status: str | None = None
+    app_category: str | None = None
+    category_status: str | None = None

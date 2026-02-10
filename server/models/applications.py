@@ -36,6 +36,11 @@ class Application(Base, BaseMixin):
     user_type: Mapped[str] = mapped_column(String(252), nullable=True)
     data_type: Mapped[str] = mapped_column(String(252), nullable=True)
 
+    question_set_id: Mapped[int | None] = mapped_column(
+        ForeignKey("question_sets.id", ondelete="set null"),
+        nullable=True,
+    )
+
     # -- Relationships --
     creator = relationship(
         "User", back_populates="created_applications", foreign_keys=[creator_id]
@@ -48,6 +53,13 @@ class Application(Base, BaseMixin):
         "Department", secondary="application_departments", back_populates="applications"
     )
     evidences = relationship("ApplicationEvidence", back_populates="application")
+
+    question_set = relationship("AppQuestionSet")
+    answers = relationship(
+        "ApplicationAnswer",
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<app_id={self.id}, app_name={self.name}>"

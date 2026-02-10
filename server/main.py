@@ -24,6 +24,7 @@ from api.routes import (
     export_routes,
     evidence_routes,
     dept_questionnaire_routes,
+    app_questions_routes,
 )
 
 
@@ -118,3 +119,4 @@ app.include_router(user_management_routes.router)
 app.include_router(export_routes.router)
 app.include_router(evidence_routes.router)
 app.include_router(dept_questionnaire_routes.router)
+app.include_router(app_questions_routes.router)

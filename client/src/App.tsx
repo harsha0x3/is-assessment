@@ -36,6 +36,9 @@ const DepartmentQuestionnaire = lazy(
   () =>
     import("@/features/deptQuestionnaire/components/DepartmentQuestionnaire"),
 );
+const AppQuestionnaire = lazy(
+  () => import("@/features/appQuestionnaire/components/AppQuestionnaire"),
+);
 
 function App() {
   const { data: _data } = useGetMeQuery();
@@ -130,6 +133,14 @@ function App() {
                     element={
                       <LazyRoute fallbackLabel="Loading evidences…">
                         <EvidencesTab />
+                      </LazyRoute>
+                    }
+                  />
+                  <Route
+                    path="questionnaire"
+                    element={
+                      <LazyRoute fallbackLabel="Loading questionnaire…">
+                        <AppQuestionnaire />
                       </LazyRoute>
                     }
                   />

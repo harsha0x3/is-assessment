@@ -50,7 +50,7 @@ const AppDepartments: React.FC = () => {
       : "questionnaire";
 
   return (
-    <div className="w-full text-center">
+    <div className="w-full h-full flex flex-col text-center">
       {isMobile && (
         <>
           {isLoadingDepts ? (
@@ -58,7 +58,7 @@ const AppDepartments: React.FC = () => {
           ) : error ? (
             <p>{getApiErrorMessage(error)}</p>
           ) : (
-            <Tabs value={deptId}>
+            <Tabs value={deptId} className="flex flex-col h-full">
               <TabsList className="overflow-x-auto">
                 {appDepts?.data?.map((dept) => (
                   <TabsTrigger
@@ -77,7 +77,7 @@ const AppDepartments: React.FC = () => {
           )}
         </>
       )}
-      <Tabs value={activeSubTab} className="gap-4 w-full">
+      <Tabs value={activeSubTab} className="flex gap-4 flex-col h-full">
         <TabsList className="bg-background rounded-none border-b p-0 flex justify-center w-full">
           <TabsTrigger
             value="comments"
@@ -108,7 +108,7 @@ const AppDepartments: React.FC = () => {
             Questionnaire
           </TabsTrigger>
         </TabsList>
-        <div className="text-left">
+        <div className="text-left flex-1 min-h-0">
           <Outlet />
         </div>
       </Tabs>

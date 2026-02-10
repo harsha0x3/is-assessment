@@ -1,44 +1,22 @@
-// src/features/deptQuestionnaire/types.ts
-
 import type { UserOut } from "@/features/auth/types";
 
-/** ➤ Link Question Payload */
-export interface NewAppDeptLink {
-  question_id: number;
-  sequence_number?: number | null;
-  is_default?: boolean;
-}
-
-/** ➤ Question */
-export interface QuestionOut {
+/** Answer */
+export interface DeptAnswerOut {
   id: number;
-  text: string;
-}
-
-/** ➤ Answer */
-export interface AnswerOut {
-  id: number;
-  app_dept_question_id: number;
   answer_text?: string | null;
   author?: UserOut | null;
 }
 
+/** Department Question (Template + App Answer) */
+export interface DeptQuestionWithAnswer {
+  id: number; // dept_question_id
+  text: string;
+  sequence_number?: number | null;
+  is_mandatory: boolean;
+  answer?: DeptAnswerOut | null;
+}
+
+/** Submit answer payload */
 export interface AnswerSubmit {
   answer_text: string;
-}
-
-/** ➤ App Department Question */
-export interface AppDeptQuestionOut {
-  id: number;
-  application_id: string;
-  department_id: number;
-  question_id: number;
-  sequence_number?: number | null;
-  is_default: boolean;
-  question: QuestionOut;
-}
-
-/** ➤ App Department Question with Answer */
-export interface AppDeptQuestionWithAnswer extends AppDeptQuestionOut {
-  answer?: AnswerOut | null;
 }
