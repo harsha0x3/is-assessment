@@ -23,7 +23,7 @@ def serve_secure_file(
     # Prevent directory traversal attacks:
     if ENV == "production":
         presigned_url = get_s3_presigned_url(path)
-        return RedirectResponse(url=presigned_url, status_code=302)
+        return {"url": presigned_url}
 
     safe_path = (BASE_DIR / path).resolve()
     if BASE_DIR not in safe_path.parents:

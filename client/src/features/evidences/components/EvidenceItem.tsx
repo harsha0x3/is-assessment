@@ -34,16 +34,11 @@ const EvidenceItem: React.FC<Props> = ({ evidence }) => {
         className="text-ring"
         onClick={async () => {
           try {
-            const file = await getFile({
+            const res = await getFile({
               path: evidence.evidence_path,
             }).unwrap();
 
-            const blobUrl = URL.createObjectURL(file);
-
-            window.open(blobUrl, "_blank");
-
-            // Optional but recommended cleanup
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+            window.open(res.url, "_blank");
           } catch (err) {
             const errMsg = getApiErrorMessage(err) ?? "Error getting the file";
             toast.error(errMsg);
