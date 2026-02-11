@@ -1,12 +1,7 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
-from db.connection import init_db
-
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
@@ -28,13 +23,7 @@ from api.routes import (
 )
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    yield
-
-
-app = FastAPI(lifespan=lifespan, root_path="/api/v1.0")
+app = FastAPI(root_path="/api/v1.0")
 
 app.state.limiter = limiter
 
