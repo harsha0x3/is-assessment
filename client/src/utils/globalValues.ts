@@ -84,7 +84,7 @@ export const PriorityValueMap: Record<string, string> = {
 export const DepartmentCategoryMap: Record<string, string[]> = {
   iam: ["sso", "scim"],
   tprm: ["privacy", "non-privacy"],
-  vapt: ["mobile", "web", "ai"],
+  vapt: ["mobile", "web", "ai", "mobile&web"],
   "soc integration": ["pii", "external-hosting", "internal-hosting"],
   "security controls": [],
 };
@@ -92,7 +92,7 @@ export const DepartmentCategoryMap: Record<string, string[]> = {
 export const DepartmentCategoryStatusMap: Record<string, string[]> = {
   iam: [],
   tprm: [],
-  vapt: ["pending"],
+  vapt: ["pending", "remediation", "testing"],
   "soc integration": [],
   "security controls": [],
 };

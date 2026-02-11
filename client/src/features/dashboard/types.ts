@@ -50,3 +50,33 @@ export interface DonutData {
   value: number; // percentage
   count: number; // raw count
 }
+
+export interface DeptStatusCount {
+  department_id: number;
+  department: string;
+  count: number;
+}
+
+export interface CategoryStatusItem {
+  cat_status: string;
+  count: number;
+}
+
+export interface CategorySummaryItem {
+  category: string;
+  total: number;
+  statuses: CategoryStatusItem[];
+}
+
+export interface DepartmentCategorySummaryResponse {
+  department_id: number;
+  dept_status: string;
+  categories: CategorySummaryItem[];
+}
+
+export interface DepartmentStatusSummaryParams {
+  app_status: string; // e.g. "pending", "approved", "all"
+  dept_status: string; // e.g. "active", "inactive"
+  department_id: number;
+  sla_filter?: number | null; // 30 | 60 | 90 | 91 | null
+}

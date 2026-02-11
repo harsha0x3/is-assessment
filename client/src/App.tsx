@@ -39,6 +39,9 @@ const DepartmentQuestionnaire = lazy(
 const AppQuestionnaire = lazy(
   () => import("@/features/appQuestionnaire/components/AppQuestionnaire"),
 );
+const InProgressDashboard = lazy(
+  () => import("./features/dashboard/pages/InProgressDashboard"),
+);
 
 function App() {
   const { data: _data } = useGetMeQuery();
@@ -72,6 +75,14 @@ function App() {
               element={
                 <LazyRoute fallbackLabel="Loading secondary dashboard…">
                   <SecondaryDashboard />
+                </LazyRoute>
+              }
+            />
+            <Route
+              path="dashboard/in_progress"
+              element={
+                <LazyRoute fallbackLabel="Loading Inprogress Dashboard..">
+                  <InProgressDashboard />
                 </LazyRoute>
               }
             />

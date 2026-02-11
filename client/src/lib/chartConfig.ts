@@ -40,3 +40,38 @@ export const donutChartConfig: ChartConfig = {
     color: "var(--status-hold-fg)",
   },
 };
+
+export const categoryDonutConfig: ChartConfig = {
+  pending: {
+    label: "Pending",
+    color: "var(--chart-1)",
+  },
+  in_progress: {
+    label: "In Progress",
+    color: "var(--status-in-progress-fg)",
+  },
+  approved: {
+    label: "Approved",
+    color: "var(--status-completed-fg)",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "var(--status-cancelled-fg)",
+  },
+  remediation: {
+    label: "Remediation",
+    color: "var(--chart-2)",
+  },
+  yes: {
+    label: "Yes",
+    color: "var(--chart-2)",
+  },
+  no: {
+    label: "No",
+    color: "var(--chart-3)",
+  },
+  testing: {
+    label: "Testing",
+    color: "var(--chart-3)",
+  },
+};

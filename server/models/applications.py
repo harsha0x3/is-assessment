@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String, Text, Integer, DateTime
+from sqlalchemy import ForeignKey, String, Text, Integer, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
@@ -35,6 +35,9 @@ class Application(Base, BaseMixin):
 
     user_type: Mapped[str] = mapped_column(String(252), nullable=True)
     data_type: Mapped[str] = mapped_column(String(252), nullable=True)
+
+    app_type: Mapped[str] = mapped_column(String(100), nullable=True)
+    is_app_ai: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
 
     question_set_id: Mapped[int | None] = mapped_column(
         ForeignKey("question_sets.id", ondelete="set null"),

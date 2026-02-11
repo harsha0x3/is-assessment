@@ -32,6 +32,9 @@ class ApplicationCreate(BaseModel):
     user_type: str | None = None
     data_type: str | None = None
 
+    app_type: str | None = None
+    is_app_ai: bool = False
+
     app_url: str | None
 
 
@@ -66,6 +69,9 @@ class ApplicationOut(BaseModel):
     user_type: str | None
     data_type: str | None
 
+    app_type: str | None = None
+    is_app_ai: bool = False
+
     departments: list[DepartmentOut] | None
 
     # Automatically convert UTC -> Asia/Kolkata
@@ -99,6 +105,9 @@ class ApplicationUpdate(BaseModel):
     user_type: str | None = None
     data_type: str | None = None
 
+    app_type: str | None = None
+    is_app_ai: bool = False
+
 
 class ListApplicationsOut(BaseModel):
     id: str
@@ -129,6 +138,9 @@ class NewAppListOut(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     due_date: datetime | None
+
+    app_type: str | None = None
+    is_app_ai: bool = False
 
     vendor_company: str | None = None
     titan_spoc: str | None

@@ -15,6 +15,7 @@ import {
 import {
   BarChart2,
   ChevronRight,
+  Clock2Icon,
   Laptop,
   LayoutGridIcon,
   Moon,
@@ -77,6 +78,13 @@ const sidebarItems: SidebarData[] = [
     isActive: false,
     path: "/dashboard/secondary",
     icon: BarChart2,
+    roles: ["admin", "moderator", "user", "manager"],
+  },
+  {
+    title: "In-Progress",
+    isActive: false,
+    path: "/dashboard/in_progress",
+    icon: Clock2Icon,
     roles: ["admin", "moderator", "user", "manager"],
   },
   // {

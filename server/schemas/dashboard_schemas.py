@@ -51,3 +51,20 @@ class DepartmentSummaryResponse(BaseModel):
 class DashboardSummaryResponse(BaseModel):
     application_summary: ApplicationSummary
     department_summary: DepartmentSummaryResponse
+
+
+class CategoryStatusItem(BaseModel):
+    cat_status: str
+    count: int
+
+
+class CategorySummaryItem(BaseModel):
+    category: str
+    total: int
+    statuses: list[CategoryStatusItem]
+
+
+class DepartmentCategorySummaryResponse(BaseModel):
+    department_id: int
+    dept_status: str
+    categories: list[CategorySummaryItem]

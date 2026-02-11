@@ -1,6 +1,9 @@
 // src\lib\chartHelpers.ts
 
-import type { PriorityCountItem } from "@/features/dashboard/types";
+import type {
+  CategoryStatusItem,
+  PriorityCountItem,
+} from "@/features/dashboard/types";
 
 export const buildDonutData = (
   items: { status: string; count: number }[],
@@ -25,4 +28,21 @@ export const buildPriorityStackedData = (priorities: PriorityCountItem[]) => {
 
     return row;
   });
+};
+
+interface CategoryDonutData {
+  name: string;
+  value: number; // percentage
+  count: number;
+}
+
+export const buildCategoryDonutData = (
+  statuses: CategoryStatusItem[],
+  total: number,
+): CategoryDonutData[] => {
+  return statuses.map((s) => ({
+    name: s.cat_status,
+    count: s.count,
+    value: total > 0 ? Math.round((s.count / total) * 100) : 0,
+  }));
 };

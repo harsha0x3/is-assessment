@@ -18,6 +18,10 @@ import {
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
 import type { AppStatuses } from "@/utils/globalTypes";
+import { Button } from "@/components/ui/button";
+import { useLazyExportVerticalAppsQuery } from "../store/exportsApiSlice";
+import { Loader } from "lucide-react";
+import { toast } from "sonner";
 
 const PriorityStatusStackCard = React.lazy(
   () => import("../components/PriorityStatusStackCard"),
@@ -34,6 +38,10 @@ const SecondaryDashboard: React.FC = () => {
     isLoading: isLoadingPrioritySummary,
     error: prioritySummaryErr,
   } = useGetPriorityWiseSummaryQuery({ status_filter: priorityStatusFilter });
+
+  const [trigger, { isLoading }] = useLazyExportVerticalAppsQuery();
+
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   const chartData = useMemo(
     () => (prioritySummary ? buildPriorityStackedData(prioritySummary) : []),
@@ -123,6 +131,44 @@ const SecondaryDashboard: React.FC = () => {
             <SectionLoader label="Loading vertical wise applications summary" />
           }
         >
+          <div className="flex items-end justify-end mr-9">
+            <Button
+              onClick={async () => {
+                try {
+                  setIsDownloading(true);
+                  const blob = await trigger().unwrap();
+                  const today = new Date();
+
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+
+                  link.href = url;
+                  link.download = `is_assessment_applicaions_per_vertical_${today.toDateString()}.zip`;
+
+                  document.body.appendChild(link);
+                  link.click();
+
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  toast.error(
+                    getApiErrorMessage(error) ?? "Error downloading the report",
+                  );
+                } finally {
+                  setIsDownloading(false);
+                }
+              }}
+              disabled={isLoading || isDownloading}
+            >
+              {isLoading || isDownloading ? (
+                <span className="flex items-center">
+                  <Loader className="animnate-spin" />
+                </span>
+              ) : (
+                "Export"
+              )}
+            </Button>
+          </div>
           <VerticalWiseSummary />
         </Suspense>
       </Card>

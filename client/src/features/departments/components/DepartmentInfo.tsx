@@ -95,6 +95,8 @@ const DepartmentInfo: React.FC = () => {
       }).unwrap();
 
       setIsEditingStatus(false);
+      setIsEditingCategory(false);
+      setIsEditingCategoryStatus(false);
     } catch (err) {
       const errMsg: string = getApiErrorMessage(err) ?? "Error updating status";
       toast.error(errMsg);
@@ -258,7 +260,7 @@ const DepartmentInfo: React.FC = () => {
                     onValueChange={(value) => setCategoryVal(value)}
                   >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
                     <SelectContent>
                       {DepartmentCategoryMap[data.data.name.toLowerCase()]?.map(

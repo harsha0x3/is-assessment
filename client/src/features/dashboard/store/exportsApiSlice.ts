@@ -11,7 +11,20 @@ export const exportsApiSlice = rootApiSlice.injectEndpoints({
         },
       }),
     }),
+
+    exportVerticalApps: builder.query<Blob, void>({
+      query: () => ({
+        url: "/export/applications/verticals/csv",
+        method: "GET",
+        responseHandler: async (response: Response) => {
+          return response.blob();
+        },
+      }),
+    }),
   }),
 });
 
-export const { useLazyExportApplicationsCSVQuery } = exportsApiSlice;
+export const {
+  useLazyExportApplicationsCSVQuery,
+  useLazyExportVerticalAppsQuery,
+} = exportsApiSlice;

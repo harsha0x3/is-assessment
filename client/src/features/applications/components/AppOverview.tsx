@@ -41,6 +41,7 @@ import {
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
 import { daysBetweenDateAndToday, parseDateForInput } from "@/utils/helpers";
+import { Label } from "@/components/ui/label";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -77,6 +78,9 @@ const applicationDefaultValues: ApplicationOut = {
 
   user_type: null,
   data_type: null,
+
+  app_type: null,
+  is_app_ai: false,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -640,6 +644,77 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         placeholder=""
                         autoComplete="off"
                       />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* App Type */}
+                <Controller
+                  name="app_type"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="app_type">
+                        Application Type
+                      </FieldLabel>
+                      <Select
+                        disabled={!(isEditing || isNew)}
+                        value={
+                          field.value != null ? String(field.value) : undefined
+                        }
+                        onValueChange={(value) => field.onChange(value)}
+                      >
+                        <SelectTrigger
+                          id="app_type"
+                          className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
+                        >
+                          <SelectValue placeholder="Select App Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mobile">Mobile</SelectItem>
+                          <SelectItem value="web">Web</SelectItem>
+                          <SelectItem value="both">Both</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                {/* Is AI Application */}
+                <Controller
+                  name="is_app_ai"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="flex items-center gap-2"
+                    >
+                      <FieldLabel
+                        htmlFor="is_app_ai"
+                        className="whitespace-nowrap"
+                      >
+                        Is AI Application
+                      </FieldLabel>
+                      <div className="inline-flex items-center gap-2">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={!(isNew || isEditing)}
+                          className="flex-none"
+                        />
+                        <Label
+                          htmlFor="toggle-label"
+                          className="text-sm font-medium"
+                        >
+                          {field.value ? "Yes" : "No"}
+                        </Label>
+                      </div>
+
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}

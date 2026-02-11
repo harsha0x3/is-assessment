@@ -343,3 +343,173 @@ def get_vertical_wise_app_statuses(db: Session):
         )
 
     return response
+
+
+def get_department_sub_category(
+    db: Session,
+    department_id: int,
+    dept_status: str,
+    app_status: str | None = None,
+    sla_filter: int | None = None,
+) -> ds.DepartmentCategorySummaryResponse:
+    try:
+        stmt = (
+            select(
+                ApplicationDepartments.app_category.label("category"),
+                ApplicationDepartments.category_status.label("category_status"),
+                func.count().label("item_count"),
+            )
+            .join(Application, Application.id == ApplicationDepartments.application_id)
+            .where(
+                ApplicationDepartments.department_id == department_id,
+                ApplicationDepartments.status == dept_status,
+                ApplicationDepartments.app_category.is_not(None),
+                ApplicationDepartments.category_status.is_not(None),
+            )
+            .group_by(
+                ApplicationDepartments.app_category,
+                ApplicationDepartments.category_status,
+            )
+        )
+
+        if app_status and app_status != "all":
+            stmt = stmt.where(Application.status == app_status)
+
+        if app_status and app_status != "all":
+            stmt = stmt.where(Application.status == app_status)
+
+        today = date.today()
+
+        if sla_filter and sla_filter > 0:
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            if sla_filter == 30:
+                stmt = stmt.where(
+                    func.date(Application.started_at) >= today - timedelta(days=30)
+                )
+            elif sla_filter == 60:
+                stmt = stmt.where(
+                    func.date(Application.started_at).between(
+                        today - timedelta(days=60),
+                        today - timedelta(days=30),
+                    )
+                )
+            elif sla_filter == 90:
+                stmt = stmt.where(
+                    func.date(Application.started_at).between(
+                        today - timedelta(days=90),
+                        today - timedelta(days=60),
+                    )
+                )
+            elif sla_filter == 91:
+                stmt = stmt.where(
+                    func.date(Application.started_at) < today - timedelta(days=90)
+                )
+
+        rows = db.execute(stmt).all()
+
+        grouped: dict[str, dict] = defaultdict(
+            lambda: {"total": 0, "statuses": defaultdict(int)}
+        )
+
+        for row in rows:
+            cat = normalize_key(row.category)
+            cat_status = normalize_key(row.category_status)
+            count = int(row.item_count)
+
+            grouped[cat]["statuses"][cat_status] += count
+            grouped[cat]["total"] += count
+
+        categories = [
+            ds.CategorySummaryItem(
+                category=cat,
+                total=data["total"],
+                statuses=[
+                    ds.CategoryStatusItem(cat_status=s, count=c)
+                    for s, c in data["statuses"].items()
+                ],
+            )
+            for cat, data in grouped.items()
+        ]
+
+        return ds.DepartmentCategorySummaryResponse(
+            department_id=department_id,
+            dept_status=dept_status,
+            categories=categories,
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching category level summary",
+        )
+
+
+def get_statuses_per_dept(
+    db: Session,
+    app_status: str,
+    dept_status: str,
+    sla_filter: int | None = None,
+):
+    try:
+        stmt = (
+            select(
+                Department.id.label("department_id"),
+                Department.name.label("department"),
+                func.count(func.distinct(Application.id)).label("item_count"),
+            )
+            .select_from(ApplicationDepartments)
+            .join(Application, Application.id == ApplicationDepartments.application_id)
+            .join(Department, Department.id == ApplicationDepartments.department_id)
+            .where(
+                Application.status == app_status,
+                ApplicationDepartments.status == dept_status,
+            )
+            .group_by(Department.id, Department.name)
+        )
+
+        today = date.today()
+
+        if sla_filter and sla_filter > 0:
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            if sla_filter == 30:
+                stmt = stmt.where(
+                    func.date(Application.started_at) >= today - timedelta(days=30)
+                )
+            elif sla_filter == 60:
+                stmt = stmt.where(
+                    func.date(Application.started_at).between(
+                        today - timedelta(days=60),
+                        today - timedelta(days=30),
+                    )
+                )
+            elif sla_filter == 90:
+                stmt = stmt.where(
+                    func.date(Application.started_at).between(
+                        today - timedelta(days=90),
+                        today - timedelta(days=60),
+                    )
+                )
+            elif sla_filter == 91:
+                stmt = stmt.where(
+                    func.date(Application.started_at) < today - timedelta(days=90)
+                )
+
+        rows = db.execute(stmt).all()
+
+        return [
+            {
+                "department_id": row.department_id,
+                "department": row.department,
+                "count": int(row.item_count),
+            }
+            for row in rows
+        ]
+
+    except Exception as e:
+        print("ERRRR", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error in getting status count per department",
+        )

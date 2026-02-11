@@ -55,6 +55,9 @@ export interface ApplicationOut {
   user_type?: string | null;
   data_type?: string | null;
 
+  app_type?: string | null;
+  is_app_ai?: boolean;
+
   departments?: DepartmentOut[];
 }
 
@@ -77,6 +80,12 @@ export interface ApplicationUpdate {
   titan_spoc?: string | null;
 
   app_url?: string | null;
+
+  user_type?: string | null;
+  data_type?: string | null;
+
+  app_type?: string | null;
+  is_app_ai?: boolean | null;
 }
 
 export interface NewAppListOut {
@@ -97,6 +106,9 @@ export interface NewAppListOut {
   titan_spoc?: string | null;
   environment?: string;
   due_date?: string | null;
+
+  user_type?: string | null;
+  data_type?: string | null;
 }
 
 export interface AppQueryParams {
