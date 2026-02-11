@@ -75,3 +75,13 @@ export function useDebounce<T>(value: T, delay = 400) {
 
   return debounced;
 }
+
+export const getLabelFromOptions = (
+  value: string | undefined,
+  options: { value: string; label: string }[] | undefined,
+) => {
+  console.log("VALUE", value);
+  console.log("OPTIONS", options);
+  if (!value || !options) return "-";
+  return options.find((o) => o.value === value)?.label ?? value;
+};

@@ -30,7 +30,7 @@ import type { DeptStatuses } from "@/utils/globalTypes";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
-import { parseStatus } from "@/utils/helpers";
+import { getLabelFromOptions, parseStatus } from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -58,7 +58,27 @@ const DepartmentInfo: React.FC = () => {
     if (data?.data?.status) {
       setStatusValue(data.data.status);
     }
+    if (data?.data?.app_category) {
+      setCategoryVal(data.data.app_category);
+    }
+    if (data?.data?.category_status) {
+      setCategoryVal(data.data.category_status);
+    }
   }, [data]);
+
+  useEffect(() => {
+    setIsEditingStatus(false);
+    setIsEditingCategory(false);
+    setIsEditingCategoryStatus(false);
+
+    setStatusValue(undefined);
+    setCategoryVal(undefined);
+    setCategoryStatus(undefined);
+
+    setPrevStatusVal(undefined);
+    setPrevCategory(undefined);
+    setPrevCategoryStatus(undefined);
+  }, [deptId]);
 
   const [updateDepartmentStatus, { isLoading: isUpdatingStatus }] =
     useUpdateDepartmentStatusMutation();
@@ -146,6 +166,8 @@ const DepartmentInfo: React.FC = () => {
                         size="icon"
                         onClick={() => {
                           setIsEditingStatus(true);
+                          setIsEditingCategory(false);
+                          setIsEditingCategoryStatus(false);
                           setPrevStatusVal(statusValue);
                         }}
                       >
@@ -235,7 +257,10 @@ const DepartmentInfo: React.FC = () => {
               {!isEditingCategory ? (
                 <>
                   <Badge variant="outline" className="capitalize">
-                    {parseStatus(data.data.app_category ?? "-")}
+                    {getLabelFromOptions(
+                      data.data.app_category,
+                      DepartmentCategoryMap[data.data.name.toLowerCase()],
+                    )}
                   </Badge>
 
                   {userDepts.includes(deptIdNumber) && (
@@ -245,6 +270,8 @@ const DepartmentInfo: React.FC = () => {
                         size="icon"
                         onClick={() => {
                           setIsEditingCategory(true);
+                          setIsEditingStatus(false);
+                          setIsEditingCategoryStatus(false);
                           setPrevCategory(categoryVal);
                         }}
                       >
@@ -262,23 +289,21 @@ const DepartmentInfo: React.FC = () => {
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
+
                     <SelectContent>
                       {DepartmentCategoryMap[data.data.name.toLowerCase()]?.map(
-                        (s, idx) => {
-                          return (
-                            <>
-                              <SelectItem
-                                value={s}
-                                className="data-disabled:cursor-not-allowed data-disabled:opacity-50 capitalize"
-                              >
-                                {s}
-                              </SelectItem>
-                              {idx !==
-                                DepartmentCategoryMap[data.data.name]?.length -
-                                  1 && <Separator />}
-                            </>
-                          );
-                        },
+                        (s, idx, arr) => (
+                          <React.Fragment key={s.value}>
+                            <SelectItem
+                              value={s.value}
+                              className="data-disabled:cursor-not-allowed data-disabled:opacity-50"
+                            >
+                              {s.label}
+                            </SelectItem>
+
+                            {idx !== arr.length - 1 && <Separator />}
+                          </React.Fragment>
+                        ),
                       )}
                     </SelectContent>
                   </Select>
@@ -318,7 +343,10 @@ const DepartmentInfo: React.FC = () => {
               {!isEditingCategoryStatus ? (
                 <>
                   <Badge variant="outline" className="capitalize">
-                    {parseStatus(data.data.category_status ?? "-")}
+                    {getLabelFromOptions(
+                      data.data.category_status,
+                      DepartmentCategoryStatusMap[data.data.name.toLowerCase()],
+                    )}
                   </Badge>
 
                   {userDepts.includes(deptIdNumber) && (
@@ -328,6 +356,8 @@ const DepartmentInfo: React.FC = () => {
                         size="icon"
                         onClick={() => {
                           setIsEditingCategoryStatus(true);
+                          setIsEditingStatus(false);
+                          setIsEditingCategory(false);
                           setPrevCategoryStatus(categoryStatus);
                         }}
                       >
@@ -343,27 +373,24 @@ const DepartmentInfo: React.FC = () => {
                     onValueChange={(value) => setCategoryStatus(value)}
                   >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
+
                     <SelectContent>
                       {DepartmentCategoryStatusMap[
                         data.data.name.toLowerCase()
-                      ]?.map((s, idx) => {
-                        return (
-                          <>
-                            <SelectItem
-                              value={s}
-                              className="data-disabled:cursor-not-allowed data-disabled:opacity-50 capitalize"
-                            >
-                              {s}
-                            </SelectItem>
-                            {idx !==
-                              DepartmentCategoryStatusMap[data.data.name]
-                                ?.length -
-                                1 && <Separator />}
-                          </>
-                        );
-                      })}
+                      ]?.map((s, idx, arr) => (
+                        <React.Fragment key={s.value}>
+                          <SelectItem
+                            value={s.value}
+                            className="data-disabled:cursor-not-allowed data-disabled:opacity-50"
+                          >
+                            {s.label}
+                          </SelectItem>
+
+                          {idx !== arr.length - 1 && <Separator />}
+                        </React.Fragment>
+                      ))}
                     </SelectContent>
                   </Select>
 

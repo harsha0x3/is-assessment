@@ -140,7 +140,12 @@ const InprogressDepartmentStatusGraph: React.FC<Props> = ({
               </div>
             )}
 
-            {data && <DepartmentCategoryChart categories={data.categories} />}
+            {data && (
+              <DepartmentCategoryChart
+                categories={data.categories}
+                departmentName={department}
+              />
+            )}
           </PopoverContent>
         </div>
       </PopoverAnchor>

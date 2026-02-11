@@ -8,23 +8,31 @@ import {
 } from "@/components/ui/chart";
 import { categoryDonutConfig } from "@/lib/chartConfig";
 import { Cell, Label, Pie, PieChart } from "recharts";
+import { getLabelFromOptions, parseDept } from "@/utils/helpers";
+import { DepartmentCategoryMap } from "@/utils/globalValues";
 
 const CategoryDonut = ({
   category,
   statuses,
   total,
+  departmentName,
 }: {
   category: string;
   statuses: CategoryStatusItem[];
   total: number;
+  departmentName: string;
 }) => {
   const data = buildCategoryDonutData(statuses, total);
+  console.log("DEPARTMENT", departmentName);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-center text-lg font-medium capitalize">
-          {category}
+          {getLabelFromOptions(
+            category,
+            DepartmentCategoryMap[parseDept(departmentName).toLowerCase()],
+          )}
         </CardTitle>
       </CardHeader>
 

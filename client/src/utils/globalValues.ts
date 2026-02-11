@@ -2,6 +2,7 @@ import type {
   AppStatuses,
   AppStatusOption,
   DeptStatusOption,
+  SelectItemType,
 } from "./globalTypes";
 
 export const AppStatusValues: AppStatuses[] = [
@@ -81,18 +82,50 @@ export const PriorityValueMap: Record<string, string> = {
   high: "3",
 };
 
-export const DepartmentCategoryMap: Record<string, string[]> = {
-  iam: ["sso", "scim"],
-  tprm: ["privacy", "non-privacy"],
-  vapt: ["mobile", "web", "ai", "mobile&web"],
-  "soc integration": ["pii", "external-hosting", "internal-hosting"],
-  "security controls": [],
+export const DepartmentCategoryMap: Record<string, SelectItemType[]> = {
+  iam: [
+    { value: "sso", label: "SSO" },
+    { value: "scim", label: "SCIM" },
+  ],
+  tprm: [
+    { value: "privacy", label: "Privacy" },
+    { value: "non-privacy", label: "Non-Privacy" },
+  ],
+  vapt: [
+    { value: "mobile", label: "Mobile" },
+    { value: "web", label: "Web" },
+    { value: "ai", label: "AI" },
+    { value: "mobile-web", label: "Mobile & Web" },
+  ],
+  "soc integration": [
+    { value: "pii", label: "PII" },
+    { value: "internal-hosting", label: "Internal Hosting" },
+  ],
+  "security controls": [
+    { value: "internal-hosting", label: "Internal Hosting" },
+  ],
 };
 
-export const DepartmentCategoryStatusMap: Record<string, string[]> = {
-  iam: [],
-  tprm: [],
-  vapt: ["pending", "remediation", "testing"],
-  "soc integration": [],
-  "security controls": [],
+export const DepartmentCategoryStatusMap: Record<string, SelectItemType[]> = {
+  iam: [
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
+  ],
+  tprm: [
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+  ],
+  vapt: [
+    { value: "pending", label: "Pending" },
+    { value: "remediation", label: "Remediation" },
+    { value: "testing", label: "Testing" },
+  ],
+  "soc integration": [
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
+  ],
+  "security controls": [
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
+  ],
 };

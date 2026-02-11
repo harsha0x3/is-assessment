@@ -22,6 +22,11 @@ export type AppStatusOption = {
   label: string;
 };
 
+export type SelectItemType = {
+  value: string;
+  label: string;
+};
+
 export type DeptStatusOption = {
   value: DeptStatuses;
   label: string;

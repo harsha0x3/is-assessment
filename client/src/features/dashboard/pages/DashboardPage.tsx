@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { useDebounce } from "@/utils/helpers";
 import { CardLoader, SectionLoader } from "../components/Loaders";
+import { Label } from "@/components/ui/label";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
@@ -151,15 +152,13 @@ const DashboardPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <p>Applications: {deptSummay?.total_apps}</p>
             </div>
-            <div className="flex flex-col gap-2 min-w-64">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Applications older than
-                </p>
-                <span className="text-sm font-semibold">
-                  {deptSlaFilter === 0 ? "Any age" : `${deptSlaFilter} days`}
-                </span>
-              </div>
+            <div className="flex items-center gap-2 min-w-84">
+              <Label
+                htmlFor="sla-filter"
+                className="text-sm font-medium text-muted-foreground"
+              >
+                Age of Applications
+              </Label>
               <Select
                 value={String(deptSlaFilter) ?? "all"}
                 onValueChange={(val) => {
@@ -167,7 +166,7 @@ const DashboardPage: React.FC = () => {
                   else setDeptSlaFilter(0);
                 }}
               >
-                <SelectTrigger className="w-full max-w-48 ">
+                <SelectTrigger id="sla-filter" className="w-full max-w-48 ">
                   <SelectValue placeholder="Select duration" className="w-48" />
                 </SelectTrigger>
                 <SelectContent className="w-48">
