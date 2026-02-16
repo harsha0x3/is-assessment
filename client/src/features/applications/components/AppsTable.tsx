@@ -29,9 +29,15 @@ import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
-import { ClockAlert, Dot, FlagTriangleRight, Loader } from "lucide-react";
+import { ClockAlert, Dot, FlagTriangleRight, Info, Loader } from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 import { createDepartmentStatusColumn } from "./DepartmentColumnFactory";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import AppTypeFilter from "./tableHeaders/AppTypeFilter";
 const VerticalSearchFilter = lazy(
   () => import("../components/tableHeaders/VerticalSearchFilter"),
 );
@@ -64,6 +70,77 @@ const AppsTable: React.FC = () => {
     | "security_controls"
     | "iam"
     | "soc_integration";
+
+  const DepartmentsStatusCol: React.FC<{
+    depts: AppDepartmentOut[];
+    appId: string;
+  }> = ({ depts, appId }) => {
+    const shortenDept = (dept: string) => {
+      switch (dept) {
+        case "iam":
+          return "IAM";
+        case "tprm":
+          return "TPRM";
+        case "security controls":
+          return "Sec Controls";
+        case "vapt":
+          return "VAPT";
+        case "soc integration":
+          return "SOC";
+        default:
+          return dept;
+      }
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex gap-2">
+          {depts.map((d) => (
+            <Hint
+              key={d.id}
+              label={
+                <div>
+                  <p>{d.name}</p>
+                  <p className="capitalize">{parseStatus(d.status)}</p>
+                </div>
+              }
+            >
+              <div className="flex flex-col items-center cursor-default">
+                {appStatus === "go_live" ? (
+                  <FlagTriangleRight
+                    className="w-4 h-4"
+                    fill={
+                      d.status === "go_live"
+                        ? STATUS_COLOR_MAP_FG[d.status]
+                        : "none"
+                    }
+                  />
+                ) : (
+                  <Dot
+                    key={d.id}
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{
+                      backgroundColor: STATUS_COLOR_MAP_FG[d.status],
+                    }}
+                  />
+                )}
+                <span
+                  className="hover:underline hover:text-ring hover:cursor-pointer transition-all"
+                  onClick={() =>
+                    navigate(
+                      `details/${appId}/departments/${d.id}/comments?${searchParams.toString()}`,
+                    )
+                  }
+                >
+                  {shortenDept(d.name.toLowerCase())}
+                </span>
+              </div>
+            </Hint>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
     vapt: [
@@ -218,7 +295,7 @@ const AppsTable: React.FC = () => {
   const baseColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     return [
       colHelper.accessor("name", {
-        header: "Name",
+        header: () => <AppTypeFilter />,
         minSize: 280,
         maxSize: 550,
         cell: ({ row, getValue }) => {
@@ -244,6 +321,23 @@ const AppsTable: React.FC = () => {
                 )}
                 {getValue()}
               </span>
+              <HoverCard openDelay={10} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <span className="">
+                    <Info className="text-blue-500" />
+                  </span>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-fit" side="top" align="start">
+                  {row.original.departments ? (
+                    <DepartmentsStatusCol
+                      depts={row.original.departments}
+                      appId={row.original.id}
+                    />
+                  ) : (
+                    <p>No Data to be shown</p>
+                  )}
+                </HoverCardContent>
+              </HoverCard>
             </Button>
           );
         },
@@ -344,75 +438,9 @@ const AppsTable: React.FC = () => {
         colHelper.accessor("departments", {
           header: "Departments",
           minSize: 220,
-          cell: ({ getValue, row }) => {
-            const depts: AppDepartmentOut[] = getValue();
-
-            const shortenDept = (dept: string) => {
-              switch (dept) {
-                case "iam":
-                  return "IAM";
-                case "tprm":
-                  return "TPRM";
-                case "security controls":
-                  return "Sec Controls";
-                case "vapt":
-                  return "VAPT";
-                case "soc integration":
-                  return "SOC";
-                default:
-                  return dept;
-              }
-            };
-
-            return (
-              <div className="flex items-center gap-2">
-                <div className="flex gap-2">
-                  {depts.map((d) => (
-                    <Hint
-                      key={d.id}
-                      label={
-                        <div>
-                          <p>{d.name}</p>
-                          <p className="capitalize">{parseStatus(d.status)}</p>
-                        </div>
-                      }
-                    >
-                      <div className="flex flex-col items-center cursor-default">
-                        {appStatus === "go_live" ? (
-                          <FlagTriangleRight
-                            className="w-4 h-4"
-                            fill={
-                              d.status === "go_live"
-                                ? STATUS_COLOR_MAP_FG[d.status]
-                                : "none"
-                            }
-                          />
-                        ) : (
-                          <Dot
-                            key={d.id}
-                            className="h-2.5 w-2.5 rounded-full"
-                            style={{
-                              backgroundColor: STATUS_COLOR_MAP_FG[d.status],
-                            }}
-                          />
-                        )}
-                        <span
-                          className="hover:underline hover:text-ring hover:cursor-pointer transition-all"
-                          onClick={() =>
-                            navigate(
-                              `details/${row.original.id}/departments/${d.id}/comments?${searchParams.toString()}`,
-                            )
-                          }
-                        >
-                          {shortenDept(d.name.toLowerCase())}
-                        </span>
-                      </div>
-                    </Hint>
-                  ))}
-                </div>
-              </div>
-            );
-          },
+          cell: ({ getValue, row }) => (
+            <DepartmentsStatusCol depts={getValue()} appId={row.original.id} />
+          ),
         }),
       ];
     return DEPARTMENT_COLUMNS[departmentView as DeptKey] ?? [];

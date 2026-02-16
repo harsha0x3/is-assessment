@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status, BackgroundTasks
-from sqlalchemy import select, and_, desc, asc, func, or_
+from sqlalchemy import select, and_, desc, asc, func, or_, not_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from models import (
@@ -94,6 +94,10 @@ def _has_filters(params: AppQueryParams) -> bool:
             params.app_priority,
             params.vertical and params.vertical != "null",
             params.search and params.search != "null",
+            params.ai_apps is not None,
+            params.mobile_apps is not None,
+            params.web_apps is not None,
+            params.mobile_web_apps is not None,
         ]
     )
 
@@ -180,6 +184,7 @@ def get_apps_summary_from_stmt(db: Session, stmt):
 
 def list_all_apps(db: Session, params: AppQueryParams):
     try:
+        print("PARAMS", params.model_dump())
         stmt = (
             select(Application)
             .distinct()
@@ -259,6 +264,30 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 cutoff = today - timedelta(days=90)
 
                 stmt = stmt.where(func.date(Application.started_at) < cutoff)
+
+        if params.ai_apps is not None:
+            if params.ai_apps.lower() == "true":
+                stmt = stmt.where(Application.is_app_ai)
+            elif params.ai_apps.lower() == "false":
+                stmt = stmt.where(not_(Application.is_app_ai))
+
+        if params.web_apps is not None:
+            if params.web_apps.lower() == "true":
+                stmt = stmt.where(Application.app_type == "web")
+            elif params.web_apps.lower() == "false":
+                stmt = stmt.where(not_(Application.app_type == "web"))
+
+        if params.mobile_apps is not None:
+            if params.mobile_apps == "true":
+                stmt = stmt.where(Application.app_tech == "mobile")
+            if params.mobile_apps == "false":
+                stmt = stmt.where(not_(Application.app_tech == "mobile"))
+
+        if params.mobile_web_apps is not None:
+            if params.mobile_web_apps == "true":
+                stmt = stmt.where(Application.app_type == "both")
+            if params.mobile_web_apps == "false":
+                stmt = stmt.where(not_(Application.app_type == "both"))
 
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:

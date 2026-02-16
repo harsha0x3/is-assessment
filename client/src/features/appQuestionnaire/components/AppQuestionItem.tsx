@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Save, X, Loader } from "lucide-react";
+import { Pencil, Save, X, Loader, CrownIcon } from "lucide-react";
 import Hint from "@/components/ui/hint";
 import { toast } from "sonner";
 import type { AppQuestionWithAnswer } from "../types";
@@ -53,8 +53,22 @@ const AppQuestionItem: React.FC<Props> = ({
     <Card className="p-4 space-y-2 gap-1">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
             Q{question.sequence_number}
+            {question.is_high && (
+              <Hint label="High Priority">
+                <span>
+                  <CrownIcon className="text-amber-500 h-4 w-4" />
+                </span>
+              </Hint>
+            )}
+            {question.is_medium && (
+              <Hint label="Medium Priority">
+                <span>
+                  <CrownIcon className="text-blue-500 h-4 w-4" />
+                </span>
+              </Hint>
+            )}
           </p>
           <p className="font-medium">{question.text}</p>
         </div>

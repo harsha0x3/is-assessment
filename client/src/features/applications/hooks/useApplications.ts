@@ -29,6 +29,10 @@ export const useApplications = () => {
   const appSlaFilter = searchParams.get("appSlaFilter");
 
   const appVertical = searchParams.get("appVertical");
+  const mobileAppsFilter = searchParams.get("mobileAppsFilter");
+  const webAppsFilter = searchParams.get("webAppsFilter");
+  const aiAppsFilter = searchParams.get("aiAppsFilter");
+  const mobileWebAppsFilter = searchParams.get("mobileWebAppsFilter");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -58,6 +62,10 @@ export const useApplications = () => {
       app_priority: appPriorityList,
       vertical: debouncedVerticalSearch ?? undefined,
       sla_filter: debouncedSlaFilter,
+      mobile_apps: mobileAppsFilter ?? undefined,
+      web_apps: webAppsFilter ?? undefined,
+      mobile_web_apps: mobileWebAppsFilter ?? undefined,
+      ai_apps: aiAppsFilter ?? undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
@@ -161,6 +169,10 @@ export const useApplications = () => {
     filteredAppsSummary,
     appSlaFilter,
     appStatus,
+    mobileAppsFilter,
+    aiAppsFilter,
+    mobileWebAppsFilter,
+    webAppsFilter,
   };
 };
 

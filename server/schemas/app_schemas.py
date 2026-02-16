@@ -169,6 +169,10 @@ class AppQueryParams(BaseModel):
     dept_status: list[str] | None = None
     app_priority: list[str] | None = None
     sla_filter: int | None
+    ai_apps: str | None
+    mobile_apps: str | None
+    web_apps: str | None
+    mobile_web_apps: str | None
 
     @field_validator("sort_by")
     @classmethod

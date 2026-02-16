@@ -86,23 +86,25 @@ export const DepartmentCategoryMap: Record<string, SelectItemType[]> = {
   iam: [
     { value: "sso", label: "SSO" },
     { value: "scim", label: "SCIM" },
+    { value: "both", label: "Both" },
   ],
   tprm: [
     { value: "privacy", label: "Privacy" },
-    { value: "non-privacy", label: "Non-Privacy" },
+    { value: "non_privacy", label: "Non Privacy" },
   ],
   vapt: [
     { value: "mobile", label: "Mobile" },
     { value: "web", label: "Web" },
     { value: "ai", label: "AI" },
-    { value: "mobile-web", label: "Mobile & Web" },
+    { value: "mobile_web", label: "Mobile & Web" },
   ],
   "soc integration": [
     { value: "pii", label: "PII" },
-    { value: "internal-hosting", label: "Internal Hosting" },
+    { value: "internal_hosting", label: "Internal Hosting" },
   ],
   "security controls": [
-    { value: "internal-hosting", label: "Internal Hosting" },
+    { value: "internal_hosting", label: "Internal Hosting" },
+    { value: "ai", label: "AI" },
   ],
 };
 

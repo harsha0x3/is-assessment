@@ -89,7 +89,15 @@ async def new_list_all_apps(
     app_priority: Annotated[str | None, Query()] = None,
     vertical: Annotated[str | None, Query()] = None,
     sla_filter: Annotated[int | None, Query()] = None,
+    ai_apps: Annotated[str | None, Query()] = None,
+    web_apps: Annotated[str | None, Query()] = None,
+    mobile_apps: Annotated[str | None, Query()] = None,
+    mobile_web_apps: Annotated[str | None, Query()] = None,
 ):
+    print(
+        f"ai_apps: {ai_apps} \n web_apps: {web_apps}\nmobile_apps: {mobile_apps}\n mobile_web_apps: {mobile_web_apps}"
+    )
+
     status_list = []
 
     if (
@@ -110,8 +118,6 @@ async def new_list_all_apps(
         and dept_status.strip() != "undefined"
     ):
         dept_status_list = dept_status.split(",")
-        print("dept_STATUS LIST SATIS FIED", dept_status)
-    print("dept_STATUS LIST NOT SATIS FIED", dept_status)
 
     app_priority_list = app_priority.split(",") if app_priority else []
 
@@ -128,6 +134,10 @@ async def new_list_all_apps(
         app_priority=app_priority_list,
         vertical=vertical,
         sla_filter=sla_filter,
+        mobile_apps=mobile_apps,
+        web_apps=web_apps,
+        ai_apps=ai_apps,
+        mobile_web_apps=mobile_web_apps,
     )
     data = list_all_apps(
         db=db,

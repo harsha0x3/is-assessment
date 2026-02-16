@@ -7,6 +7,7 @@ import {
   YAxis,
   ResponsiveContainer,
   LabelList,
+  Cell,
 } from "recharts";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { parseDept } from "@/utils/helpers";
@@ -16,6 +17,15 @@ const chartConfig: ChartConfig = {
     label: "Applications",
   },
 };
+
+// const COLORS = [
+//   "#3b82f6", // blue-500
+//   "#22c55e", // green-500
+//   "#f97316", // orange-500
+//   "#ef4444", // red-500
+//   "#a855f7", // purple-500
+//   "#14b8a6", // teal-500
+// ];
 
 interface Props {
   data: {
@@ -42,6 +52,10 @@ const StatusPerDepartmentChart: React.FC<Props> = ({ data }) => {
             />
             <YAxis allowDecimals={false} />
             <Bar dataKey="count" barSize={40} radius={[4, 4, 0, 0]}>
+              {data.map((_, index) => (
+                <Cell key={`cell-${index}`} fill="#3b82f6" />
+              ))}
+
               <LabelList
                 dataKey="count"
                 position="top"
