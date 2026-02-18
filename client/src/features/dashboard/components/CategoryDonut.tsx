@@ -10,6 +10,7 @@ import { categoryDonutConfig } from "@/lib/chartConfig";
 import { Cell, Label, Pie, PieChart } from "recharts";
 import { getLabelFromOptions, parseDept } from "@/utils/helpers";
 import { DepartmentCategoryMap } from "@/utils/globalValues";
+import CategoryDonutLegend from "./CategoryDonutLegend";
 
 const CategoryDonut = ({
   category,
@@ -36,7 +37,7 @@ const CategoryDonut = ({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex justify-center">
+      <CardContent className="flex flex-col justify-center">
         <ChartContainer
           config={categoryDonutConfig}
           className=" h-60 w-full max-w-100 mx-auto"
@@ -101,6 +102,7 @@ const CategoryDonut = ({
             />
           </PieChart>
         </ChartContainer>
+        <CategoryDonutLegend data={data} />
 
         {/* Status legend/cards */}
         {/* <div className="grid grid-cols-2 gap-3">

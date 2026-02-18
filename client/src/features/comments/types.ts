@@ -2,6 +2,7 @@
 
 import type { UserOut } from "@/features/auth/types";
 import type { DepartmentOut } from "@/features/departments/types";
+import type { AppStatuses } from "@/utils/globalTypes";
 
 /**
  * NewCommentRequest
@@ -29,6 +30,7 @@ export interface CommentOut {
   author_id: string;
   application_id: string;
   department_id: number;
+  status?: AppStatuses;
 
   department: DepartmentOut;
   author: UserOut;

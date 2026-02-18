@@ -70,6 +70,14 @@ export const categoryDonutConfig: ChartConfig = {
     label: "No",
     color: "var(--chart-3)",
   },
+  internal_hosting: {
+    label: "Internal Hosting",
+    color: "var(--chart-2)",
+  },
+  external_hosting: {
+    label: "External Hosting",
+    color: "var(--chart-3)",
+  },
   testing: {
     label: "Testing",
     color: "var(--chart-3)",

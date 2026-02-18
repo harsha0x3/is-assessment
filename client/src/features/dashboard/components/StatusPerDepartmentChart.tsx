@@ -32,9 +32,10 @@ interface Props {
     department: string;
     count: number;
   }[];
+  color: string;
 }
 
-const StatusPerDepartmentChart: React.FC<Props> = ({ data }) => {
+const StatusPerDepartmentChart: React.FC<Props> = ({ data, color }) => {
   return (
     <div className="h-140 w-3xl">
       <ChartContainer config={chartConfig} className="h-full w-full">
@@ -53,7 +54,7 @@ const StatusPerDepartmentChart: React.FC<Props> = ({ data }) => {
             <YAxis allowDecimals={false} />
             <Bar dataKey="count" barSize={40} radius={[4, 4, 0, 0]}>
               {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill="#3b82f6" />
+                <Cell key={`cell-${index}`} fill={color} />
               ))}
 
               <LabelList

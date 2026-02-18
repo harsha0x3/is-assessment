@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import type { CommentOut } from "../types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
+
+import { parseStatus } from "@/utils/helpers";
+import { Badge } from "@/components/ui/badge";
 
 const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -78,6 +82,18 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
             <div className="flex items-center justify-between w-full gap-2">
               <div className="flex items-center justify-between text-muted-foreground gap-2">
                 <p className="">{comment.author?.full_name}</p>
+                {comment?.status && (
+                  <Badge
+                    variant="outline"
+                    style={{
+                      color: STATUS_COLOR_MAP_FG[comment.status],
+                      backgroundColor: STATUS_COLOR_MAP_BG[comment.status],
+                    }}
+                    className="capitalize"
+                  >
+                    {parseStatus(comment.status)}
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">{created}</p>
             </div>

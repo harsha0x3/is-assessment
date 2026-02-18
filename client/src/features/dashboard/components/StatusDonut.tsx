@@ -68,7 +68,7 @@ const StatusCard: React.FC<{
     >
       <div
         tabIndex={0}
-        className="flex z-10 flex-col gap-1 px-3 py-2 group-hover:bg-card/90 max-w-80 border-none transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]"
+        className="flex z-10 flex-col gap-1 px-3 py-2 group-hover:bg-card/90 border-none transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]"
       >
         {/* Title */}
         <p className="font-medium capitalize flex items-center gap-2">

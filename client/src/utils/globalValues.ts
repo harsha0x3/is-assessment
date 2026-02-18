@@ -98,14 +98,8 @@ export const DepartmentCategoryMap: Record<string, SelectItemType[]> = {
     { value: "ai", label: "AI" },
     { value: "mobile_web", label: "Mobile & Web" },
   ],
-  "soc integration": [
-    { value: "pii", label: "PII" },
-    { value: "internal_hosting", label: "Internal Hosting" },
-  ],
-  "security controls": [
-    { value: "internal_hosting", label: "Internal Hosting" },
-    { value: "ai", label: "AI" },
-  ],
+  "soc integration": [{ value: "hosting", label: "Hosting" }],
+  "security controls": [{ value: "hosting", label: "Hosting" }],
 };
 
 export const DepartmentCategoryStatusMap: Record<string, SelectItemType[]> = {
@@ -123,11 +117,11 @@ export const DepartmentCategoryStatusMap: Record<string, SelectItemType[]> = {
     { value: "testing", label: "Testing" },
   ],
   "soc integration": [
-    { value: "yes", label: "Yes" },
-    { value: "no", label: "No" },
+    { value: "internal_hosting", label: "Internal Hosting" },
+    { value: "external_hosting", label: "External Hosting" },
   ],
   "security controls": [
-    { value: "yes", label: "Yes" },
-    { value: "no", label: "No" },
+    { value: "internal_hosting", label: "Internal Hosting" },
+    { value: "external_hosting", label: "External Hosting" },
   ],
 };

@@ -36,6 +36,7 @@ class CommentOut(BaseModel):
     author_id: str | None
     application_id: str
     department_id: int
+    status: str | None
 
     department: DepartmentOut
 

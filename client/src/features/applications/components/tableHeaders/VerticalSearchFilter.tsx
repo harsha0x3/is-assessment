@@ -5,14 +5,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Filter, Search, XCircleIcon } from "lucide-react";
+import { CheckCheck, Filter, Search, XCircleIcon } from "lucide-react";
 
 import Hint from "@/components/ui/hint";
 import { useApplicationsContext } from "../../context/ApplicationsContext";
 import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 
 const VerticalSearchFilter: React.FC = () => {
   const { appVertical, updateSearchParams } = useApplicationsContext();
+  const [searchTerm, setSearchTerm] = useState<string>();
+  useEffect(() => {
+    if (!!appVertical) {
+      setSearchTerm(appVertical);
+    }
+  });
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -29,20 +36,29 @@ const VerticalSearchFilter: React.FC = () => {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72" side="top">
-        <div className="w-full sm:w-65 min-w-60 flex items-center">
+      <PopoverContent className="w-84" side="top">
+        <div className="w-full sm:w-72 min-w-70 flex items-center">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary h-4 w-4" />
             <Input
               type="text"
-              value={appVertical ?? ""}
+              value={searchTerm ?? ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                updateSearchParams({ appVertical: e.target.value });
+                setSearchTerm(e.target.value);
               }}
               placeholder={`Enter vertical name`}
               className="w-full pl-10 pr-3 py-2 border"
             />
           </div>
+          <Hint label="Apply">
+            <Button
+              variant={"ghost"}
+              size={"icon"}
+              onClick={() => updateSearchParams({ appVertical: searchTerm })}
+            >
+              <CheckCheck />
+            </Button>
+          </Hint>
           <Hint label="Clear">
             <Button
               variant={"ghost"}

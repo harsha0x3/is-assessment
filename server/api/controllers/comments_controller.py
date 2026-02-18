@@ -31,7 +31,7 @@ def get_latest_app_dept_comment(app_id: str, dept_id: int, db: Session):
 def create_comment(payload: c_schemas.CommentInput, db: Session):
     try:
         stmt = (
-            select(Application.id)
+            select(Application.id, ApplicationDepartments.status)
             .join(
                 ApplicationDepartments,
                 ApplicationDepartments.application_id == Application.id,
@@ -42,19 +42,21 @@ def create_comment(payload: c_schemas.CommentInput, db: Session):
             )
         )
 
-        exists = db.scalar(stmt)
+        exists = db.execute(stmt).first()
 
         if not exists:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Department does not belong to this application",
             )
+        _, status_ = exists
 
         new_comment = Comment(
             content=payload.content,
             author_id=payload.author_id,
             application_id=payload.application_id,
             department_id=payload.department_id,
+            status=status_,
         )
         db.add(new_comment)
         db.commit()

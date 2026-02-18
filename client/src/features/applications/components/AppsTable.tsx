@@ -393,33 +393,33 @@ const AppsTable: React.FC = () => {
                 );
               },
             }),
-            colHelper.accessor("status", {
-              header: () => (
-                <Suspense fallback={"Status"}>
-                  <AppStatusHeaderFilter />
-                </Suspense>
-              ),
-              maxSize: 140,
-              minSize: 80,
-              cell: (info) => {
-                const status: AppStatuses = info.getValue();
-                return (
-                  <div className=" w-full pl-4">
-                    <Badge
-                      className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
-                      style={{
-                        backgroundColor: STATUS_COLOR_MAP_BG[status],
-                        color: STATUS_COLOR_MAP_FG[status],
-                      }}
-                    >
-                      {parseStatus(status)}
-                    </Badge>
-                  </div>
-                );
-              },
-            }),
           ]
         : []),
+      colHelper.accessor("status", {
+        header: () => (
+          <Suspense fallback={"Status"}>
+            <AppStatusHeaderFilter />
+          </Suspense>
+        ),
+        maxSize: 140,
+        minSize: 80,
+        cell: (info) => {
+          const status: AppStatuses = info.getValue();
+          return (
+            <div className=" w-full pl-4">
+              <Badge
+                className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
+                style={{
+                  backgroundColor: STATUS_COLOR_MAP_BG[status],
+                  color: STATUS_COLOR_MAP_FG[status],
+                }}
+              >
+                {parseStatus(status)}
+              </Badge>
+            </div>
+          );
+        },
+      }),
 
       colHelper.accessor("imitra_ticket_id", {
         header: "iMitra Ticket ID",

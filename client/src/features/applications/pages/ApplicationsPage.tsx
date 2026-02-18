@@ -128,7 +128,9 @@ const ApplicationsPage: React.FC = () => {
         </div>
       </div>
 
-      <StatusProgressBar summary={data?.data.apps_summary} />
+      {data?.data?.filtered_summary && (
+        <StatusProgressBar summary={data?.data.filtered_summary} />
+      )}
       {isFetching && (
         <div className="flex items-center justify-center gap-2 z-10 px-2 py-1 text-xs text-muted-foreground">
           <div className="border p-2 flex items-center  gap-2">

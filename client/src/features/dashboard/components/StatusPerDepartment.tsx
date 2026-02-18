@@ -1,6 +1,6 @@
 // src/features/dashboard/components/StatusPerDepartment.tsx
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import StatusPerDepartmentChart from "./StatusPerDepartmentChart";
 import {
   useGetApplicationSummaryQuery,
@@ -10,21 +10,21 @@ import { SectionLoader } from "./Loaders";
 import { ArrowRight, FlagTriangleRight, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
-import type { AppStatuses } from "@/utils/globalTypes";
+import type { AppStatuses, DeptStatuses } from "@/utils/globalTypes";
 import { parseStatus } from "@/utils/helpers";
 import { useNavigate } from "react-router-dom";
 import { CardContent } from "@/components/ui/card";
 import { buildDonutData } from "@/lib/chartHelpers";
 
 interface Props {
-  appStatus: string;
-  deptStatus: string;
   slaFilter?: number;
 }
 
 const StatusCard: React.FC<{
   data: { name: string; count: number; percent: number };
-}> = ({ data }) => {
+  onClick: (status: AppStatuses) => void;
+  activeStatus: AppStatuses;
+}> = ({ data, onClick, activeStatus }) => {
   const navigate = useNavigate();
   useEffect(() => {
     const all = document.querySelectorAll(".spotlight-card");
@@ -61,18 +61,12 @@ const StatusCard: React.FC<{
   }, []);
   return (
     <div
-      className="spotlight-card relative overflow-hidden group/status  
-        border rounded-md
-        shadow-card
-        transition-all
-        duration-300
-        ease-in-out
-        hover:shadow-md hover:-translate-y-0.5
-        focus-visible:ring-2 focus-visible:ring-primary bg-border/30 w-full"
+      onClick={() => onClick(data.name as AppStatuses)}
+      className={`spotlight-card relative overflow-hidden group/status border rounded-md shadow-card transition-all duration-300 ease-in-out hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 w-full ${activeStatus == data.name ? "border-ring/40 ring-3 ring-ring ring-offset-0" : ""}`}
     >
       <div
         tabIndex={0}
-        className="flex w-full z-10 flex-col gap-1 px-3 py-2 group-hover:bg-card/90 max-w-80 border-none transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]"
+        className="flex w-full z-10 flex-col gap-1 px-3 py-2 group-hover:bg-card/90 border-none transition-all duration-300 ease-in-out group-hover:backdrop-blur-[20px]"
       >
         {/* Title */}
         <p className="font-medium capitalize flex items-center gap-2">
@@ -94,7 +88,7 @@ const StatusCard: React.FC<{
 
         {/* Count + Action */}
         <div className="flex w-full items-center justify-between">
-          <span className="text-xl font-semibold flex-1">{data.count}</span>
+          <span className="text-xl font-semibold">{data.count}</span>
 
           <Button
             onClick={() => navigate(`/applications?appStatus=${data.name}`)}
@@ -104,9 +98,7 @@ const StatusCard: React.FC<{
           group/view_button
           opacity-100
             md:opacity-0
-            md:hidden
             md:group-hover/status:opacity-100
-            md:group-hover/status:flex
             md:group-hover/status:pointer-events-auto
             md:group-focus-visible/status:opacity-100
             md:group-focus-visible/status:pointer-events-auto
@@ -126,11 +118,9 @@ const StatusCard: React.FC<{
   );
 };
 
-const StatusPerDepartment: React.FC<Props> = ({
-  appStatus,
-  slaFilter,
-  deptStatus,
-}) => {
+const StatusPerDepartment: React.FC<Props> = ({ slaFilter }) => {
+  const [appStatus, setAppStatus] = useState<AppStatuses>("in_progress");
+  const [deptStatus, setDeptStatus] = useState<DeptStatuses>("in_progress");
   const {
     data,
     isLoading,
@@ -153,7 +143,9 @@ const StatusPerDepartment: React.FC<Props> = ({
     if (!appsSummary) return null;
 
     const filtered = appsSummary.status_chart.filter((d) =>
-      ["in_progress", "completed"].includes(d.status),
+      ["in_progress", "completed", "not_yet_started", "cancelled"].includes(
+        d.status,
+      ),
     );
 
     return buildDonutData(filtered, appsSummary.total_apps);
@@ -186,6 +178,7 @@ const StatusPerDepartment: React.FC<Props> = ({
     <CardContent className="w-full grid grid-cols-1 sm:grid-cols-2 gap-20 items-center">
       {/* Chart */}
       <StatusPerDepartmentChart
+        color={STATUS_COLOR_MAP_FG[appStatus]}
         data={data.map((d) => ({
           department: d.department,
           count: d.count,
@@ -231,6 +224,26 @@ const StatusPerDepartment: React.FC<Props> = ({
                     count: item.count,
                     percent: item.value,
                   }}
+                  onClick={(status: AppStatuses) => {
+                    setAppStatus(status);
+                    switch (status) {
+                      case "in_progress":
+                        setDeptStatus("in_progress");
+                        break;
+                      case "completed":
+                        setDeptStatus("cleared");
+                        break;
+                      case "cancelled":
+                        setDeptStatus("closed");
+                        break;
+                      case "not_yet_started":
+                        setDeptStatus("yet_to_connect");
+                        break;
+                      default:
+                        setDeptStatus("in_progress");
+                    }
+                  }}
+                  activeStatus={appStatus}
                 />
               ))}
             </div>

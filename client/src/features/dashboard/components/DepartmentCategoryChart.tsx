@@ -1,6 +1,6 @@
 import React from "react";
 import type { CategorySummaryItem } from "../types";
-import CategoryDonut from "./CategoyDonut";
+import CategoryDonut from "./CategoryDonut";
 
 interface Props {
   departmentName: string;
