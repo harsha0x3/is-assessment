@@ -177,12 +177,12 @@ const AppsTable: React.FC = () => {
     ],
 
     tprm: [
-      colHelper.accessor("vendor_company", {
-        header: "Vendor",
-        cell: (info) => {
-          return info.getValue();
-        },
-      }),
+      // colHelper.accessor("vendor_company", {
+      //   header: "Vendor",
+      //   cell: (info) => {
+      //     return info.getValue();
+      //   },
+      // }),
       createDepartmentStatusColumn("tprm", "TPRM"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
@@ -420,7 +420,22 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
-
+      colHelper.accessor("environment", {
+        header: "Environment",
+        minSize: 90,
+        maxSize: 120,
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
+      colHelper.accessor("vendor_company", {
+        header: "Vendor Company",
+        minSize: 90,
+        maxSize: 120,
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
       colHelper.accessor("imitra_ticket_id", {
         header: "iMitra Ticket ID",
         minSize: 90,
