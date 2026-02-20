@@ -422,16 +422,16 @@ const AppsTable: React.FC = () => {
       }),
       colHelper.accessor("environment", {
         header: "Environment",
-        minSize: 90,
-        maxSize: 120,
+        minSize: 120,
+        maxSize: 160,
         cell: (info) => {
           return info.getValue();
         },
       }),
       colHelper.accessor("vendor_company", {
         header: "Vendor Company",
-        minSize: 90,
-        maxSize: 120,
+        minSize: 120,
+        maxSize: 160,
         cell: (info) => {
           return info.getValue();
         },
