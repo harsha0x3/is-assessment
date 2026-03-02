@@ -175,7 +175,7 @@ const StatusPerDepartment: React.FC<Props> = ({ slaFilter }) => {
    * RENDER
    * ----------------------------- */
   return (
-    <CardContent className="w-full grid grid-cols-1 sm:grid-cols-2 gap-20 items-center">
+    <CardContent className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       {/* Chart */}
       <StatusPerDepartmentChart
         color={STATUS_COLOR_MAP_FG[appStatus]}
@@ -186,7 +186,7 @@ const StatusPerDepartment: React.FC<Props> = ({ slaFilter }) => {
       />
 
       {/* Summary + Cards */}
-      <div className="w-2/3">
+      <div className="w-full max-w-full">
         {/* Loading summary */}
         {isLoadingAppsSummary && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -207,7 +207,7 @@ const StatusPerDepartment: React.FC<Props> = ({ slaFilter }) => {
           </div>
         )}
 
-        {/* Summary success */}
+        {/* Status Cards Summary*/}
         {statusCardData && appsSummary && (
           <div className="space-y-4">
             <p>

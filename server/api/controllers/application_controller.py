@@ -98,6 +98,7 @@ def _has_filters(params: AppQueryParams) -> bool:
             params.mobile_apps is not None,
             params.web_apps is not None,
             params.mobile_web_apps is not None,
+            params.privacy_apps is not None,
         ]
     )
 
@@ -271,6 +272,12 @@ def list_all_apps(db: Session, params: AppQueryParams):
             elif params.ai_apps.lower() == "false":
                 stmt = stmt.where(not_(Application.is_app_ai))
 
+        if params.privacy_apps is not None:
+            if params.privacy_apps.lower() == "true":
+                stmt = stmt.where(Application.is_privacy_applicable)
+            elif params.privacy_apps.lower() == "false":
+                stmt = stmt.where(not_(Application.is_privacy_applicable))
+
         if params.web_apps is not None:
             if params.web_apps.lower() == "true":
                 stmt = stmt.where(Application.app_type == "web")
@@ -279,9 +286,9 @@ def list_all_apps(db: Session, params: AppQueryParams):
 
         if params.mobile_apps is not None:
             if params.mobile_apps == "true":
-                stmt = stmt.where(Application.app_tech == "mobile")
+                stmt = stmt.where(Application.app_type == "mobile")
             if params.mobile_apps == "false":
-                stmt = stmt.where(not_(Application.app_tech == "mobile"))
+                stmt = stmt.where(not_(Application.app_type == "mobile"))
 
         if params.mobile_web_apps is not None:
             if params.mobile_web_apps == "true":

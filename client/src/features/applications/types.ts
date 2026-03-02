@@ -57,6 +57,7 @@ export interface ApplicationOut {
 
   app_type?: string | null;
   is_app_ai?: boolean;
+  is_privacy_applicable?: boolean;
 
   departments?: DepartmentOut[];
 }
@@ -86,6 +87,7 @@ export interface ApplicationUpdate {
 
   app_type?: string | null;
   is_app_ai?: boolean | null;
+  is_privacy_applicable?: boolean;
 }
 
 export interface NewAppListOut {
@@ -135,6 +137,7 @@ export interface AppQueryParams {
   ai_apps?: string;
   web_apps?: string;
   mobile_web_apps?: string;
+  privacy_apps?: string;
 }
 
 export interface AppStatusSummary {

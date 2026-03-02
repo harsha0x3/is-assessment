@@ -86,6 +86,20 @@ def export_application_overview_rows(db: Session) -> list[dict]:
     return rows
 
 
+def safe_filename(name: str) -> str:
+    return (
+        name.replace("/", "_")
+        .replace("\\", "_")
+        .replace(":", "_")
+        .replace("*", "_")
+        .replace("?", "_")
+        .replace('"', "_")
+        .replace("<", "_")
+        .replace(">", "_")
+        .replace("|", "_")
+    )
+
+
 def get_vertical_applications(db: Session):
     try:
         stmt = (
@@ -184,7 +198,8 @@ def export_vertical_applications_zip(db: Session):
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
             for vertical, apps in vertical_data.items():
-                csv_file = os.path.join(temp_dir, f"{vertical}.csv")
+                safe_vertical = safe_filename(vertical)
+                csv_file = os.path.join(temp_dir, f"{safe_vertical}.csv")
 
                 with open(csv_file, mode="w", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)

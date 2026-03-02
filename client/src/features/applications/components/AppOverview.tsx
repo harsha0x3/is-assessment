@@ -81,6 +81,7 @@ const applicationDefaultValues: ApplicationOut = {
 
   app_type: null,
   is_app_ai: false,
+  is_privacy_applicable: false,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -699,6 +700,43 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         className="whitespace-nowrap"
                       >
                         Is AI Application
+                      </FieldLabel>
+                      <div className="inline-flex items-center gap-2">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={!(isNew || isEditing)}
+                          className="flex-none"
+                        />
+                        <Label
+                          htmlFor="toggle-label"
+                          className="text-sm font-medium"
+                        >
+                          {field.value ? "Yes" : "No"}
+                        </Label>
+                      </div>
+
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Is Privacy Applicable */}
+                <Controller
+                  name="is_privacy_applicable"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className="flex items-center gap-2"
+                    >
+                      <FieldLabel
+                        htmlFor="is_privacy_applicable"
+                        className="whitespace-nowrap"
+                      >
+                        Is Privacy Applicable
                       </FieldLabel>
                       <div className="inline-flex items-center gap-2">
                         <Switch

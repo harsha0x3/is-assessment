@@ -23,6 +23,7 @@ const AppTypeFilter: React.FC = () => {
     mobileAppsFilter,
     mobileWebAppsFilter,
     updateSearchParams,
+    privacyAppsFilter,
   } = useApplicationsContext();
   return (
     <DropdownMenu>
@@ -70,6 +71,39 @@ const AppTypeFilter: React.FC = () => {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
+
+          {/* Privacy Apps */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Privacy Apps</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem
+                  onClick={() =>
+                    updateSearchParams({ privacyAppsFilter: "true" })
+                  }
+                >
+                  {privacyAppsFilter === "true" && <Check />}
+                  True
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    updateSearchParams({ privacyAppsFilter: "false" })
+                  }
+                >
+                  {privacyAppsFilter === "false" && <Check />}
+                  False
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    updateSearchParams({ privacyAppsFilter: undefined })
+                  }
+                >
+                  Clear
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+
           {/* Web Apps */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Web Apps</DropdownMenuSubTrigger>
@@ -162,6 +196,21 @@ const AppTypeFilter: React.FC = () => {
             </DropdownMenuPortal>
           </DropdownMenuSub>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() =>
+            updateSearchParams({
+              mobileWebAppsFilter: undefined,
+              mobileAppsFilter: undefined,
+              aiAppsFilter: undefined,
+              privacyAppsFilter: undefined,
+              webAppsFilter: undefined,
+            })
+          }
+          className="text-destructive"
+        >
+          Clear All
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

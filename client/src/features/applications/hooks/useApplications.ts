@@ -33,6 +33,7 @@ export const useApplications = () => {
   const webAppsFilter = searchParams.get("webAppsFilter");
   const aiAppsFilter = searchParams.get("aiAppsFilter");
   const mobileWebAppsFilter = searchParams.get("mobileWebAppsFilter");
+  const privacyAppsFilter = searchParams.get("privacyAppsFilter");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -66,6 +67,7 @@ export const useApplications = () => {
       web_apps: webAppsFilter ?? undefined,
       mobile_web_apps: mobileWebAppsFilter ?? undefined,
       ai_apps: aiAppsFilter ?? undefined,
+      privacy_apps: privacyAppsFilter ?? undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
@@ -173,6 +175,7 @@ export const useApplications = () => {
     aiAppsFilter,
     mobileWebAppsFilter,
     webAppsFilter,
+    privacyAppsFilter,
   };
 };
 

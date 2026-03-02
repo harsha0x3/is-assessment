@@ -93,6 +93,7 @@ async def new_list_all_apps(
     web_apps: Annotated[str | None, Query()] = None,
     mobile_apps: Annotated[str | None, Query()] = None,
     mobile_web_apps: Annotated[str | None, Query()] = None,
+    privacy_apps: Annotated[str | None, Query()] = None,
 ):
     print(
         f"ai_apps: {ai_apps} \n web_apps: {web_apps}\nmobile_apps: {mobile_apps}\n mobile_web_apps: {mobile_web_apps}"
@@ -107,8 +108,7 @@ async def new_list_all_apps(
         and status.strip() != "undefined"
     ):
         status_list = status.split(",")
-        print("STATUS LIST SATIS FIED", status)
-    print("STATUS LIST NOT SATIS FIED", status)
+
     dept_status_list = []
 
     if (
@@ -138,6 +138,7 @@ async def new_list_all_apps(
         web_apps=web_apps,
         ai_apps=ai_apps,
         mobile_web_apps=mobile_web_apps,
+        privacy_apps=privacy_apps,
     )
     data = list_all_apps(
         db=db,

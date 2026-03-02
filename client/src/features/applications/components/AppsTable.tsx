@@ -465,14 +465,7 @@ const AppsTable: React.FC = () => {
     if (!isAppsLoading) {
       return [
         ...baseColumns,
-        // colHelper.accessor("environment", {
-        //   header: "Environment",
-        //   maxSize: 100,
-        //   minSize: 80,
-        //   cell: (info) => {
-        //     return <div className=" w-full">{info.getValue()}</div>;
-        //   },
-        // }),
+
         ...departmentColumns,
 
         // colHelper.accessor("completed_at", {

@@ -38,6 +38,9 @@ class Application(Base, BaseMixin):
 
     app_type: Mapped[str] = mapped_column(String(100), nullable=True)
     is_app_ai: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
+    is_privacy_applicable: Mapped[bool] = mapped_column(
+        Boolean, nullable=True, default=False
+    )
 
     question_set_id: Mapped[int | None] = mapped_column(
         ForeignKey("question_sets.id", ondelete="set null"),

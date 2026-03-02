@@ -33,7 +33,8 @@ class ApplicationCreate(BaseModel):
     data_type: str | None = None
 
     app_type: str | None = None
-    is_app_ai: bool = False
+    is_app_ai: bool | None = None
+    is_privacy_applicable: bool | None = None
 
     app_url: str | None
 
@@ -70,7 +71,8 @@ class ApplicationOut(BaseModel):
     data_type: str | None
 
     app_type: str | None = None
-    is_app_ai: bool = False
+    is_app_ai: bool | None
+    is_privacy_applicable: bool | None
 
     departments: list[DepartmentOut] | None
 
@@ -106,7 +108,9 @@ class ApplicationUpdate(BaseModel):
     data_type: str | None = None
 
     app_type: str | None = None
-    is_app_ai: bool = False
+    is_app_ai: bool | None = None
+
+    is_privacy_applicable: bool | None = None
 
 
 class ListApplicationsOut(BaseModel):
@@ -173,6 +177,7 @@ class AppQueryParams(BaseModel):
     mobile_apps: str | None
     web_apps: str | None
     mobile_web_apps: str | None
+    privacy_apps: str | None
 
     @field_validator("sort_by")
     @classmethod
