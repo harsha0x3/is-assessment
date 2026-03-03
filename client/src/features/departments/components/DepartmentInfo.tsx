@@ -30,7 +30,7 @@ import type { DeptStatuses } from "@/utils/globalTypes";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
-import { getLabelFromOptions, parseDate, parseStatus } from "@/utils/helpers";
+import { getLabelFromOptions, parseStatus } from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -126,6 +126,8 @@ const DepartmentInfo: React.FC = () => {
       setIsEditingStatus(false);
       setIsEditingCategory(false);
       setIsEditingCategoryStatus(false);
+      setIsEditingStartedAt(false);
+      toast.success("Department info updated successfully");
     } catch (err) {
       const errMsg: string = getApiErrorMessage(err) ?? "Error updating status";
       toast.error(errMsg);
@@ -152,7 +154,7 @@ const DepartmentInfo: React.FC = () => {
             {data?.data.name}
           </CardTitle> */}
             {/* App status */}
-            <div className="basis-[260px] grow">
+            <div className="basis-65 grow">
               <span>Status:</span>
 
               {!isEditingStatus ? (
@@ -261,7 +263,7 @@ const DepartmentInfo: React.FC = () => {
             </div>
 
             {/* Process started date */}
-            <div className="basis-[260px] grow">
+            <div className="basis-65 grow">
               <div className="flex items-center gap-2">
                 <span className="whitespace-nowrap">Started At:</span>
 
@@ -270,7 +272,7 @@ const DepartmentInfo: React.FC = () => {
                   readOnly={!isEditingStartedAt}
                   value={startedAt}
                   onChange={(e) => setStartedAt(e.target.value)}
-                  className="w-[160px]"
+                  className="w-40"
                 />
 
                 {!isEditingStartedAt ? (
@@ -301,6 +303,7 @@ const DepartmentInfo: React.FC = () => {
                       size="icon"
                       variant="ghost"
                       className="text-red-500"
+                      onClick={() => setStartedAt(prevStartedAt)}
                     >
                       <X />
                     </Button>
@@ -309,7 +312,7 @@ const DepartmentInfo: React.FC = () => {
               </div>
             </div>
             {/* App Category */}
-            <div className="basis-[260px] grow">
+            <div className="basis-65 grow">
               <span>Category:</span>
 
               {!isEditingCategory ? (
@@ -398,7 +401,7 @@ const DepartmentInfo: React.FC = () => {
             </div>
 
             {/* App Category Status*/}
-            <div className="basis-[260px] grow">
+            <div className="basis-65 grow">
               <span>Category Status:</span>
 
               {!isEditingCategoryStatus ? (
