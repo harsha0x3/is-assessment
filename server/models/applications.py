@@ -1,7 +1,7 @@
-from sqlalchemy import ForeignKey, String, Text, Integer, DateTime, Boolean
+from sqlalchemy import ForeignKey, String, Text, Integer, DateTime, Boolean, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from datetime import datetime
+from datetime import datetime, date
 from db.base import Base, BaseMixin
 
 
@@ -41,6 +41,7 @@ class Application(Base, BaseMixin):
     is_privacy_applicable: Mapped[bool] = mapped_column(
         Boolean, nullable=True, default=False
     )
+    requested_date: Mapped[date] = mapped_column(Date, nullable=True)
 
     question_set_id: Mapped[int | None] = mapped_column(
         ForeignKey("question_sets.id", ondelete="set null"),

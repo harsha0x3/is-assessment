@@ -30,9 +30,11 @@ import type { DeptStatuses } from "@/utils/globalTypes";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
-import { getLabelFromOptions, parseStatus } from "@/utils/helpers";
+import { getLabelFromOptions, parseDate, parseStatus } from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import type { DepartmentStatusPayload } from "../types";
 
 const DepartmentInfo: React.FC = () => {
   const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
@@ -45,12 +47,16 @@ const DepartmentInfo: React.FC = () => {
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isEditingCategoryStatus, setIsEditingCategoryStatus] = useState(false);
+  const [isEditingStartedAt, setIsEditingStartedAt] = useState(false);
+
   const [statusValue, setStatusValue] = useState<DeptStatuses>();
   const [prevStatus, setPrevStatusVal] = useState<DeptStatuses>();
   const [prevCategory, setPrevCategory] = useState<string>();
   const [categoryVal, setCategoryVal] = useState<string>();
   const [categoryStatus, setCategoryStatus] = useState<string>();
   const [prevCategoryStatus, setPrevCategoryStatus] = useState<string>();
+  const [startedAt, setStartedAt] = useState<string>();
+  const [prevStartedAt, setPrevStartedAt] = useState<string>();
 
   const userDepts = useSelector(selectUserDepts);
 
@@ -64,20 +70,26 @@ const DepartmentInfo: React.FC = () => {
     if (data?.data?.category_status) {
       setCategoryVal(data.data.category_status);
     }
+    if (data?.data?.started_at) {
+      setStartedAt(data.data.started_at);
+    }
   }, [data]);
 
   useEffect(() => {
     setIsEditingStatus(false);
     setIsEditingCategory(false);
     setIsEditingCategoryStatus(false);
+    setIsEditingStartedAt(false);
 
     setStatusValue(undefined);
     setCategoryVal(undefined);
     setCategoryStatus(undefined);
+    setStartedAt(undefined);
 
     setPrevStatusVal(undefined);
     setPrevCategory(undefined);
     setPrevCategoryStatus(undefined);
+    setPrevStartedAt(undefined);
   }, [deptId]);
 
   const [updateDepartmentStatus, { isLoading: isUpdatingStatus }] =
@@ -91,11 +103,12 @@ const DepartmentInfo: React.FC = () => {
     );
   }
 
-  const handleStatusSave = async () => {
+  const handleStatusSave = async (payload: DepartmentStatusPayload) => {
     if (
       statusValue === data?.data.status &&
       categoryVal === data?.data.app_category &&
-      categoryStatus === data?.data.category_status
+      categoryStatus === data?.data.category_status &&
+      startedAt === data?.data.started_at
     ) {
       setIsEditingStatus(false);
       setIsEditingCategory(false);
@@ -107,11 +120,7 @@ const DepartmentInfo: React.FC = () => {
       await updateDepartmentStatus({
         appId,
         deptId: deptIdNumber,
-        payload: {
-          status: statusValue,
-          app_category: categoryVal,
-          category_status: categoryStatus,
-        },
+        payload: payload,
       }).unwrap();
 
       setIsEditingStatus(false);
@@ -138,12 +147,12 @@ const DepartmentInfo: React.FC = () => {
         ) : error ? (
           <p>{getApiErrorMessage(error) ?? "Error getting Department Info"}</p>
         ) : data?.data ? (
-          <div className="flex flex-row w-full gap-10 items-center justify-between">
+          <div className="flex flex-row flex-wrap gap-3">
             {/* <CardTitle className="text-center w-full text-lg">
             {data?.data.name}
           </CardTitle> */}
             {/* App status */}
-            <div className="text-sm w-full flex items-center gap-2">
+            <div className="basis-[260px] grow">
               <span>Status:</span>
 
               {!isEditingStatus ? (
@@ -225,7 +234,7 @@ const DepartmentInfo: React.FC = () => {
                   <Hint label="Save status">
                     <Button
                       size="sm"
-                      onClick={handleStatusSave}
+                      onClick={() => handleStatusSave({ status: statusValue })}
                       disabled={isUpdatingStatus}
                       variant="ghost"
                       className="text-blue-500"
@@ -250,8 +259,57 @@ const DepartmentInfo: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Process started date */}
+            <div className="basis-[260px] grow">
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap">Started At:</span>
+
+                <Input
+                  type="date"
+                  readOnly={!isEditingStartedAt}
+                  value={startedAt}
+                  onChange={(e) => setStartedAt(e.target.value)}
+                  className="w-[160px]"
+                />
+
+                {!isEditingStartedAt ? (
+                  userDepts.includes(deptIdNumber) && (
+                    <Hint label="Update process start date">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsEditingStartedAt(true);
+                          setPrevStartedAt(startedAt);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Hint>
+                  )
+                ) : (
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-blue-500"
+                    >
+                      <Save />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-red-500"
+                    >
+                      <X />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
             {/* App Category */}
-            <div className="text-sm w-full flex items-center gap-2">
+            <div className="basis-[260px] grow">
               <span>Category:</span>
 
               {!isEditingCategory ? (
@@ -308,10 +366,12 @@ const DepartmentInfo: React.FC = () => {
                     </SelectContent>
                   </Select>
 
-                  <Hint label="Save status">
+                  <Hint label="Save Category">
                     <Button
                       size="sm"
-                      onClick={handleStatusSave}
+                      onClick={() =>
+                        handleStatusSave({ app_category: categoryVal })
+                      }
                       disabled={isUpdatingStatus}
                       variant="ghost"
                       className="text-blue-500"
@@ -336,8 +396,9 @@ const DepartmentInfo: React.FC = () => {
                 </div>
               )}
             </div>
+
             {/* App Category Status*/}
-            <div className="text-sm w-full flex items-center gap-2">
+            <div className="basis-[260px] grow">
               <span>Category Status:</span>
 
               {!isEditingCategoryStatus ? (
@@ -394,10 +455,12 @@ const DepartmentInfo: React.FC = () => {
                     </SelectContent>
                   </Select>
 
-                  <Hint label="Save status">
+                  <Hint label="Save category status">
                     <Button
                       size="sm"
-                      onClick={handleStatusSave}
+                      onClick={() =>
+                        handleStatusSave({ category_status: categoryStatus })
+                      }
                       disabled={isUpdatingStatus}
                       variant="ghost"
                       className="text-blue-500"

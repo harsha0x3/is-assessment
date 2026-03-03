@@ -1,5 +1,6 @@
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint, Date
 from sqlalchemy.orm import Mapped, mapped_column
+from datetime import date
 
 from db.base import Base, BaseMixin
 
@@ -14,6 +15,7 @@ class ApplicationDepartments(Base, BaseMixin):
         Integer, ForeignKey("departments.id"), nullable=False
     )
     status: Mapped[str] = mapped_column(String(40), default="yet_to_connect")
+    started_at: Mapped[date] = mapped_column(Date, nullable=True)
 
     app_category: Mapped[str] = mapped_column(String(40), nullable=True)
     category_status: Mapped[str] = mapped_column(String(40), nullable=True)

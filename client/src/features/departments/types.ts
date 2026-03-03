@@ -19,6 +19,7 @@ export interface AppDepartmentOut extends DepartmentOut {
   status: DeptStatuses;
   app_category?: string;
   category_status?: string;
+  started_at?: string;
 }
 
 export interface NewUserDepartmentAssign {
@@ -36,8 +37,8 @@ export interface CommentOut {
   department: DepartmentOut;
   author: UserOut;
 
-  created_at?: string; // ISO datetime string
-  updated_at?: string; // ISO datetime string
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface DepartmentInfo extends AppDepartmentOut {
@@ -49,4 +50,5 @@ export interface DepartmentStatusPayload {
   status?: string;
   app_category?: string;
   category_status?: string;
+  started_at?: string;
 }

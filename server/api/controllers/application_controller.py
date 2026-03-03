@@ -354,7 +354,6 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 started_at=app.started_at,
                 completed_at=app.completed_at,
                 departments=depts_out,
-                app_url=app.app_url,
                 vendor_company=app.vendor_company,
                 latest_comment=latest_comment,
                 due_date=app.due_date,
@@ -402,6 +401,8 @@ def update_app(
             )
 
         prev_status = app.status
+
+        print("Payload to update app", payload.model_dump())
 
         for key, val in payload.model_dump(
             exclude_unset=True, exclude={"priority"}

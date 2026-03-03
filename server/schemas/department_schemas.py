@@ -1,6 +1,6 @@
 # models\schemas\department_schemas.py
 from pydantic import BaseModel, ConfigDict
-from datetime import datetime
+from datetime import datetime, date
 from .auth_schemas import UserOut
 
 
@@ -23,6 +23,7 @@ class AppDepartmentOut(DepartmentOut, BaseModel):
     status: str
     app_category: str | None
     category_status: str | None
+    started_at: date | None
 
 
 class NewUserDepartmentAssign(BaseModel):
@@ -57,3 +58,4 @@ class DeptStatusPayload(BaseModel):
     status: str | None = None
     app_category: str | None = None
     category_status: str | None = None
+    started_at: date | None = None

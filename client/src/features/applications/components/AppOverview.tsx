@@ -82,6 +82,8 @@ const applicationDefaultValues: ApplicationOut = {
   app_type: null,
   is_app_ai: false,
   is_privacy_applicable: false,
+
+  requested_date: null,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -161,6 +163,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
 
   const onSubmit = async (data: ApplicationCreate) => {
     if (isEditing) {
+      console.log("APP DATA", data);
       await handleSaveEdit(data);
     } else if (isAdmin && (isEditing || isNew)) {
       await handleNewApp(data);
@@ -458,6 +461,35 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                   )}
                 />
 
+                {/* Requested On */}
+                <Controller
+                  name="requested_date"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="gap-2">
+                      <FieldLabel htmlFor="requested_date">
+                        Requested Date
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        value={
+                          field.value ? parseDateForInput(field.value) : ""
+                        }
+                        type="date"
+                        id="requested_date"
+                        readOnly={!(isNew || isEditing)}
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Requeste raised date"
+                        autoComplete="off"
+                      />
+
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
                 {/* Started On */}
                 <Controller
                   name="started_at"
@@ -474,7 +506,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                         id="started_at"
                         readOnly={!(isNew || isEditing)}
                         aria-invalid={fieldState.invalid}
-                        placeholder="Application Technology"
+                        placeholder="Process initiated date"
                         autoComplete="off"
                       />
 

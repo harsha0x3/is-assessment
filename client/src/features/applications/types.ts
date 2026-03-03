@@ -47,6 +47,7 @@ export interface ApplicationOut {
   started_at?: string | null;
   completed_at?: string | null;
   due_date?: string | null;
+  requested_date?: string | null;
 
   imitra_ticket_id?: string | null;
   titan_spoc?: string | null;

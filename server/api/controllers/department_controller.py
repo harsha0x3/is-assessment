@@ -130,6 +130,7 @@ def get_departments_by_application(app_id: str, db: Session):
                 status=app_dept.status,
                 app_category=app_dept.app_category,
                 category_status=app_dept.category_status,
+                started_at=app_dept.started_at,
             )
             for dep, app_dept in results
         ]
@@ -274,6 +275,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             category_status=app_dept.category_status,
             comments=comments,
             can_go_live=all(dept == "cleared" for dept in all_dept_status),
+            started_at=app_dept.started_at,
         )
     except HTTPException:
         raise
@@ -305,36 +307,38 @@ def change_department_app_status(
         for key, val in payload.model_dump(
             exclude_unset=True, exclude_none=True
         ).items():
+            print(f"Updating {key} to {val}")
             if hasattr(dept_app, key):
+                print(f"Before update: {key} = {getattr(dept_app, key)}")
                 setattr(dept_app, key, val)
 
-        dept_apps = (
-            db.execute(
-                select(ApplicationDepartments).where(
-                    ApplicationDepartments.application_id == app_id
+        if payload.status and payload.status is not None:
+            dept_apps = (
+                db.execute(
+                    select(ApplicationDepartments).where(
+                        ApplicationDepartments.application_id == app_id
+                    )
                 )
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
+            app = db.get(Application, app_id)
+            if not app:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Application not found",
+                )
 
-        app = db.get(Application, app_id)
-        if not app:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Application not found",
-            )
-
-        if all(d.status == "cleared" for d in dept_apps):
-            app.status = "completed"
-            app.is_completed = True
-            app.completed_at = datetime.now(timezone.utc)
-        elif app.status == "completed":
-            app.status = "in_progress"
-            app.is_completed = False
+            if all(d.status == "cleared" for d in dept_apps):
+                app.status = "completed"
+                app.is_completed = True
+                app.completed_at = datetime.now(timezone.utc)
+            elif app.status == "completed":
+                app.status = "in_progress"
+                app.is_completed = False
 
         db.commit()
-        return app
+        return "Changes made successfully"
 
     except HTTPException:
         raise

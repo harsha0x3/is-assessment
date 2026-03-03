@@ -2,7 +2,7 @@
 from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Literal
 
-from datetime import datetime
+from datetime import datetime, date
 from .department_schemas import AppDepartmentOut, DepartmentOut
 from .checklist_schemas import ChecklistOut
 from .comment_schemas import CommentOut
@@ -35,6 +35,8 @@ class ApplicationCreate(BaseModel):
     app_type: str | None = None
     is_app_ai: bool | None = None
     is_privacy_applicable: bool | None = None
+
+    requested_date: date | None = None
 
     app_url: str | None
 
@@ -73,6 +75,7 @@ class ApplicationOut(BaseModel):
     app_type: str | None = None
     is_app_ai: bool | None
     is_privacy_applicable: bool | None
+    requested_date: date | None = None
 
     departments: list[DepartmentOut] | None
 
@@ -110,6 +113,8 @@ class ApplicationUpdate(BaseModel):
     app_type: str | None = None
     is_app_ai: bool | None = None
 
+    requested_date: date | None = None
+
     is_privacy_applicable: bool | None = None
 
 
@@ -136,7 +141,7 @@ class NewAppListOut(BaseModel):
     imitra_ticket_id: str | None = None
     status: str
     app_priority: int | None = None
-    app_url: str | None
+    # app_url: str | None
     environment: str | None
 
     started_at: datetime | None = None
@@ -145,6 +150,9 @@ class NewAppListOut(BaseModel):
 
     app_type: str | None = None
     is_app_ai: bool = False
+    is_privacy_applicable: bool | None = None
+
+    requested_date: date | None = None
 
     vendor_company: str | None = None
     titan_spoc: str | None
