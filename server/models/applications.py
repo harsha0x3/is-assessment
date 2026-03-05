@@ -48,6 +48,8 @@ class Application(Base, BaseMixin):
         nullable=True,
     )
 
+    severity: Mapped[int] = mapped_column(Integer, nullable=True)
+
     # -- Relationships --
     creator = relationship(
         "User", back_populates="created_applications", foreign_keys=[creator_id]

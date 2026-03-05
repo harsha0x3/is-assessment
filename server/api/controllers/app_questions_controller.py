@@ -112,27 +112,92 @@ def get_app_criticality(app_id: str, db: Session):
     try:
         responses = get_questions_with_answers(db=db, application_id=app_id)
 
-        is_high = all(
-            res.answer is not None
-            and res.answer.answer_text is not None
-            and res.answer.answer_text.lower() == "yes"
-            for res in responses
-            if res.is_high
+        first_q = None
+        second_q = None
+        third_q = None
+        fourth_q = None
+        fifth_q = None
+        sixth_q = None
+        seventh_q = None
+        eighth_q = None
+
+        for res in responses:
+            if res.sequence_number == 1:
+                first_q = res
+            elif res.sequence_number == 2:
+                second_q = res
+            elif res.sequence_number == 3:
+                third_q = res
+            elif res.sequence_number == 4:
+                fourth_q = res
+            elif res.sequence_number == 5:
+                fifth_q = res
+            elif res.sequence_number == 6:
+                sixth_q = res
+            elif res.sequence_number == 7:
+                seventh_q = res
+            elif res.sequence_number == 8:
+                eighth_q = res
+
+        def is_yes(q):
+            return (
+                q
+                and q.answer
+                and q.answer.answer_text
+                and q.answer.answer_text.lower() == "yes"
+            )
+
+        print("Responses:")
+        print(
+            f"first_q: {first_q.answer.answer_text if first_q and first_q.answer else 'No answer'}"
+        )
+        print(
+            f"second_q: {second_q.answer.answer_text if second_q and second_q.answer else 'No answer'}"
+        )
+        print(
+            f"third_q: {third_q.answer.answer_text if third_q and third_q.answer else 'No answer'}"
+        )
+        print(
+            f"fourth_q: {fourth_q.answer.answer_text if fourth_q and fourth_q.answer else 'No answer'}"
+        )
+        print(
+            f"fifth_q: {fifth_q.answer.answer_text if fifth_q and fifth_q.answer else 'No answer'}"
+        )
+        print(
+            f"sixth_q: {sixth_q.answer.answer_text if sixth_q and sixth_q.answer else 'No answer'}"
+        )
+        print(
+            f"seventh_q: {seventh_q.answer.answer_text if seventh_q and seventh_q.answer else 'No answer'}"
+        )
+        print(
+            f"eighth_q: {eighth_q.answer.answer_text if eighth_q and eighth_q.answer else 'No answer'}"
         )
 
-        if is_high:
+        # Rule 1
+        if is_yes(fifth_q):
+            return 4
+
+        # Rule 2
+        if is_yes(first_q) and (is_yes(second_q) or is_yes(third_q)):
+            print("1 and (2 or 3) is true")
+            return 4
+
+        # Rule 3
+        if is_yes(fourth_q) and (is_yes(second_q) or is_yes(third_q)):
+            print("4 and (2 or 3) is true")
+            return 4
+
+        # Rule 4
+        if is_yes(second_q) or is_yes(third_q) or is_yes(sixth_q):
+            print("2 or 3 or 6 is true")
             return 3
-        is_medium = all(
-            [
-                res.answer is not None
-                and res.answer.answer_text is not None
-                and res.answer.answer_text.lower() == "yes"
-                for res in responses
-                if res.is_medium
-            ]
-        )
-        if is_medium:
+
+        # Rule 5
+        if is_yes(first_q) and is_yes(fourth_q) or is_yes(seventh_q):
+            print("4 or 7 is true")
             return 2
+
+        print("None of the conditions met, returning 1")
         return 1
 
     except HTTPException:
@@ -167,7 +232,7 @@ def answer_app_question(
             existing_answer.author_id = author_id
             db.add(existing_answer)
             criticlity = get_app_criticality(app_id=application_id, db=db)
-            application.app_priority = criticlity
+            application.severity = criticlity
             db.commit()
             db.refresh(existing_answer)
 
@@ -182,7 +247,7 @@ def answer_app_question(
             )
             db.add(new_answer)
             criticlity = get_app_criticality(app_id=application_id, db=db)
-            application.app_priority = criticlity
+            application.severity = criticlity
             db.commit()
             db.refresh(new_answer)
             return aq_schemas.AppAnswerOut.model_validate(new_answer)

@@ -76,6 +76,7 @@ class ApplicationOut(BaseModel):
     is_app_ai: bool | None
     is_privacy_applicable: bool | None
     requested_date: date | None = None
+    severity: int | None
 
     departments: list[DepartmentOut] | None
 
@@ -114,7 +115,7 @@ class ApplicationUpdate(BaseModel):
     is_app_ai: bool | None = None
 
     requested_date: date | None = None
-
+    severity: int | None = None
     is_privacy_applicable: bool | None = None
 
 
@@ -158,6 +159,8 @@ class NewAppListOut(BaseModel):
     titan_spoc: str | None
     departments: list[AppDepartmentOut] | None = None
     latest_comment: CommentOut | None
+
+    severity: int | None
 
 
 class AppQueryParams(BaseModel):

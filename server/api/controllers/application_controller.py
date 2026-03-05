@@ -359,6 +359,7 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 due_date=app.due_date,
                 titan_spoc=app.titan_spoc,
                 environment=app.environment,
+                severity=app.severity,
             )
             apps_out.append(data)
 
