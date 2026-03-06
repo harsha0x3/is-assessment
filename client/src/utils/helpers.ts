@@ -85,3 +85,18 @@ export const getLabelFromOptions = (
   if (!value || !options) return "-";
   return options.find((o) => o.value === value)?.label ?? value;
 };
+
+export const getSeverityLabel = (severity: number | undefined | null) => {
+  switch (severity) {
+    case 1:
+      return "Low";
+    case 2:
+      return "Medium";
+    case 3:
+      return "High";
+    case 4:
+      return "Crown Jewel";
+    default:
+      return "-";
+  }
+};

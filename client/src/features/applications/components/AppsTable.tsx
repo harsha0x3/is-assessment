@@ -22,6 +22,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import DescriptionCell from "@/components/ui/description-cell";
 import {
   daysBetweenDateAndToday,
+  getSeverityLabel,
   parseDate,
   parseStatus,
 } from "@/utils/helpers";
@@ -38,6 +39,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import AppTypeFilter from "./tableHeaders/AppTypeFilter";
+import AppSeverityHeaderFilter from "./tableHeaders/AppSeverityHeaderFilter";
 const VerticalSearchFilter = lazy(
   () => import("../components/tableHeaders/VerticalSearchFilter"),
 );
@@ -428,6 +430,24 @@ const AppsTable: React.FC = () => {
           return info.getValue();
         },
       }),
+
+      colHelper.accessor("severity", {
+        header: () => <AppSeverityHeaderFilter />,
+        minSize: 90,
+        maxSize: 120,
+        cell: (info) => {
+          const val = info.getValue();
+
+          return (
+            <Badge
+              className={`${val && val === 1 ? "bg-indigo-300" : val === 2 ? "bg-blue-400" : val === 3 ? "bg-red-300" : val === 4 ? "bg-amber-600" : "bg-muted"}`}
+            >
+              {val ? getSeverityLabel(val) : "-"}
+            </Badge>
+          );
+        },
+      }),
+
       colHelper.accessor("vendor_company", {
         header: "Vendor Company",
         minSize: 120,

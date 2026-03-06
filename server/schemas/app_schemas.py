@@ -189,6 +189,7 @@ class AppQueryParams(BaseModel):
     web_apps: str | None
     mobile_web_apps: str | None
     privacy_apps: str | None
+    severity: list[int] | None
 
     @field_validator("sort_by")
     @classmethod

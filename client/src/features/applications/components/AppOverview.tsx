@@ -40,8 +40,13 @@ import {
   STATUS_COLOR_MAP_FG,
 } from "@/utils/globalValues";
 import { Separator } from "@/components/ui/separator";
-import { daysBetweenDateAndToday, parseDateForInput } from "@/utils/helpers";
+import {
+  daysBetweenDateAndToday,
+  getSeverityLabel,
+  parseDateForInput,
+} from "@/utils/helpers";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -280,7 +285,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                               : undefined,
                           }}
                         >
-                          <SelectValue placeholder="Select priority" />
+                          <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
                         <SelectContent className="">
                           {AppStatusOptions.map((s, idx) => {
@@ -309,6 +314,18 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                     </Field>
                   )}
                 />
+
+                {/* Criticality */}
+                <div className="my-1 space-y-3">
+                  <Label htmlFor="criticality">Criticality</Label>
+                  <Badge
+                    className={`${appDetails?.data?.severity && appDetails.data.severity === 1 ? "bg-indigo-300" : appDetails?.data?.severity === 2 ? "bg-blue-400" : appDetails?.data?.severity === 3 ? "bg-red-300" : appDetails?.data?.severity === 4 ? "bg-amber-600" : "bg-muted"}`}
+                  >
+                    {appDetails?.data?.severity
+                      ? getSeverityLabel(appDetails.data.severity)
+                      : "-"}
+                  </Badge>
+                </div>
 
                 {/* App priority */}
                 <Controller

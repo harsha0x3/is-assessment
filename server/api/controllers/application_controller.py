@@ -225,6 +225,9 @@ def list_all_apps(db: Session, params: AppQueryParams):
         if params.status and len(params.status) > 0:
             stmt = stmt.where(Application.status.in_(params.status))
 
+        if params.severity and len(params.severity) > 0:
+            stmt = stmt.where(Application.severity.in_(params.severity))
+
         today = date.today()
 
         if params.sla_filter and params.sla_filter > 0:

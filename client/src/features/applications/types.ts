@@ -60,6 +60,8 @@ export interface ApplicationOut {
   is_app_ai?: boolean;
   is_privacy_applicable?: boolean;
 
+  severity?: number;
+
   departments?: DepartmentOut[];
 }
 
@@ -112,6 +114,7 @@ export interface NewAppListOut {
 
   user_type?: string | null;
   data_type?: string | null;
+  severity?: number;
 }
 
 export interface AppQueryParams {
@@ -139,6 +142,7 @@ export interface AppQueryParams {
   web_apps?: string;
   mobile_web_apps?: string;
   privacy_apps?: string;
+  severity?: string;
 }
 
 export interface AppStatusSummary {

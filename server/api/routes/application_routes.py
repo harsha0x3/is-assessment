@@ -94,12 +94,17 @@ async def new_list_all_apps(
     mobile_apps: Annotated[str | None, Query()] = None,
     mobile_web_apps: Annotated[str | None, Query()] = None,
     privacy_apps: Annotated[str | None, Query()] = None,
+    severity: Annotated[str | None, Query()] = None,
 ):
-    print(
-        f"ai_apps: {ai_apps} \n web_apps: {web_apps}\nmobile_apps: {mobile_apps}\n mobile_web_apps: {mobile_web_apps}"
-    )
 
     status_list = []
+    severity_list = []
+
+    print("Severity", severity)
+
+    str_severity = (
+        str(severity) if severity and not isinstance(severity, str) else severity
+    )
 
     if (
         status
@@ -108,6 +113,19 @@ async def new_list_all_apps(
         and status.strip() != "undefined"
     ):
         status_list = status.split(",")
+    if (
+        str_severity
+        and str_severity.strip() != "null"
+        and str_severity.strip() != "all"
+        and str_severity.strip() != "undefined"
+    ):
+        severity_list = str_severity.split(",")
+
+    print(f"Severity List - {severity_list}")
+
+    int_severity_list = [int(s) for s in severity_list]
+
+    print(f"INT Severity List - {int_severity_list}")
 
     dept_status_list = []
 
@@ -139,6 +157,7 @@ async def new_list_all_apps(
         ai_apps=ai_apps,
         mobile_web_apps=mobile_web_apps,
         privacy_apps=privacy_apps,
+        severity=int_severity_list,
     )
     data = list_all_apps(
         db=db,

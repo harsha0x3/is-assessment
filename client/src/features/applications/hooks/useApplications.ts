@@ -34,6 +34,7 @@ export const useApplications = () => {
   const aiAppsFilter = searchParams.get("aiAppsFilter");
   const mobileWebAppsFilter = searchParams.get("mobileWebAppsFilter");
   const privacyAppsFilter = searchParams.get("privacyAppsFilter");
+  const appSeverity = searchParams.get("appSeverity");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -48,6 +49,8 @@ export const useApplications = () => {
   const [debouncedVerticalSearch, setDebouncedVerticalSearch] = useState("");
   const [debouncedSlaFilter, setDebouncedSlaFilter] = useState<number>(0);
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
+
+  console.log("APP Severity", appSeverity);
 
   const { data, isSuccess, isError, error, isLoading, isFetching } =
     useListAllAppsQuery({
@@ -68,6 +71,7 @@ export const useApplications = () => {
       mobile_web_apps: mobileWebAppsFilter ?? undefined,
       ai_apps: aiAppsFilter ?? undefined,
       privacy_apps: privacyAppsFilter ?? undefined,
+      severity: appSeverity ?? undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
