@@ -13,6 +13,6 @@ from .dept_questions import DeptQuestion, DeptQuestionSet
 
 from .app_dept_answers import AppDeptAnswer
 
-from .application_questions import ApplicationQuestion, AppQuestionSet
+from .application_questions import ApplicationQuestion, AppQuestionSet, ApplicationQuestionOption
 from .application_answers import ApplicationAnswer
 from .department_controls import DepartmentControl, ApplicationControlResult

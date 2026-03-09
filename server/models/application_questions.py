@@ -49,3 +49,29 @@ class ApplicationQuestion(Base):
 
     question_set = relationship("AppQuestionSet", back_populates="questions")
     answers = relationship("ApplicationAnswer", back_populates="app_question")
+    options = relationship("ApplicationQuestionOption", back_populates="app_question")
+
+class ApplicationQuestionOption(Base):
+    __tablename__ = 'application_question_options'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    app_question_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(
+            "application_questions.id",
+            ondelete="cascade",
+            onupdate="cascade",
+        ),
+        nullable=False,
+    )
+    sequence_number: Mapped[int] = mapped_column(Integer, nullable=True)
+    text: Mapped[str] = mapped_column(String(212), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    weight: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    app_question = relationship("ApplicationQuestion", back_populates="options")

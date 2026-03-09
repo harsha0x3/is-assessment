@@ -5,6 +5,7 @@ import type {
   AppAnswerOut,
   AppQuestionCreate,
   AppQuestion,
+  BulkAnswerInput,
 } from "../types";
 
 const appQuestionnaireApiSlice = rootApiSlice.injectEndpoints({
@@ -82,6 +83,20 @@ const appQuestionnaireApiSlice = rootApiSlice.injectEndpoints({
         { type: "AppQuestionnaire" as const, id: `SET-${question_set_id}` },
       ],
     }),
+
+    submitBulkAnswers: builder.mutation<
+      void,
+      { applicationId: string; payload: BulkAnswerInput }
+    >({
+      query: ({ applicationId, payload }) => ({
+        url: `/app-questions/answer/bulk/application/${applicationId}`,
+        method: "POST",
+        body: payload.answers,
+      }),
+      invalidatesTags: (_r, _e, { applicationId }) => [
+        { type: "AppQuestionnaire" as const, id: `APP-${applicationId}` },
+      ],
+    }),
   }),
 });
 
@@ -92,6 +107,7 @@ export const {
   useCreateQuestionSetMutation,
   useAddQuestionToSetMutation,
   useAddQuestionsToSetMutation,
+  useSubmitBulkAnswersMutation,
 } = appQuestionnaireApiSlice;
 
 export default appQuestionnaireApiSlice;

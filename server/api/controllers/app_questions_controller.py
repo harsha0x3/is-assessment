@@ -1,7 +1,7 @@
-from models import AppQuestionSet, ApplicationAnswer, ApplicationQuestion, Application
+from models import AppQuestionSet, ApplicationAnswer, ApplicationQuestion, Application, ApplicationQuestionOption
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, status
 from schemas import app_questions_schemas as aq_schemas
 
@@ -26,6 +26,7 @@ def get_question_set(db: Session, question_set_id: int):
                         text=q.text,
                         is_high=q.is_high,
                         is_medium=q.is_medium,
+                        options= [aq_schemas.AppQuestionOption.model_validate(o) for o in q.options]
                     )
                     for q in qs.questions
                 ],
@@ -86,6 +87,7 @@ def get_questions_with_answers(
                     text=question.text,
                     is_high=question.is_high,
                     is_medium=question.is_medium,
+                    options=[aq_schemas.AppQuestionOption.model_validate(o) for o in question.options],
                     answer=(
                         aq_schemas.AppAnswerOut.model_validate(answer)
                         if answer
@@ -104,6 +106,42 @@ def get_questions_with_answers(
             detail="Error fetching questions and answers",
         )
 
+
+def get_criticality_score(app_id: str, db: Session):
+
+    try:
+        app = db.get(Application, app_id)
+
+        if not app or not app.question_set_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Application not found or questionnaire not assigned.",
+            )
+
+        score = db.scalar(
+            select(func.coalesce(func.sum(ApplicationQuestionOption.weight), 0))
+            .join(
+                ApplicationAnswer,
+                ApplicationAnswer.answer_option_id == ApplicationQuestionOption.id,
+            )
+            .where(ApplicationAnswer.application_id == app_id)
+        )
+
+        return score
+
+    except HTTPException:
+        raise
+
+def determine_criticality(score: int):
+    if score <=12:
+        return 1
+    
+    if score < 12 and score <=18:
+        return 2
+    if score < 18 and score <=26:
+        return 3
+    if score < 26:
+        return 4
 
 def get_app_criticality(app_id: str, db: Session):
     """
@@ -261,6 +299,70 @@ def answer_app_question(
             detail="Error saving answer",
         )
 
+def answer_bulk(
+    db: Session,
+    application_id: str,
+    payload: list[aq_schemas.AppAnswerWithOption],
+):
+    try:
+        app = db.get(Application, application_id)
+        if not app:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="App not found"
+            )
+
+        # Fetch existing answers for this application
+        existing_answers = (
+            db.query(ApplicationAnswer)
+            .filter(ApplicationAnswer.application_id == application_id)
+            .all()
+        )
+
+        existing_map = {
+            ans.app_question_id: ans for ans in existing_answers
+        }
+
+        for ans in payload:
+
+            # UPDATE existing answer
+            if ans.app_question_id in existing_map:
+                existing_map[ans.app_question_id].answer_option_id = ans.answer_option_id
+
+            # CREATE new answer
+            else:
+                new_answer = ApplicationAnswer(
+                    application_id=application_id,
+                    app_question_id=ans.app_question_id,
+                    answer_option_id=ans.answer_option_id,
+                )
+                db.add(new_answer)
+
+        db.commit()
+
+        # Recalculate score
+        score = get_criticality_score(app_id=application_id, db=db)
+
+        if not score:
+            print("NO SCORE")
+
+        severity = determine_criticality(score=score) if score else 1
+
+        app.severity = severity or 1
+
+        db.commit()
+
+        return "success"
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error answering bulk",
+        )
 
 def create_app_question_set(
     db: Session,
@@ -286,56 +388,98 @@ def create_app_question_set(
 def add_question_to_set(
     db: Session,
     question_set_id: int,
-    text: str,
-    is_medium: bool,
-    is_high: bool,
-    sequence_number: int | None = None,
-    is_default: bool = False,
+    question_data: aq_schemas.AppQuestionCreate,
 ) -> ApplicationQuestion:
-    """
-    Add one question to an existing question set
-    """
 
-    question = ApplicationQuestion(
-        question_set_id=question_set_id,
-        text=text,
-        is_medium=is_medium,
-        is_high=is_high,
-        sequence_number=sequence_number,
-        is_default=is_default,
-    )
+    try:
+        question_set = db.get(AppQuestionSet, question_set_id)
 
-    db.add(question)
-    db.commit()
-    db.refresh(question)
-    return question
+        if not question_set:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question set not found",
+            )
 
+        question = ApplicationQuestion(
+            question_set_id=question_set_id,
+            text=question_data.text,
+            is_medium=question_data.is_medium,
+            is_high=question_data.is_high,
+            sequence_number=question_data.sequence_number,
+            is_default=question_data.is_default,
+        )
+
+        db.add(question)
+        db.flush()
+
+        options = []
+        for opt in question_data.options:
+            option = ApplicationQuestionOption(
+                app_question_id=question.id,
+                text=opt.text,
+                weight=opt.weight,
+            )
+            options.append(option)
+
+        db.add_all(options)
+
+        db.commit()
+        db.refresh(question)
+
+        return question
+
+    except Exception:
+        db.rollback()
+        raise
 
 def add_questions_to_set(
     db: Session,
     question_set_id: int,
     questions: list[aq_schemas.AppQuestionCreate],
 ):
-    """
-    Add multiple questions to a question set in one transaction
-    """
 
-    question_objs = [
-        ApplicationQuestion(
-            question_set_id=question_set_id,
-            text=q.text,
-            is_high=q.is_high,
-            is_medium=q.is_medium,
-            sequence_number=q.sequence_number,
-            is_default=q.is_default,
-        )
-        for q in questions
-    ]
+    try:
+        question_set = db.get(AppQuestionSet, question_set_id)
 
-    db.add_all(question_objs)
-    db.commit()
+        if not question_set:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Question set not found",
+            )
 
-    for q in question_objs:
-        db.refresh(q)
+        question_objs = []
 
-    return question_objs
+        for q in questions:
+            question = ApplicationQuestion(
+                question_set_id=question_set_id,
+                text=q.text,
+                is_medium=q.is_medium,
+                is_high=q.is_high,
+                sequence_number=q.sequence_number,
+                is_default=q.is_default,
+            )
+
+            db.add(question)
+            db.flush()
+
+            options = [
+                ApplicationQuestionOption(
+                    app_question_id=question.id,
+                    text=o.text,
+                    weight=o.weight,
+                    description = o.description
+                )
+                for o in q.options
+            ]
+
+            db.add_all(options)
+
+            question_objs.append(question)
+
+        db.commit()
+
+        return question_objs
+
+    except Exception:
+        db.rollback()
+        raise

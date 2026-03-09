@@ -1,5 +1,20 @@
 import type { UserOut } from "@/features/auth/types";
 
+export interface AppAnswerOut {
+  id: number;
+  application_id: string;
+  app_question_id: number;
+  answer_option_id: number | null;
+  author: UserOut | null;
+}
+
+export interface AppQuestionOption {
+  id: number;
+  text: string;
+  description?: string | null;
+  weight: number;
+}
+
 export interface AppQuestion {
   id: number;
   question_set_id: number;
@@ -7,18 +22,30 @@ export interface AppQuestion {
   text: string;
   is_medium: boolean;
   is_high: boolean;
+  options: AppQuestionOption[];
+}
+
+export interface AppAnswerInput {
+  app_question_id: number;
+  answer_option_id: number;
+}
+
+export interface BulkAnswerInput {
+  answers: AppAnswerInput[];
+}
+
+export interface AppQuestionWithAnswer extends AppQuestion {
+  answer: {
+    answer_option_id: number | null;
+  } | null;
 }
 
 export interface AppAnswerOut {
   id: number;
-  application_id: number;
+  application_id: string;
   app_question_id: number;
-  answer_text: string | null;
+  answer_option_id: number | null;
   author: UserOut | null;
-}
-
-export interface AppQuestionWithAnswer extends AppQuestion {
-  answer: AppAnswerOut | null;
 }
 
 export interface AppQuestionsOut {
@@ -39,9 +66,4 @@ export interface AppQuestionCreate {
   is_high?: boolean;
   sequence_number: number | null;
   is_default?: boolean;
-}
-
-export interface AppAnswerInput {
-  app_question_id: number;
-  answer_text: string;
 }

@@ -91,47 +91,46 @@ def create_question_set(
 
 @router.post("/set/{question_set_id}/question")
 def add_question_to_set(
-    question_set_id: Annotated[
-        int, Path(..., description="The ID of the question set")
-    ],
-    question_data: Annotated[aq_schemas.AppQuestionCreate, "The question data"],
+    question_set_id: Annotated[int, Path(..., description="The ID of the question set")],
+    question_data: aq_schemas.AppQuestionCreate,
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(require_manager)],
 ):
-    """Add a single question to a question set."""
     try:
         return aq_ctrl.add_question_to_set(
             db=db,
             question_set_id=question_set_id,
-            text=question_data.text,
-            is_medium=question_data.is_medium,
-            is_high=question_data.is_high,
-            sequence_number=question_data.sequence_number,
-            is_default=question_data.is_default,
+            question_data=question_data,
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error adding question to set",
         )
 
-
 @router.post("/set/{question_set_id}/questions")
 def add_questions_to_set(
-    question_set_id: Annotated[
-        int, Path(..., description="The ID of the question set")
-    ],
-    questions: Annotated[
-        list[aq_schemas.AppQuestionCreate], "List of questions to add"
-    ],
+    question_set_id: Annotated[int, Path(..., description="The ID of the question set")],
+    questions: list[aq_schemas.AppQuestionCreate],
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(require_manager)],
 ):
-    """Add multiple questions to a question set."""
     try:
-        return aq_ctrl.add_questions_to_set(db, question_set_id, questions)
-    except Exception as e:
+        return aq_ctrl.add_questions_to_set(
+            db=db,
+            question_set_id=question_set_id,
+            questions=questions,
+        )
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error adding questions to set",
         )
+
+@router.post("/answer/bulk/application/{application_id}")
+
+def answer_bulk(application_id: Annotated[str, Path(..., description="The ID of the application")],
+    payload: Annotated[list[aq_schemas.AppAnswerWithOption], "The answer data"],
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],):
+    return aq_ctrl.answer_bulk(db=db, application_id=application_id, payload=payload)

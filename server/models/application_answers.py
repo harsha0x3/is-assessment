@@ -25,6 +25,8 @@ class ApplicationAnswer(Base):
         nullable=False,
     )
 
+    answer_option_id: Mapped[int] = mapped_column(Integer, ForeignKey("application_question_options.id", ondelete="set null", onupdate="cascade"), nullable=True)
+
     answer_text: Mapped[str] = mapped_column(String(300), nullable=True)
     author_id: Mapped[str] = mapped_column(
         String(40),
@@ -41,3 +43,4 @@ class ApplicationAnswer(Base):
     application = relationship("Application", back_populates="answers")
     app_question = relationship("ApplicationQuestion", back_populates="answers")
     author = relationship("User")
+    answer_option = relationship("ApplicationQuestionOption")
