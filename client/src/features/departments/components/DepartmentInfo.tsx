@@ -34,7 +34,11 @@ import { getLabelFromOptions, parseStatus } from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import ControlRow from "./ControlRow";
 import type { DepartmentStatusPayload } from "../types";
+
+const SHOW_DEPT_CONTROLS =
+  import.meta.env.VITE_SHOW_DEPT_CONTROLS_LIST === "true";
 
 const DepartmentInfo: React.FC = () => {
   const { appId, deptId } = useParams<{ appId: string; deptId: string }>();
@@ -311,6 +315,23 @@ const DepartmentInfo: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {SHOW_DEPT_CONTROLS && (
+              <div className="basis-full grow">
+                <span className="font-medium">Controls:</span>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  {data.data.controls.map((control) => (
+                    <ControlRow
+                      key={control.id}
+                      control={control}
+                      appId={appId}
+                      deptId={deptIdNumber}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
             {/* App Category */}
             <div className="basis-65 grow">
               <span>Category:</span>

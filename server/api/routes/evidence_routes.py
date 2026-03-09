@@ -21,7 +21,7 @@ async def add_department_evidences(
     app_id: Annotated[str, Path(...)],
     dept_id: Annotated[int, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_manager)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
     severity: Annotated[str | None, Form()] = None,
     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
 ):

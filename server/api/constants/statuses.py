@@ -18,3 +18,13 @@ ALL_DEPT_STATUSES: list[str] = [
     "hold",
     "go_live",
 ]
+
+APPLICATION_CONTROL_STATUSES: list[str] = [
+    "not_applicable",
+    "pending_review",
+    "under_assessment",
+    "compliant",
+    "non_compliant",
+    "remediation_required",
+    "risk_accepted",
+]

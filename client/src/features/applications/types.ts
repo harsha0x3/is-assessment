@@ -112,8 +112,9 @@ export interface NewAppListOut {
   environment?: string;
   due_date?: string | null;
 
-  user_type?: string | null;
-  data_type?: string | null;
+  is_app_ai?: boolean;
+  is_privacy_applicable?: boolean;
+  app_type?: string;
   severity?: number;
 }
 
@@ -137,12 +138,14 @@ export interface AppQueryParams {
   app_priority?: string[];
   vertical?: string;
   sla_filter?: number;
-  mobile_apps?: string;
-  ai_apps?: string;
-  web_apps?: string;
-  mobile_web_apps?: string;
-  privacy_apps?: string;
+  // mobile_apps?: string;
+  // ai_apps?: string;
+  // web_apps?: string;
+  // mobile_web_apps?: string;
+  // privacy_apps?: string;
   severity?: string;
+  app_type?: string;
+  app_features?: string;
 }
 
 export interface AppStatusSummary {

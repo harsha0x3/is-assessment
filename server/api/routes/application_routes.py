@@ -89,11 +89,8 @@ async def new_list_all_apps(
     app_priority: Annotated[str | None, Query()] = None,
     vertical: Annotated[str | None, Query()] = None,
     sla_filter: Annotated[int | None, Query()] = None,
-    ai_apps: Annotated[str | None, Query()] = None,
-    web_apps: Annotated[str | None, Query()] = None,
-    mobile_apps: Annotated[str | None, Query()] = None,
-    mobile_web_apps: Annotated[str | None, Query()] = None,
-    privacy_apps: Annotated[str | None, Query()] = None,
+    app_type: Annotated[str | None, Query()] = None,
+    app_features: Annotated[str | None, Query()] = None,
     severity: Annotated[str | None, Query()] = None,
 ):
 
@@ -121,13 +118,27 @@ async def new_list_all_apps(
     ):
         severity_list = str_severity.split(",")
 
-    print(f"Severity List - {severity_list}")
-
     int_severity_list = [int(s) for s in severity_list]
 
-    print(f"INT Severity List - {int_severity_list}")
-
     dept_status_list = []
+    app_features_list = []
+    app_type_list = []
+
+    if (
+        app_features
+        and app_features.strip() != "null"
+        and app_features.strip() != "all"
+        and app_features.strip() != "undefined"
+    ):
+        app_features_list = app_features.split(",")
+
+    if (
+        app_type
+        and app_type.strip() != "null"
+        and app_type.strip() != "all"
+        and app_type.strip() != "undefined"
+    ):
+        app_type_list = app_type.split(",")
 
     if (
         dept_status
@@ -152,12 +163,9 @@ async def new_list_all_apps(
         app_priority=app_priority_list,
         vertical=vertical,
         sla_filter=sla_filter,
-        mobile_apps=mobile_apps,
-        web_apps=web_apps,
-        ai_apps=ai_apps,
-        mobile_web_apps=mobile_web_apps,
-        privacy_apps=privacy_apps,
         severity=int_severity_list,
+        app_features=app_features_list,
+        app_type=app_type_list
     )
     data = list_all_apps(
         db=db,

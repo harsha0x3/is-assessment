@@ -28,7 +28,7 @@ class Application(Base, BaseMixin):
     imitra_ticket_id: Mapped[str] = mapped_column(String(40), nullable=True)
 
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     app_url: Mapped[str] = mapped_column(Text, nullable=True)
@@ -69,6 +69,12 @@ class Application(Base, BaseMixin):
         back_populates="application",
         cascade="all, delete-orphan",
     )
+
+    control_results = relationship(
+    "ApplicationControlResult",
+    back_populates="application",
+    cascade="all, delete-orphan",
+)
 
     def __repr__(self) -> str:
         return f"<app_id={self.id}, app_name={self.name}>"

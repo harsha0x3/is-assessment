@@ -8,22 +8,27 @@ class DepartmentCreate(BaseModel):
     name: str
     description: str | None = None
 
+class ControlResultOut(BaseModel):
+    id: int
+    name: str
+    status: str | None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class DepartmentOut(BaseModel):
     id: int
     name: str
     description: str | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
-
-class AppDepartmentOut(DepartmentOut, BaseModel):
+class AppDepartmentOut(DepartmentOut):
     status: str
+    started_at: datetime | None
+    ended_at: datetime | None
     app_category: str | None
     category_status: str | None
-    started_at: date | None
+    controls: list[ControlResultOut] = []
 
 
 class NewUserDepartmentAssign(BaseModel):
@@ -51,6 +56,9 @@ class CommentOut(BaseModel):
 
 class DepartmentInfo(AppDepartmentOut, BaseModel):
     comments: list[CommentOut] = []
+    controls: list[ControlResultOut] = []
+    app_category: str | None
+    category_status: str | None
     can_go_live: bool = False
 
 
@@ -58,4 +66,22 @@ class DeptStatusPayload(BaseModel):
     status: str | None = None
     app_category: str | None = None
     category_status: str | None = None
-    started_at: date | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+
+
+class DepartmentControlCreate(BaseModel):
+    name: str
+    control_type: str | None = None
+
+
+class DepartmentControlOut(BaseModel):
+    id: int
+    name: str
+    control_type: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ControlStatusPayload(BaseModel):
+    status: str
+

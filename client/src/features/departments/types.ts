@@ -2,6 +2,11 @@
 import type { DeptStatuses } from "@/utils/globalTypes";
 import type { UserOut } from "../auth/types";
 
+export interface ControlResultOut {
+  id: number;
+  name: string;
+  status: string;
+}
 export interface DepartmentCreate {
   name: string;
   description?: string | null;
@@ -17,11 +22,12 @@ export interface DepartmentOut {
 
 export interface AppDepartmentOut extends DepartmentOut {
   status: DeptStatuses;
+  started_at?: string;
+  ended_at?: string;
   app_category?: string;
   category_status?: string;
-  started_at?: string;
+  controls: ControlResultOut[];
 }
-
 export interface NewUserDepartmentAssign {
   user_id: string;
   role?: string | null;
@@ -41,9 +47,15 @@ export interface CommentOut {
   updated_at?: string;
 }
 
-export interface DepartmentInfo extends AppDepartmentOut {
+export interface DepartmentInfo extends DepartmentOut {
+  status: DeptStatuses;
+  started_at?: string;
+  ended_at?: string;
+  controls: ControlResultOut[];
   comments: CommentOut[];
   can_go_live: boolean;
+  app_category?: string;
+  category_status?: string;
 }
 
 export interface DepartmentStatusPayload {

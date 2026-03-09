@@ -7,6 +7,8 @@ from models import (
     ApplicationDepartments,
     Department,
     AppQuestionSet,
+    DepartmentControl,
+    ApplicationControlResult
 )
 from schemas.app_schemas import (
     ApplicationCreate,
@@ -16,13 +18,20 @@ from schemas.app_schemas import (
     AppQueryParams,
     AppStatuses,
 )
+from schemas.department_schemas import DepartmentOut
 from .comments_controller import get_latest_app_dept_comment
 from schemas.auth_schemas import UserOut
 from .department_controller import get_departments_by_application
 from datetime import date, timedelta
 from services.notifications.email_notify import send_new_app_mails_bg
 from schemas.notification_schemas import NewAppData
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
+ENV = os.getenv("PROD_ENV")
+
+is_dev = ENV and ENV.lower() == "false"
 
 def create_app(
     payload: ApplicationCreate,
@@ -31,8 +40,8 @@ def create_app(
     background_tasks: BackgroundTasks,
     owner: UserOut | None = None,
 ) -> ApplicationOut:
+
     try:
-        print("INSIDE CREATE APP CONTROLLER")
         app = Application(
             **payload.model_dump(exclude={"priority"}),
             creator_id=creator.id,
@@ -42,51 +51,87 @@ def create_app(
         db.add(app)
         db.flush()
 
-        all_depts = db.scalars(select(Department)).all()
+        # get all departments
+        
+        all_depts_stmt = select(Department)
+
+        if not app.is_app_ai:
+            all_depts_stmt = all_depts_stmt.where(not_(Department.id == 8))
+
+        all_depts= db.scalars(all_depts_stmt).all()
+
+        # get question set
         app_questions_set = db.scalars(select(AppQuestionSet).limit(1)).first()
         app.question_set_id = app_questions_set.id if app_questions_set else None
 
+        # prefetch all controls
+        controls = db.scalars(select(DepartmentControl)).all()
+
+        controls_by_dept = {}
+        for c in controls:
+            controls_by_dept.setdefault(c.department_id, []).append(c)
+
         app_departments = []
+        app_controls = []
 
         for dept in all_depts:
+
+            # create application department
             new_app_dept = ApplicationDepartments(
                 application_id=app.id,
                 department_id=dept.id,
+                status="yet_to_connect"
             )
+
             app_departments.append(new_app_dept)
 
+            # create control results
+            dept_controls = controls_by_dept.get(dept.id, [])
+
+            for c in dept_controls:
+                app_controls.append(
+                    ApplicationControlResult(
+                        application_id=app.id,
+                        department_control_id=c.id,
+                        status="pending_review",
+                    )
+                )
+
         db.add_all(app_departments)
+        db.add_all(app_controls)
+
         db.commit()
         db.refresh(app)
 
-        background_tasks.add_task(
-            send_new_app_mails_bg,
-            NewAppData(
-                app_name=app.name,
-                description=app.description,
-                vertical=app.vertical,
-                vendor_company=app.vendor_company,
-                sla=app.due_date,
-            ),
-            db,
-        )
+        if not is_dev:
+
+            background_tasks.add_task(
+                send_new_app_mails_bg,
+                NewAppData(
+                    app_name=app.name,
+                    description=app.description,
+                    vertical=app.vertical,
+                    vendor_company=app.vendor_company,
+                    sla=app.due_date,
+                ),
+                db,
+            )
 
         return ApplicationOut.model_validate(app)
 
-    except IntegrityError as e:
-        print(e)
+    except IntegrityError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="App with the same exists"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="App with the same name exists",
         )
 
     except Exception as e:
         db.rollback()
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create application: {str(e)}",
         )
-
-
 def _has_filters(params: AppQueryParams) -> bool:
     return any(
         [
@@ -269,35 +314,33 @@ def list_all_apps(db: Session, params: AppQueryParams):
 
                 stmt = stmt.where(func.date(Application.started_at) < cutoff)
 
-        if params.ai_apps is not None:
-            if params.ai_apps.lower() == "true":
-                stmt = stmt.where(Application.is_app_ai)
-            elif params.ai_apps.lower() == "false":
-                stmt = stmt.where(not_(Application.is_app_ai))
+        if params.app_type:
+            app_type_conditions = []
 
-        if params.privacy_apps is not None:
-            if params.privacy_apps.lower() == "true":
-                stmt = stmt.where(Application.is_privacy_applicable)
-            elif params.privacy_apps.lower() == "false":
-                stmt = stmt.where(not_(Application.is_privacy_applicable))
+            if "web" in params.app_type:
+                app_type_conditions.append(Application.app_type.in_(["web", "mobile_web"]))
 
-        if params.web_apps is not None:
-            if params.web_apps.lower() == "true":
-                stmt = stmt.where(Application.app_type == "web")
-            elif params.web_apps.lower() == "false":
-                stmt = stmt.where(not_(Application.app_type == "web"))
+            if "mobile" in params.app_type:
+                app_type_conditions.append(Application.app_type.in_(["mobile", "mobile_web"]))
 
-        if params.mobile_apps is not None:
-            if params.mobile_apps == "true":
-                stmt = stmt.where(Application.app_type == "mobile")
-            if params.mobile_apps == "false":
-                stmt = stmt.where(not_(Application.app_type == "mobile"))
+            if "api" in params.app_type:
+                app_type_conditions.append(Application.app_type.in_(["api"]))
 
-        if params.mobile_web_apps is not None:
-            if params.mobile_web_apps == "true":
-                stmt = stmt.where(Application.app_type == "both")
-            if params.mobile_web_apps == "false":
-                stmt = stmt.where(not_(Application.app_type == "both"))
+            if "automation" in params.app_type:
+                app_type_conditions.append(Application.app_type.in_(["automation"]))
+
+            if "mobile_web" in params.app_type:
+                app_type_conditions.append(Application.app_type.in_(["mobile_web"]))
+
+            stmt = stmt.where(or_(*app_type_conditions))
+
+        if params.app_features:
+            for feature in params.app_features:
+                if feature == "ai":
+                    stmt = stmt.where(Application.is_app_ai)
+
+                elif feature == "privacy":
+                    stmt = stmt.where(Application.is_privacy_applicable)
 
         # ✅ SEARCH FILTER
         if params.search and params.search != "null" and params.search_by:
@@ -316,6 +359,7 @@ def list_all_apps(db: Session, params: AppQueryParams):
         filtered_subquery = stmt.subquery()
         filtered_count = db.scalar(select(func.count()).select_from(filtered_subquery))
         filtered_apps_summary = None
+
         if _has_filters(params):
             filtered_apps_summary = get_apps_summary_from_stmt(
                 db=db, stmt=filtered_subquery
@@ -363,6 +407,9 @@ def list_all_apps(db: Session, params: AppQueryParams):
                 titan_spoc=app.titan_spoc,
                 environment=app.environment,
                 severity=app.severity,
+                is_app_ai=app.is_app_ai,
+                is_privacy_applicable=app.is_privacy_applicable,
+                app_type=app.app_type
             )
             apps_out.append(data)
 
@@ -443,8 +490,35 @@ def update_app(
         ]:
             app.completed_at = datetime.now(timezone.utc)
 
+        db.flush()
+
+        if app.is_app_ai:
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == 8)))
+
+            if not app_dept:
+                new_dept = ApplicationDepartments(application_id = app_id, department_id = 8)
+                db.add(new_dept)
+                db.flush()
+            
+            if app_dept is not None and not app_dept.is_active:
+                app_dept.is_active = True
+        
+        else:
+            print("NOT AI")
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == 8)))
+            print(app_dept)
+            if not app_dept:
+                print("FOUND APP")
+                pass
+            if app_dept is not None and app_dept.is_active:
+                print("SETING AP not active")
+                app_dept.is_active = False
+
+
+
         db.commit()
         db.refresh(app)
+
         return ApplicationOut.model_validate(app)
 
     except HTTPException:
@@ -467,8 +541,40 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
             )
-
-        return ApplicationOut.model_validate(app)
+        
+        app_depts = db.scalars(select(Department).join(ApplicationDepartments, ApplicationDepartments.department_id == Department.id).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.is_active))).all()
+        result = ApplicationOut(id = app.id,
+                                name=app.name,
+                                description=app.description,
+                                environment=app.environment,
+                                region=app.region,
+                                owner_name=app.owner_name,
+                                vendor_company=app.vendor_company,
+                                infra_host=app.infra_host,
+                                app_tech=app.app_tech,
+                                vertical=app.vertical,
+                                is_active=app.is_active,
+                                is_completed=app.is_completed,
+                                created_at=app.created_at,
+                                updated_at=app.updated_at,
+                                owner_id=app.owner_id,
+                                status=app.status,
+                                imitra_ticket_id=app.imitra_ticket_id,
+                                titan_spoc=app.titan_spoc,
+                                due_date=app.due_date,
+                                app_priority=app.app_priority,
+                                started_at=app.started_at,
+                                completed_at=app.completed_at,
+                                app_url=app.app_url,
+                                user_type=app.user_type,
+                                data_type=app.data_type,
+                                app_type=app.app_type,
+                                is_app_ai=app.is_app_ai,
+                                is_privacy_applicable=app.is_privacy_applicable,
+                                requested_date=app.requested_date,
+                                severity=app.severity,
+                                departments=[DepartmentOut.model_validate(d) for d in app_depts])
+        return result
 
     except HTTPException:
         raise
@@ -486,6 +592,10 @@ def change_app_status(app_id: str, status_val: str, db: Session):
         if not app:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
+            )
+        if not app.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Application is deleted"
             )
         app.status = status_val
         if status_val.lower == "completed":

@@ -5,26 +5,71 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Check, Filter } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useApplicationsContext } from "../../context/ApplicationsContext";
 
 const AppTypeFilter: React.FC = () => {
-  const {
-    webAppsFilter,
-    aiAppsFilter,
-    mobileAppsFilter,
-    mobileWebAppsFilter,
-    updateSearchParams,
-    privacyAppsFilter,
-  } = useApplicationsContext();
+  const { appType, appFeatures, updateSearchParams } = useApplicationsContext();
+
+  const [appTypeFiltes, setApptypeFilters] = useState<string[]>([]);
+  const [appFeaturesFiltes, setAppFeaturesFilters] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (appType) {
+      setApptypeFilters(appType.split(","));
+    }
+    if (appFeatures) {
+      setAppFeaturesFilters(appFeatures.split(","));
+    }
+  }, [appTypeFiltes, appFeaturesFiltes]);
+
+  const toggleAppTypeSelection = (value: string) => {
+    setApptypeFilters((prev) => {
+      const updated = prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value];
+
+      if (updated.length > 0) {
+        updateSearchParams({ appType: updated.join(","), appPage: 1 });
+      } else {
+        updateSearchParams({ appType: undefined, appPage: 1 });
+      }
+
+      return updated;
+    });
+  };
+  const toggleAppFeaturesSelection = (value: string) => {
+    setAppFeaturesFilters((prev) => {
+      const updated = prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value];
+
+      if (updated.length > 0) {
+        updateSearchParams({ appFeatures: updated.join(","), appPage: 1 });
+      } else {
+        updateSearchParams({ appFeatures: undefined, appPage: 1 });
+      }
+
+      return updated;
+    });
+  };
+
+  const appTypeValues: { value: string; label: string }[] = [
+    { value: "web", label: "Web" },
+    { value: "mobile", label: "Mobile" },
+    { value: "mobile_web", label: "Mobile & Web" },
+    { value: "api", label: "API" },
+  ];
+
+  const appFeaturesValues: { value: string; label: string }[] = [
+    { value: "ai", label: "AI" },
+    { value: "privacy", label: "Privacy" },
+  ];
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,7 +80,7 @@ const AppTypeFilter: React.FC = () => {
           <span>Name</span>
           <span>
             <Filter
-              className={`shrink-0 ${!!webAppsFilter || !!mobileAppsFilter || !!mobileWebAppsFilter || !!aiAppsFilter ? "text-primary fill-primary" : "text-muted-foreground"}`}
+              className={`shrink-0 ${!!appType || !!appFeatures ? "text-primary fill-primary" : "text-muted-foreground"}`}
               aria-hidden="true"
             />
           </span>
@@ -45,166 +90,32 @@ const AppTypeFilter: React.FC = () => {
         <DropdownMenuLabel>App type filters</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>AI Apps</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() => updateSearchParams({ aiAppsFilter: "true" })}
-                >
-                  {aiAppsFilter === "true" && <Check />}
-                  True
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => updateSearchParams({ aiAppsFilter: "false" })}
-                >
-                  {aiAppsFilter === "false" && <Check />}
-                  False
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ aiAppsFilter: undefined })
-                  }
-                >
-                  Clear
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Privacy Apps */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Privacy Apps</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ privacyAppsFilter: "true" })
-                  }
-                >
-                  {privacyAppsFilter === "true" && <Check />}
-                  True
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ privacyAppsFilter: "false" })
-                  }
-                >
-                  {privacyAppsFilter === "false" && <Check />}
-                  False
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ privacyAppsFilter: undefined })
-                  }
-                >
-                  Clear
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Web Apps */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Web Apps</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() => updateSearchParams({ webAppsFilter: "true" })}
-                >
-                  {webAppsFilter === "true" && <Check />}
-                  True
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => updateSearchParams({ webAppsFilter: "false" })}
-                >
-                  {webAppsFilter === "false" && <Check />}
-                  False
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ webAppsFilter: undefined })
-                  }
-                >
-                  Clear
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Mobile Apps */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Mobile Apps</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileAppsFilter: "true" })
-                  }
-                >
-                  {mobileAppsFilter === "true" && <Check />}
-                  True
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileAppsFilter: "false" })
-                  }
-                >
-                  {mobileAppsFilter === "false" && <Check />}
-                  False
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileAppsFilter: undefined })
-                  }
-                >
-                  Clear
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          {/* Both */}
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Mobile & Web Apps</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileWebappsFilter: "true" })
-                  }
-                >
-                  {mobileWebAppsFilter === "true" && <Check />}
-                  True
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileWebAppsFilter: "false" })
-                  }
-                >
-                  {mobileWebAppsFilter === "false" && <Check />}
-                  False
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    updateSearchParams({ mobileWebAppsFilter: undefined })
-                  }
-                >
-                  Clear
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
+          {appTypeValues.map((item) => (
+            <DropdownMenuItem
+              onClick={() => toggleAppTypeSelection(item.value)}
+            >
+              {appTypeFiltes.includes(item.value) && <Check />}
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          {appFeaturesValues.map((item) => (
+            <DropdownMenuItem
+              onClick={() => toggleAppFeaturesSelection(item.value)}
+            >
+              {appFeaturesFiltes.includes(item.value) && <Check />}
+              {item.label}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() =>
             updateSearchParams({
-              mobileWebAppsFilter: undefined,
-              mobileAppsFilter: undefined,
-              aiAppsFilter: undefined,
-              privacyAppsFilter: undefined,
-              webAppsFilter: undefined,
+              appType: undefined,
+              appFeatures: undefined,
             })
           }
           className="text-destructive"

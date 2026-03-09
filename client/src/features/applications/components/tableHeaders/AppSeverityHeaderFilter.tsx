@@ -63,7 +63,7 @@ const AppSeverityHeaderFilter = () => {
                 Severity
               </span>
             ) : (
-              <span className="text-ring">Severity</span>
+              <span className="text-ring">Severity of CJ</span>
             )}
             <Filter
               className={`shrink-0 ${!!appSeverity ? "text-primary fill-primary" : "text-muted-foreground"}`}
@@ -89,7 +89,7 @@ const AppSeverityHeaderFilter = () => {
                   )}
                 </CommandItem>
                 <CommandItem value={"4"} onSelect={() => toggleSelection("4")}>
-                  Crown Jewel
+                  Critical
                   {selectedValues.includes("4") && (
                     <CheckIcon size={16} className="ml-auto" />
                   )}

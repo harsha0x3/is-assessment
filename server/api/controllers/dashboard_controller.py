@@ -228,24 +228,6 @@ def get_department_status_summary(
         )
 
 
-# def get_dashboard_status_summary(db: Session):
-#     try:
-#         app_summary = get_app_status_summary(db=db)
-#         result = ds.DashboardSummaryResponse(
-#             application_summary=app_summary, department_summary=dept_summary
-#         )
-#         return result
-
-#     except HTTPException:
-#         raise
-
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail="Error getting status charts",
-#         )
-
-
 def get_priority_wise_grouped_summary(db: Session, status_filter: str | None):
     try:
         stmt = (

@@ -87,8 +87,23 @@ const departmentsApiSlice = rootApiSlice.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { appId, deptId }) => [
         { type: "Apps", id: appId },
-        { type: "Departments", id: deptId },
         { type: "DepartmentInfo", id: `appId_${appId}-deptId_${deptId}` },
+      ],
+    }),
+
+    updateControlResult: builder.mutation<
+      ApiResponse<null>,
+      { appId: string; deptId: number; controlId: number; status: string }
+    >({
+      query: ({ appId, controlId, status }) => ({
+        url: `/departments/application/${appId}/control/${controlId}`,
+        method: "PATCH",
+        body: { status },
+      }),
+
+      invalidatesTags: (_result, _error, { appId, deptId }) => [
+        { type: "DepartmentInfo", id: `appId_${appId}-deptId_${deptId}` },
+        { type: "Apps", id: appId },
       ],
     }),
   }),
@@ -102,4 +117,5 @@ export const {
   useGetAllDepartmentsQuery,
   useGetDepartmentInfoQuery,
   useGetDepartmentsByApplicationQuery,
+  useUpdateControlResultMutation,
 } = departmentsApiSlice;

@@ -40,4 +40,11 @@ class Department(Base):
         "user_links",
         "user",
     )
+    
     question_set = relationship("DeptQuestionSet")
+
+    controls = relationship(
+    "DepartmentControl",
+    back_populates="department",
+    cascade="all, delete-orphan",
+)

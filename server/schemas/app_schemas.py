@@ -149,9 +149,9 @@ class NewAppListOut(BaseModel):
     completed_at: datetime | None = None
     due_date: datetime | None
 
-    app_type: str | None = None
-    is_app_ai: bool = False
-    is_privacy_applicable: bool | None = None
+    app_type: str | None
+    is_app_ai: bool | None
+    is_privacy_applicable: bool | None
 
     requested_date: date | None = None
 
@@ -184,12 +184,15 @@ class AppQueryParams(BaseModel):
     dept_status: list[str] | None = None
     app_priority: list[str] | None = None
     sla_filter: int | None
-    ai_apps: str | None
-    mobile_apps: str | None
-    web_apps: str | None
-    mobile_web_apps: str | None
-    privacy_apps: str | None
+    ai_apps: str | None = None
+    mobile_apps: str | None = None
+    web_apps: str | None = None
+    mobile_web_apps: str | None = None
+    privacy_apps: str | None = None
     severity: list[int] | None
+
+    app_type: list[str] | None
+    app_features: list[str] | None
 
     @field_validator("sort_by")
     @classmethod

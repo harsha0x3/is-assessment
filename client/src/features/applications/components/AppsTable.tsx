@@ -30,7 +30,15 @@ import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
-import { ClockAlert, Dot, FlagTriangleRight, Info, Loader } from "lucide-react";
+import {
+  Bot,
+  ClockAlert,
+  Dot,
+  FlagTriangleRight,
+  Info,
+  Loader,
+  ShieldPlus,
+} from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 import { createDepartmentStatusColumn } from "./DepartmentColumnFactory";
 import {
@@ -71,7 +79,8 @@ const AppsTable: React.FC = () => {
     | "tprm"
     | "security_controls"
     | "iam"
-    | "soc_integration";
+    | "soc_integration"
+    | "ai security";
 
   const DepartmentsStatusCol: React.FC<{
     depts: AppDepartmentOut[];
@@ -89,6 +98,8 @@ const AppsTable: React.FC = () => {
           return "VAPT";
         case "soc integration":
           return "SOC";
+        case "ai security":
+          return "AI";
         default:
           return dept;
       }
@@ -292,6 +303,32 @@ const AppsTable: React.FC = () => {
         },
       }),
     ],
+    "ai security": [
+      createDepartmentStatusColumn("ai security", "AI Security"),
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
   };
 
   const baseColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
@@ -302,6 +339,8 @@ const AppsTable: React.FC = () => {
         maxSize: 550,
         cell: ({ row, getValue }) => {
           const dueDays = daysBetweenDateAndToday(row.original.due_date);
+          const isAppAi = row.original.is_app_ai;
+          const isAppPrivacy = row.original.is_privacy_applicable;
 
           return (
             <Button
@@ -321,8 +360,29 @@ const AppsTable: React.FC = () => {
                     </span>
                   </Hint>
                 )}
+                {isAppAi && (
+                  <Hint label={`AI Application`}>
+                    <span className="cursor-default">
+                      <Bot
+                        strokeWidth={3}
+                        className="inline mr-1 text-purple-500"
+                      />
+                    </span>
+                  </Hint>
+                )}
+                {isAppPrivacy && (
+                  <Hint label={`Privacy Application`}>
+                    <span className="cursor-default">
+                      <ShieldPlus
+                        strokeWidth={4}
+                        className="inline mr-1 text-indigo-400"
+                      />
+                    </span>
+                  </Hint>
+                )}
                 {getValue()}
               </span>
+
               <HoverCard openDelay={10} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <span className="">

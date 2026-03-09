@@ -128,3 +128,52 @@ def update_department_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error in up[dating department status",
         )
+
+
+@router.post(
+    "/{dept_id}/controls",
+    summary="Create control for department",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_department_control(
+    dept_id: int,
+    payload: d_schemas.DepartmentControlCreate,
+    db: Session = Depends(get_db_conn),
+    current_user: UserOut = Depends(require_admin),
+):
+    data = dept_ctrl.create_department_control(
+        dept_id=dept_id,
+        payload=payload,
+        db=db
+    )
+    return {"msg": "Control created successfully", "data": data}
+
+@router.get("/{dept_id}/controls")
+async def get_department_controls(
+    dept_id: int,
+    db: Session = Depends(get_db_conn),
+    current_user: UserOut = Depends(get_current_user),
+):
+    data = dept_ctrl.get_department_controls(dept_id=dept_id, db=db)
+    return {"msg": "", "data": data}
+
+@router.patch(
+    "/application/{app_id}/control/{control_id}",
+    summary="Update control result",
+)
+async def update_control_result(
+    app_id: str,
+    control_id: int,
+    payload: d_schemas.ControlStatusPayload,
+    db: Session = Depends(get_db_conn),
+    current_user: UserOut = Depends(require_moderator),
+):
+    data = dept_ctrl.update_control_result(
+        app_id=app_id,
+        control_id=control_id,
+        control_status=payload.status,
+        user_id=current_user.id,
+        db=db
+    )
+
+    return {"msg": "Control result updated", "data": data}

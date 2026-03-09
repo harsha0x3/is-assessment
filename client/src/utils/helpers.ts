@@ -60,6 +60,8 @@ export const parseDept = (dept: string) => {
       return "VAPT";
     case "soc_integration":
       return "SOC Integration";
+    case "ai_security":
+      return "AI Security";
     default:
       return dept;
   }
