@@ -30,7 +30,11 @@ import type { DeptStatuses } from "@/utils/globalTypes";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { useParams } from "react-router-dom";
-import { getLabelFromOptions, parseStatus } from "@/utils/helpers";
+import {
+  getLabelFromOptions,
+  parseDateForInput,
+  parseStatus,
+} from "@/utils/helpers";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -75,7 +79,7 @@ const DepartmentInfo: React.FC = () => {
       setCategoryVal(data.data.category_status);
     }
     if (data?.data?.started_at) {
-      setStartedAt(data.data.started_at);
+      setStartedAt(parseDateForInput(data.data.started_at));
     }
   }, [data]);
 
@@ -300,6 +304,9 @@ const DepartmentInfo: React.FC = () => {
                       size="icon"
                       variant="ghost"
                       className="text-blue-500"
+                      onClick={() =>
+                        handleStatusSave({ started_at: startedAt })
+                      }
                     >
                       <Save />
                     </Button>

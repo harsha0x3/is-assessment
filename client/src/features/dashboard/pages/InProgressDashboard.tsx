@@ -50,11 +50,6 @@ const InProgressDashboard: React.FC = () => {
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg text-center">
-            In-progress applications summary
-          </CardTitle>
-        </CardHeader>
         <Suspense
           fallback={<SectionLoader label="Loading application summary…" />}
         >

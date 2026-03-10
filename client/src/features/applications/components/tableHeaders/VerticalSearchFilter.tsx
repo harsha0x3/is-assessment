@@ -19,7 +19,7 @@ const VerticalSearchFilter: React.FC = () => {
     if (!!appVertical) {
       setSearchTerm(appVertical);
     }
-  });
+  }, [appVertical]);
   return (
     <Popover>
       <PopoverTrigger asChild>

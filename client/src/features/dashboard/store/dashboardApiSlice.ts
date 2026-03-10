@@ -7,12 +7,20 @@ import type {
   DeptStatusCount,
   DepartmentCategorySummaryResponse,
   DepartmentStatusSummaryParams,
+  AppSummaryQueryParams,
 } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getApplicationSummary: builder.query<ApplicationStatusSummary, void>({
-      query: () => `/dashboard/summary/applications`,
+    getApplicationSummary: builder.query<
+      ApplicationStatusSummary,
+      AppSummaryQueryParams | void
+    >({
+      query: (params) => ({
+        url: `/dashboard/summary/applications`,
+        method: "GET",
+        params: params ?? undefined,
+      }),
     }),
     getDepartmentSummary: builder.query<
       DepartmentSummaryResponse,
@@ -39,7 +47,14 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
     }),
     getStatusPerDepartment: builder.query<
       DeptStatusCount[],
-      { app_status: string; sla_filter?: number; dept_status: string }
+      {
+        app_status: string;
+        sla_filter?: number;
+        dept_status: string;
+        app_sla?: number;
+        severity?: string;
+        priority?: string;
+      }
     >({
       query: (params) => ({
         url: "/dashboard/summary/departments/status",

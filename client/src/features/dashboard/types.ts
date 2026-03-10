@@ -80,3 +80,9 @@ export interface DepartmentStatusSummaryParams {
   department_id: number;
   sla_filter?: number | null; // 30 | 60 | 90 | 91 | null
 }
+
+export interface AppSummaryQueryParams {
+  severity?: string;
+  priority?: string;
+  sla?: number;
+}

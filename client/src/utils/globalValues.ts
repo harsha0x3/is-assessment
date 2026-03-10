@@ -125,3 +125,23 @@ export const DepartmentCategoryStatusMap: Record<string, SelectItemType[]> = {
     { value: "external_hosting", label: "External Hosting" },
   ],
 };
+
+export const SEVERITY_LABELS: Record<string, string> = {
+  "4": "Critical",
+  "3": "High",
+  "2": "Medium",
+  "1": "Low",
+};
+
+export const PRIORITY_LABELS: Record<string, string> = {
+  "3": "High",
+  "2": "Medium",
+  "1": "Low",
+};
+
+export const SLA_LABELS: Record<number, string> = {
+  30: "0–30 days",
+  60: "30–60 days",
+  90: "60–90 days",
+  91: "90+ days",
+};
