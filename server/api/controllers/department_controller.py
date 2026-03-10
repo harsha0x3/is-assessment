@@ -366,6 +366,8 @@ def change_department_app_status(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Application and department are not mapped",
             )
+        
+        print("DEPT UPDATE PAYLOAD", payload.model_dump())
 
         for key, val in payload.model_dump(
             exclude_unset=True, exclude_none=True
@@ -374,6 +376,8 @@ def change_department_app_status(
             if hasattr(dept_app, key):
                 print(f"Before update: {key} = {getattr(dept_app, key)}")
                 setattr(dept_app, key, val)
+
+                print("AFTER UPDATE", dept_app.started_at)
 
         if payload.status and payload.status is not None:
             dept_apps = (

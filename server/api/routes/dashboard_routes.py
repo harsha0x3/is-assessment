@@ -5,6 +5,7 @@ from db.connection import get_db_conn
 from schemas.auth_schemas import UserOut
 from services.auth.deps import get_current_user
 from typing import Annotated
+from schemas.dashboard_schemas import AppSummaryQueryParams, StatusPerDepartmentParams
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -13,8 +14,24 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 def dashboard_summary(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
+    severity: Annotated[str | None, Query()] = None,
+    priority: Annotated[str | None, Query()] = None,
+    sla: Annotated[int | None, Query()] = None,
 ):
-    return dc.get_app_status_summary(db)
+    int_severity_list = []
+    int_priority_list = []
+    if severity and severity.strip() != "":
+
+        severity_list = severity.split(",")
+        int_severity_list = [int(s) for s in severity_list]
+    
+    if priority and priority.strip() != "":
+        priority_list = priority.split(",")
+
+        int_priority_list = [int(s) for s in priority_list]
+    
+    params = AppSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, sla=sla)
+    return dc.get_app_status_summary(db, params=params)
 
 
 @router.get("/summary/departments")
@@ -71,7 +88,24 @@ def get_statuses_per_department(
     app_status: Annotated[str, Query(...)],
     dept_status: Annotated[str, Query(...)],
     sla_filter: Annotated[int | None, Query(...)] = None,
+    severity: Annotated[str | None, Query()] = None,
+    priority: Annotated[str | None, Query()] = None,
+    app_sla: Annotated[int | None, Query()] = None,
 ):
+    
+    int_severity_list = []
+    int_priority_list = []
+    if severity and severity.strip() != "":
+
+        severity_list = severity.split(",")
+        int_severity_list = [int(s) for s in severity_list]
+    
+    if priority and priority.strip() != "":
+        priority_list = priority.split(",")
+
+        int_priority_list = [int(s) for s in priority_list]
+    
+    params = StatusPerDepartmentParams(app_sla=app_sla, severity=int_severity_list, priority=int_priority_list, dept_status=dept_status, app_status=app_status, sla_filter=sla_filter)
     return dc.get_statuses_per_dept(
-        db=db, app_status=app_status, sla_filter=sla_filter, dept_status=dept_status
+        db=db, params = params
     )

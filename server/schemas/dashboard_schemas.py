@@ -68,3 +68,17 @@ class DepartmentCategorySummaryResponse(BaseModel):
     department_id: int
     dept_status: str
     categories: list[CategorySummaryItem]
+
+
+class AppSummaryQueryParams(BaseModel):
+    severity: list[int] | None
+    priority: list[int] | None
+    sla: int | None
+
+class StatusPerDepartmentParams(BaseModel):
+    severity: list[int] | None
+    priority: list[int] | None
+    app_sla: int | None
+    app_status: str 
+    sla_filter: int | None
+    dept_status: str

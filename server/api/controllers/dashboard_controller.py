@@ -23,16 +23,111 @@ def humanize(value: str) -> str:
 # ---------- Application status summary ----------
 
 
-def get_app_status_summary(db: Session) -> ds.ApplicationSummary:
+def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None) -> ds.ApplicationSummary:
     try:
-        rows = db.execute(
-            select(
+
+        stmt = select(
                 Application.status.label("status"),
                 func.count().label("status_count"),
-            )
-            .where(Application.is_active)
-            .group_by(Application.status)
-        ).all()
+            ).where(Application.is_active).group_by(Application.status)
+        
+        if params:
+
+            print("Params exist")
+
+            if params.severity is not None and len(params.severity) > 0:
+                print("Params exist")
+
+                stmt = stmt.where(Application.severity.in_(params.severity))
+
+            if params.priority is not None and len(params.priority) > 0:
+                stmt = stmt.where(Application.app_priority.in_(params.priority))
+
+            if params.sla is not None and params.sla > 0:
+                today = date.today()
+
+
+                sla_filter = params.sla
+            # Always ignore rows with NULL started_at
+                stmt = stmt.where(Application.started_at.is_not(None))
+
+                if sla_filter == 30:
+                    # 0–30 days
+                    lower = today - timedelta(days=30)
+
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) <= today,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) <= today,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+
+                elif sla_filter == 60:
+                    # 30–60 days
+                    upper = today - timedelta(days=30)
+                    lower = today - timedelta(days=60)
+
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) < upper,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) < upper,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+
+                elif sla_filter == 90:
+                    # 60–90 days
+                    upper = today - timedelta(days=60)
+                    lower = today - timedelta(days=90)
+
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) < upper,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) >= lower,
+                            func.date(Application.started_at) < upper,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+
+                elif sla_filter == 91:
+                    # 90+ days
+                    cutoff = today - timedelta(days=90)
+
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) < cutoff,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+                    stmt = stmt.where(
+                        and_(
+                            func.date(Application.started_at) < cutoff,
+                            Application.started_at.is_not(None),
+                        )
+                    )
+    
+        rows = db.execute(stmt).all()
 
         db_counts = {normalize_key(row.status): int(row.status_count) for row in rows}
 
@@ -429,9 +524,7 @@ def get_department_sub_category(
 
 def get_statuses_per_dept(
     db: Session,
-    app_status: str,
-    dept_status: str,
-    sla_filter: int | None = None,
+    params: ds.StatusPerDepartmentParams
 ):
     try:
         stmt = (
@@ -444,39 +537,51 @@ def get_statuses_per_dept(
             .join(Application, Application.id == ApplicationDepartments.application_id)
             .join(Department, Department.id == ApplicationDepartments.department_id)
             .where(
-                Application.status == app_status,
-                ApplicationDepartments.status == dept_status,
+                Application.status == params.app_status,
+                ApplicationDepartments.status == params.dept_status,
             )
             .group_by(Department.id, Department.name)
         )
 
-        today = date.today()
+        if params:
 
-        if sla_filter and sla_filter > 0:
-            stmt = stmt.where(Application.started_at.is_not(None))
+            print("Params exist")
 
-            if sla_filter == 30:
-                stmt = stmt.where(
-                    func.date(Application.started_at) >= today - timedelta(days=30)
-                )
-            elif sla_filter == 60:
-                stmt = stmt.where(
-                    func.date(Application.started_at).between(
-                        today - timedelta(days=60),
-                        today - timedelta(days=30),
+            if params.severity is not None and len(params.severity) > 0:
+                print("Params exist")
+
+                stmt = stmt.where(Application.severity.in_(params.severity))
+
+            if params.priority is not None and len(params.priority) > 0:
+                stmt = stmt.where(Application.app_priority.in_(params.priority))
+
+            today = date.today()
+
+            if params.sla_filter and params.sla_filter > 0:
+                stmt = stmt.where(Application.started_at.is_not(None))
+
+                if params.sla_filter == 30:
+                    stmt = stmt.where(
+                        func.date(Application.started_at) >= today - timedelta(days=30)
                     )
-                )
-            elif sla_filter == 90:
-                stmt = stmt.where(
-                    func.date(Application.started_at).between(
-                        today - timedelta(days=90),
-                        today - timedelta(days=60),
+                elif params.sla_filter == 60:
+                    stmt = stmt.where(
+                        func.date(Application.started_at).between(
+                            today - timedelta(days=60),
+                            today - timedelta(days=30),
+                        )
                     )
-                )
-            elif sla_filter == 91:
-                stmt = stmt.where(
-                    func.date(Application.started_at) < today - timedelta(days=90)
-                )
+                elif params.sla_filter == 90:
+                    stmt = stmt.where(
+                        func.date(Application.started_at).between(
+                            today - timedelta(days=90),
+                            today - timedelta(days=60),
+                        )
+                    )
+                elif params.sla_filter == 91:
+                    stmt = stmt.where(
+                        func.date(Application.started_at) < today - timedelta(days=90)
+                    )
 
         rows = db.execute(stmt).all()
 
