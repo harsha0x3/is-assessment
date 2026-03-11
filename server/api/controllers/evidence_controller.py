@@ -10,6 +10,7 @@ from schemas.department_schemas import DepartmentOut
 
 from datetime import datetime, timezone, timedelta
 import mimetypes
+from pathlib import Path
 
 import os
 import re
@@ -99,6 +100,18 @@ async def save_evidence_file_s3(file: UploadFile, app_name: str):
     except ClientError as e:
         raise HTTPException(500, f"Error uploading file to S3: {e}")
 
+VIEWABLE_TYPES = {
+    "pdf",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "webp",
+    "txt",
+    "mp4",
+    "webm"
+}
+
 
 def validate_s3_key(file_key: str):
     # Normalize
@@ -110,33 +123,60 @@ def validate_s3_key(file_key: str):
         )
 
     # Optional: block traversal patterns
-    if ".." in file_key:
+    if "../" in file_key:
         raise HTTPException(400, "Invalid file path")
 
     return file_key
 
-
-def get_s3_presigned_url(file_key: str, expires_in: int = 3600) -> str:
-    """
-    Generates a pre-signed URL for a private S3 object.
-    file_key: S3 object key (e.g., "user_uploads/<user_id>/<control_id>/file.json")
-    expires_in: URL expiration in seconds (default 1 hour)
-    """
+def get_s3_presigned_url(file_key: str, expires_in: int = 300) -> str:
     try:
         valid_file_key = validate_s3_key(file_key)
+
+        if not valid_file_key.startswith(ALLOWED_S3_PREFIX):
+            raise HTTPException(403, "Invalid file path")
+
+        # Fetch metadata
+        metadata = s3_client.head_object(
+            Bucket=S3_BUCKET,
+            Key=valid_file_key
+        )
+
+        content_type = metadata.get("ContentType", "")
+
+        VIEWABLE_MIME_TYPES = {
+            "application/pdf",
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/webp",
+            "text/plain",
+            "video/mp4",
+            "video/webm",
+        }
+
+        disposition = (
+            "inline"
+            if content_type in VIEWABLE_MIME_TYPES
+            else "attachment"
+        )
+
+        filename = Path(valid_file_key).name
+
         url = s3_client.generate_presigned_url(
             "get_object",
             Params={
                 "Bucket": S3_BUCKET,
                 "Key": valid_file_key,
-                "ResponseContentDisposition": "inline",
+                "ResponseContentDisposition": f'{disposition}; filename="{filename}"',
             },
             ExpiresIn=expires_in,
         )
+
         return url
+
     except ClientError as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=f"Error generating S3 URL: {e}",
         )
 
@@ -176,7 +216,7 @@ async def save_evidence_file_local(file: UploadFile, app_name: str):
             content = await file.read()
             f.write(content)
 
-        return f"uploads/evidences/{app_name}/{final_filename}"
+        return f"uploads/evidences/{sanitize_filename(app_name)[:40]}/{final_filename}"
 
     except Exception as e:
         raise HTTPException(

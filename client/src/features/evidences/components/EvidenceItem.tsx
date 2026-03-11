@@ -38,8 +38,10 @@ const EvidenceItem: React.FC<Props> = ({ evidence }) => {
               path: evidence.evidence_path,
             }).unwrap();
 
-            window.open(res.url, "_blank");
+            window.open(res.url, "_blank", "noopener,noreferrer");
           } catch (err) {
+            console.error("ERRO IN GETTING FILE", err);
+
             const errMsg = getApiErrorMessage(err) ?? "Error getting the file";
             toast.error(errMsg);
           }
