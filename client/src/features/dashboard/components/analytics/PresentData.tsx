@@ -388,7 +388,7 @@ const PresentData: React.FC = () => {
       ) : deptSummayErr ? (
         <div>{getApiErrorMessage(deptSummayErr)}</div>
       ) : (
-        <Card className="px-0 gap-3 min-w-0 overflow-x-hidden">
+        <Card className="px-0 gap-2 min-w-0 overflow-x-hidden">
           <CardHeader className="px-0 min-w-0">
             <div className="flex gap-3 w-full items-center">
               <CardTitle className="text-center flex-1">
@@ -484,31 +484,30 @@ const PresentData: React.FC = () => {
                   "Error getting Department wise summary"}
               </div>
             ) : (
-              <div className="grid grid-flow-col auto-cols-lg gap-4 overflow-x-auto min-w-0 scroll-smooth">
-                <Suspense
-                  fallback={
-                    <>
-                      <CardLoader />
-                      <CardLoader />
-                      <CardLoader />
-                    </>
-                  }
-                >
-                  {orderedDepartments.map((dept) => (
-                    <DepartmentStatusCard
-                      key={dept.department}
-                      department={dept.department}
-                      deptId={dept.department_id}
-                      statuses={dept.statuses}
-                      deptStatusFilter={deptFilters?.app_status}
-                      appAgeFrom={deptFilters?.app_age_from}
-                      appAgeTo={deptFilters?.app_age_to}
-                      assignedApps={dept?.total_apps}
-                    />
-                  ))}
-                </Suspense>
-                <div>
-                  <Button>Expand</Button>
+              <div>
+                <div className="grid grid-flow-col auto-cols-lg gap-4 overflow-x-auto min-w-0 scroll-smooth">
+                  <Suspense
+                    fallback={
+                      <>
+                        <CardLoader />
+                        <CardLoader />
+                        <CardLoader />
+                      </>
+                    }
+                  >
+                    {orderedDepartments.map((dept) => (
+                      <DepartmentStatusCard
+                        key={dept.department}
+                        department={dept.department}
+                        deptId={dept.department_id}
+                        statuses={dept.statuses}
+                        deptStatusFilter={deptFilters?.app_status}
+                        appAgeFrom={deptFilters?.app_age_from}
+                        appAgeTo={deptFilters?.app_age_to}
+                        assignedApps={dept?.total_apps}
+                      />
+                    ))}
+                  </Suspense>
                 </div>
               </div>
             )}

@@ -27,6 +27,7 @@ from services.notifications.email_notify import send_new_app_mails_bg
 from schemas.notification_schemas import NewAppData
 import os
 from dotenv import load_dotenv
+from api.controllers.user_management_controller import get_user_departments
 load_dotenv()
 
 ENV = os.getenv("PROD_ENV")
@@ -232,8 +233,10 @@ def get_apps_summary_from_stmt(db: Session, stmt):
         )
 
 
-def list_all_apps(db: Session, params: AppQueryParams):
+def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
     try:
+        user_depts = get_user_departments(db=db, user_id=current_user.id)
+
         print("PARAMS", params.model_dump())
         stmt = (
             select(Application)
@@ -241,6 +244,11 @@ def list_all_apps(db: Session, params: AppQueryParams):
             .where(Application.is_active)
             .options(joinedload(Application.departments))
         )
+
+        if current_user.role != "user":
+            print("USER DEPTS", user_depts)
+            if len(user_depts) == 1 and 9 in user_depts:
+                stmt = stmt.where(Application.is_privacy_applicable)
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total_count = db.scalar(count_stmt)

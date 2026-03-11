@@ -177,6 +177,7 @@ async def new_list_all_apps(
     data = list_all_apps(
         db=db,
         params=params,
+        current_user = current_user
     )
     return {"msg": "Applications fetched successfully", "data": data}
 
