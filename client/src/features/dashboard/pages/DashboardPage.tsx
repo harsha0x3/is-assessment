@@ -22,20 +22,38 @@ import {
 import type { AppStatuses } from "@/utils/globalTypes";
 import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/loaders/PageLoader";
-import { useDebounce } from "@/utils/helpers";
 import { CardLoader, SectionLoader } from "../components/Loaders";
 import { Label } from "@/components/ui/label";
+import AppStatusCard from "../components/AppStatusCard";
+import { Button } from "@/components/ui/button";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
   () => import("../components/DepartmentStatusCard"),
 );
 
+import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
+import { toast } from "sonner";
+import DateRangeFilter from "@/features/_filters/DateRangeFilter";
+
+interface DeptFilterProps {
+  severity: string[];
+  priority: string[];
+  app_age_from?: string;
+  app_age_to?: string;
+  app_status?: string;
+}
+
 const DashboardPage: React.FC = () => {
   // 🔹 Lazy-loaded components
   const [deptStatusFilter, setDeptStatusFilter] = useState<string>("all");
-  const [deptSlaFilter, setDeptSlaFilter] = useState<number>(0);
-  const debouncedSla = useDebounce(deptSlaFilter);
+  const [deptFilters, setDeptFilters] = React.useState<DeptFilterProps>({
+    severity: [],
+    priority: [],
+    app_age_from: undefined,
+    app_age_to: undefined,
+    app_status: undefined,
+  });
   const {
     data: appsSummary,
     isLoading: isLoadingAppsSummary,
@@ -47,9 +65,24 @@ const DashboardPage: React.FC = () => {
     error: deptSummayErr,
     isFetching: isFetchingDeptSummary,
   } = useGetDepartmentSummaryQuery({
-    status_filter: deptStatusFilter,
-    sla_filter: debouncedSla,
+    app_status:
+      deptFilters?.app_status && deptFilters.severity.length > 0
+        ? deptFilters.severity.join(",")
+        : undefined,
+    severity:
+      deptFilters?.severity && deptFilters.severity.length > 0
+        ? deptFilters.severity.join(",")
+        : undefined,
+    priority:
+      deptFilters?.priority && deptFilters.priority.length > 0
+        ? deptFilters.priority.join(",")
+        : undefined,
+    app_age_from: deptFilters?.app_age_from,
+    app_age_to: deptFilters?.app_age_to,
   });
+
+  const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   const orderedDepartments = useMemo(() => {
     return [...(deptSummay?.departments ?? [])].sort((a, b) =>
@@ -58,6 +91,13 @@ const DashboardPage: React.FC = () => {
       }),
     );
   }, [deptSummay?.departments]);
+
+  const statusCardData = useMemo(() => {
+    if (appsSummary) {
+      return buildDonutData(appsSummary.status_chart, appsSummary.total_apps);
+    }
+    return undefined;
+  }, [appsSummary]);
 
   if (isLoadingAppsSummary || isLoadingDeptSummay) {
     return <PageLoader label="Loading Data. Please wait" />;
@@ -71,13 +111,73 @@ const DashboardPage: React.FC = () => {
           fallback={<SectionLoader label="Loading application summary…" />}
         >
           {!isLoadingAppsSummary && appsSummary && (
-            <StatusDonut
-              data={buildDonutData(
-                appsSummary.status_chart,
-                appsSummary.total_apps,
-              )}
-              total_count={appsSummary.total_apps}
-            />
+            <React.Fragment>
+              <CardHeader>
+                <div className="w-full flex items-center">
+                  <CardTitle className="text-center text-lg flex-1">
+                    Overall Application Status Summary
+                  </CardTitle>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        setIsDownloading(true);
+                        const blob = await trigger().unwrap();
+
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+
+                        link.href = url;
+                        link.download = "is_assessment_all_applications.csv";
+
+                        document.body.appendChild(link);
+                        link.click();
+
+                        link.remove();
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        toast.error(
+                          getApiErrorMessage(error) ??
+                            "Error downloading the report",
+                        );
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                    disabled={isLoading || isDownloading}
+                  >
+                    {isLoading || isDownloading ? (
+                      <span className="flex items-center">
+                        <Loader className="animnate-spin" />
+                      </span>
+                    ) : (
+                      "Export"
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-2">
+                <StatusDonut
+                  data={buildDonutData(
+                    appsSummary.status_chart,
+                    appsSummary.total_apps,
+                  )}
+                  total_count={appsSummary.total_apps}
+                />
+                <div className="grid grid-cols-2 gap-3 items-center">
+                  {statusCardData &&
+                    statusCardData.map((item) => (
+                      <AppStatusCard
+                        key={item.name}
+                        data={{
+                          name: item.name,
+                          count: item.count,
+                          percent: item.value,
+                        }}
+                      />
+                    ))}
+                </div>
+              </CardContent>
+            </React.Fragment>
           )}
         </Suspense>
 
@@ -159,24 +259,21 @@ const DashboardPage: React.FC = () => {
               >
                 Age of Applications
               </Label>
-              <Select
-                value={String(deptSlaFilter) ?? "all"}
-                onValueChange={(val) => {
-                  if (val) setDeptSlaFilter(Number(val));
-                  else setDeptSlaFilter(0);
-                }}
-              >
-                <SelectTrigger id="sla-filter" className="w-full max-w-48 ">
-                  <SelectValue placeholder="Select duration" className="w-48" />
-                </SelectTrigger>
-                <SelectContent className="w-48">
-                  <SelectItem value="0">Any age</SelectItem>
-                  <SelectItem value="30">0 - 30 days</SelectItem>
-                  <SelectItem value="60">30 - 60 days</SelectItem>
-                  <SelectItem value="90">60 - 90 days</SelectItem>
-                  <SelectItem value="91">90+ days</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1">
+                <Label className="text-sm font-medium">Application Age</Label>
+
+                <DateRangeFilter
+                  from={deptFilters.app_age_from}
+                  to={deptFilters.app_age_to}
+                  onChange={({ from, to }) =>
+                    setDeptFilters((prev) => ({
+                      ...prev,
+                      app_age_from: from,
+                      app_age_to: to,
+                    }))
+                  }
+                />
+              </div>
             </div>
           </div>
           {deptSummayErr ? (
@@ -201,8 +298,9 @@ const DashboardPage: React.FC = () => {
                     department={dept.department}
                     deptId={dept.department_id}
                     statuses={dept.statuses}
-                    deptStatusFilter={deptStatusFilter}
-                    appSlaFilter={deptSlaFilter}
+                    deptStatusFilter={deptFilters?.app_status}
+                    appAgeFrom={deptFilters?.app_age_from}
+                    appAgeTo={deptFilters?.app_age_to}
                   />
                 ))}
               </Suspense>

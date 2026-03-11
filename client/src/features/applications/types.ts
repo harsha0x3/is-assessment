@@ -137,15 +137,12 @@ export interface AppQueryParams {
   dept_status?: string;
   app_priority?: string[];
   vertical?: string;
-  sla_filter?: number;
-  // mobile_apps?: string;
-  // ai_apps?: string;
-  // web_apps?: string;
-  // mobile_web_apps?: string;
-  // privacy_apps?: string;
   severity?: string;
   app_type?: string;
   app_features?: string;
+
+  app_age_from?: string;
+  app_age_to?: string;
 }
 
 export interface AppStatusSummary {

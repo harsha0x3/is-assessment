@@ -194,6 +194,9 @@ class AppQueryParams(BaseModel):
     app_type: list[str] | None
     app_features: list[str] | None
 
+    app_age_from: date | None
+    app_age_to: date | None
+
     @field_validator("sort_by")
     @classmethod
     def validate_sort_by(cls, v: str) -> str:

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from datetime import date
 
 # ---------- Common ----------
 
@@ -26,6 +26,7 @@ class VerticalStatusSummary(BaseModel):
 
 class ApplicationSummary(BaseModel):
     total_apps: int
+    filtered_apps: int
     status_chart: list[StatusCountItem]
 
 
@@ -73,7 +74,15 @@ class DepartmentCategorySummaryResponse(BaseModel):
 class AppSummaryQueryParams(BaseModel):
     severity: list[int] | None
     priority: list[int] | None
-    sla: int | None
+    app_age_from: date | None
+    app_age_to: date | None
+
+class DeptSummaryQueryParams(BaseModel):
+    status: str | None
+    severity: list[int] | None
+    priority: list[int] | None
+    app_age_from: date | None
+    app_age_to: date | None
 
 class StatusPerDepartmentParams(BaseModel):
     severity: list[int] | None

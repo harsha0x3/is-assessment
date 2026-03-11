@@ -7,7 +7,6 @@ import { Toaster } from "sonner";
 import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
 import { useGetMeQuery } from "./features/auth/store/authApiSlice";
-
 const DashboardPage = lazy(
   () => import("./features/dashboard/pages/DashboardPage"),
 );
@@ -39,8 +38,8 @@ const DepartmentQuestionnaire = lazy(
 const AppQuestionnaire = lazy(
   () => import("@/features/appQuestionnaire/components/AppQuestionnaire"),
 );
-const InProgressDashboard = lazy(
-  () => import("./features/dashboard/pages/InProgressDashboard"),
+const PresentData = lazy(
+  () => import("./features/dashboard/components/analytics/PresentData"),
 );
 
 function App() {
@@ -79,10 +78,10 @@ function App() {
               }
             />
             <Route
-              path="dashboard/in_progress"
+              path="dashboard/analytics"
               element={
-                <LazyRoute fallbackLabel="Loading Inprogress Dashboard..">
-                  <InProgressDashboard />
+                <LazyRoute fallbackLabel="Loading Analytics Dashboard..">
+                  <PresentData />
                 </LazyRoute>
               }
             />

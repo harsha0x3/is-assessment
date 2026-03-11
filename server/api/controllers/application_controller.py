@@ -144,6 +144,7 @@ def _has_filters(params: AppQueryParams) -> bool:
             params.web_apps is not None,
             params.mobile_web_apps is not None,
             params.privacy_apps is not None,
+            params.app_age_from is not None and params.app_age_to is not None
         ]
     )
 
@@ -275,7 +276,15 @@ def list_all_apps(db: Session, params: AppQueryParams):
 
         today = date.today()
 
-        if params.sla_filter and params.sla_filter > 0:
+        if params.app_age_from:
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
+
+            if params.app_age_to:
+                stmt = stmt.where( Application.started_at <= params.app_age_to)
+
+
             # Always ignore rows with NULL started_at
             stmt = stmt.where(Application.started_at.is_not(None))
 
@@ -358,12 +367,9 @@ def list_all_apps(db: Session, params: AppQueryParams):
 
         filtered_subquery = stmt.subquery()
         filtered_count = db.scalar(select(func.count()).select_from(filtered_subquery))
-        filtered_apps_summary = None
 
-        if _has_filters(params):
-            filtered_apps_summary = get_apps_summary_from_stmt(
-                db=db, stmt=filtered_subquery
-            )
+        filtered_apps_summary = get_apps_summary_from_stmt(
+                db=db, stmt=filtered_subquery)
 
         # -------- pagination ans sorting ---------
 

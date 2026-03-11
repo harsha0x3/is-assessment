@@ -21,11 +21,15 @@ const AppTypeFilter: React.FC = () => {
   useEffect(() => {
     if (appType) {
       setApptypeFilters(appType.split(","));
+    } else {
+      setAppFeaturesFilters([]);
     }
     if (appFeatures) {
       setAppFeaturesFilters(appFeatures.split(","));
+    } else {
+      setAppFeaturesFilters([]);
     }
-  }, [appTypeFiltes, appFeaturesFiltes]);
+  }, [appType, appFeatures]);
 
   const toggleAppTypeSelection = (value: string) => {
     setApptypeFilters((prev) => {
@@ -112,12 +116,14 @@ const AppTypeFilter: React.FC = () => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() =>
+          onClick={() => {
+            setAppFeaturesFilters([]);
+            setApptypeFilters([]);
             updateSearchParams({
               appType: undefined,
               appFeatures: undefined,
-            })
-          }
+            });
+          }}
           className="text-destructive"
         >
           Clear All

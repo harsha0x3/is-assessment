@@ -26,17 +26,14 @@ export const useApplications = () => {
   const deptFilterId = searchParams.get("deptFilterId");
   const appPage = rawAppPage === -1 ? 1 : rawAppPage;
   const appPriority = searchParams.get("appPriority");
-  const appSlaFilter = searchParams.get("appSlaFilter");
 
   const appVertical = searchParams.get("appVertical");
-  // const mobileAppsFilter = searchParams.get("mobileAppsFilter");
-  // const webAppsFilter = searchParams.get("webAppsFilter");
-  // const aiAppsFilter = searchParams.get("aiAppsFilter");
-  // const mobileWebAppsFilter = searchParams.get("mobileWebAppsFilter");
-  // const privacyAppsFilter = searchParams.get("privacyAppsFilter");
   const appSeverity = searchParams.get("appSeverity");
   const appType = searchParams.get("appType");
   const appFeatures = searchParams.get("appFeatures");
+
+  const appAgeFromFilter = searchParams.get("appAgeFrom");
+  const appAgeToFilter = searchParams.get("appAgeTo");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -48,8 +45,6 @@ export const useApplications = () => {
   );
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [debouncedVerticalSearch, setDebouncedVerticalSearch] = useState("");
-  const [debouncedSlaFilter, setDebouncedSlaFilter] = useState<number>(0);
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
 
   console.log("APP Severity", appSeverity);
@@ -66,16 +61,19 @@ export const useApplications = () => {
       dept_filter_id: deptFilterId ?? undefined,
       dept_status: deptStatus ?? undefined,
       app_priority: appPriorityList,
-      vertical: debouncedVerticalSearch ?? undefined,
-      sla_filter: debouncedSlaFilter,
-      // mobile_apps: mobileAppsFilter ?? undefined,
-      // web_apps: webAppsFilter ?? undefined,
-      // mobile_web_apps: mobileWebAppsFilter ?? undefined,
-      // ai_apps: aiAppsFilter ?? undefined,
-      // privacy_apps: privacyAppsFilter ?? undefined,
+      vertical: appVertical ?? undefined,
       severity: appSeverity ?? undefined,
       app_features: appFeatures ?? undefined,
       app_type: appType ?? undefined,
+
+      app_age_from:
+        appAgeFromFilter && appAgeFromFilter.trim() !== ""
+          ? appAgeFromFilter
+          : undefined,
+      app_age_to:
+        appAgeToFilter && appAgeToFilter.trim() !== ""
+          ? appAgeToFilter
+          : undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
@@ -104,42 +102,6 @@ export const useApplications = () => {
 
     return () => clearTimeout(handler);
   }, [appSearchValue]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (appVertical && appVertical.trim() !== "") {
-        if (rawAppPage >= 1) setLastAppPage(rawAppPage);
-        updateSearchParams({
-          appVertical: appVertical,
-          appPage: 1,
-        });
-        setDebouncedVerticalSearch(appVertical);
-      } else {
-        updateSearchParams({ appVertical: null, appPage: lastAppPage });
-        setDebouncedVerticalSearch("");
-      }
-    }, 400);
-
-    return () => clearTimeout(handler);
-  }, [appVertical]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (appSlaFilter && appSlaFilter.trim() !== "") {
-        if (rawAppPage >= 1) setLastAppPage(rawAppPage);
-        updateSearchParams({
-          appSlaFilter: appSlaFilter,
-          appPage: 1,
-        });
-        setDebouncedSlaFilter(Number(appSlaFilter));
-      } else {
-        updateSearchParams({ appSlaFilter: null, appPage: lastAppPage });
-        setDebouncedSlaFilter(0);
-      }
-    }, 400);
-
-    return () => clearTimeout(handler);
-  }, [appSlaFilter]);
 
   const updateSearchParams = (
     updates: Record<string, string | number | null | undefined>,
@@ -177,15 +139,11 @@ export const useApplications = () => {
     isFetching,
     appVertical,
     filteredAppsSummary,
-    appSlaFilter,
     appStatus,
     appType,
     appFeatures,
-    // mobileAppsFilter,
-    // aiAppsFilter,
-    // mobileWebAppsFilter,
-    // webAppsFilter,
-    // privacyAppsFilter,
+    appAgeFromFilter,
+    appAgeToFilter,
   };
 };
 

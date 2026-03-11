@@ -145,3 +145,16 @@ export const SLA_LABELS: Record<number, string> = {
   90: "60–90 days",
   91: "90+ days",
 };
+
+export const severityValues: { label: string; value: string }[] = [
+  { label: "Crown Jewel", value: "4" },
+  { label: "High", value: "3" },
+  { label: "Medium", value: "2" },
+  { label: "Low", value: "1" },
+];
+
+export const priorityValues: { label: string; value: string }[] = [
+  { label: "High", value: "3" },
+  { label: "Medium", value: "2" },
+  { label: "Low", value: "1" },
+];

@@ -1,7 +1,7 @@
 // chartConfig.ts
 import type { ChartConfig } from "@/components/ui/chart";
 
-export const donutChartConfig: ChartConfig = {
+export const appStatusChartConfig: ChartConfig = {
   new_request: {
     label: "New Request",
     color: "var(--status-new-request-fg)",

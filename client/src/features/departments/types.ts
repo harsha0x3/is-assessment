@@ -63,4 +63,5 @@ export interface DepartmentStatusPayload {
   app_category?: string;
   category_status?: string;
   started_at?: string;
+  ended_at?: string;
 }

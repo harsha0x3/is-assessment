@@ -8,6 +8,7 @@ import type {
   DepartmentCategorySummaryResponse,
   DepartmentStatusSummaryParams,
   AppSummaryQueryParams,
+  DeptSummaryQueryParams,
 } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({
@@ -24,7 +25,7 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
     }),
     getDepartmentSummary: builder.query<
       DepartmentSummaryResponse,
-      { status_filter?: string; sla_filter?: number } | void
+      DeptSummaryQueryParams | void
     >({
       query: (params) => ({
         url: `/dashboard/summary/departments`,

@@ -127,7 +127,6 @@ const ApplicationsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       {data?.data?.filtered_summary && (
         <StatusProgressBar summary={data?.data.filtered_summary} />
       )}

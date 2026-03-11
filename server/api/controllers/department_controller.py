@@ -369,16 +369,37 @@ def change_department_app_status(
         
         print("DEPT UPDATE PAYLOAD", payload.model_dump())
 
+        prev_status = dept_app.status
+
         for key, val in payload.model_dump(
             exclude_unset=True, exclude_none=True
         ).items():
-            print(f"Updating {key} to {val}")
             if hasattr(dept_app, key):
-                print(f"Before update: {key} = {getattr(dept_app, key)}")
-                setattr(dept_app, key, val)
+                if key == "started_at" and val:
+                    print("Started at")
+                    dept_app.started_at = datetime.now(timezone.utc).replace(
+                        year=val.year,
+                        month=val.month,
+                        day=val.day,
+                    )
 
-                print("AFTER UPDATE", dept_app.started_at)
+                elif key == "ended_at" and val:
+                    print("ENDED AT")
+                    dept_app.ended_at = datetime.now(timezone.utc).replace(
+                        year=val.year,
+                        month=val.month,
+                        day=val.day,
+                    )
+                else:
+                    setattr(dept_app, key, val)
 
+        if dept_app.status != prev_status and dept_app.status in [
+            "cleared",
+            "closed",
+        ]:
+            dept_app.ended_at = datetime.now(timezone.utc)
+
+        db.flush()
         if payload.status and payload.status is not None:
             dept_apps = (
                 db.execute(

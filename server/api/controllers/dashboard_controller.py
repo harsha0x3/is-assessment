@@ -30,103 +30,35 @@ def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None)
                 Application.status.label("status"),
                 func.count().label("status_count"),
             ).where(Application.is_active).group_by(Application.status)
-        
+    
+        count_stmt = select(func.count(Application.id)).where(Application.is_active)
+
         if params:
-
-            print("Params exist")
-
             if params.severity is not None and len(params.severity) > 0:
-                print("Params exist")
 
                 stmt = stmt.where(Application.severity.in_(params.severity))
+                count_stmt = count_stmt.where(Application.severity.in_(params.severity))
 
             if params.priority is not None and len(params.priority) > 0:
                 stmt = stmt.where(Application.app_priority.in_(params.priority))
+                count_stmt = count_stmt.where(Application.app_priority.in_(params.priority))
 
-            if params.sla is not None and params.sla > 0:
-                today = date.today()
-
-
-                sla_filter = params.sla
-            # Always ignore rows with NULL started_at
-                stmt = stmt.where(Application.started_at.is_not(None))
-
-                if sla_filter == 30:
-                    # 0–30 days
-                    lower = today - timedelta(days=30)
-
-                    stmt = stmt.where(
+            if params.app_age_from and params.app_age_to:
+                stmt = stmt.where(
                         and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) <= today,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-                    stmt = stmt.where(
+                            Application.started_at.is_not(None), 
+                            Application.started_at >= params.app_age_from
+                        ))
+                count_stmt = count_stmt.where(
                         and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) <= today,
-                            Application.started_at.is_not(None),
-                        )
-                    )
+                            Application.started_at.is_not(None), 
+                            Application.started_at >= params.app_age_from
+                        ))
+                if params.app_age_to:
+                    stmt = stmt.where( Application.started_at <= params.app_age_to)
+                    count_stmt = count_stmt.where( Application.started_at <= params.app_age_to)
 
-                elif sla_filter == 60:
-                    # 30–60 days
-                    upper = today - timedelta(days=30)
-                    lower = today - timedelta(days=60)
 
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) < upper,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) < upper,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-
-                elif sla_filter == 90:
-                    # 60–90 days
-                    upper = today - timedelta(days=60)
-                    lower = today - timedelta(days=90)
-
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) < upper,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) >= lower,
-                            func.date(Application.started_at) < upper,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-
-                elif sla_filter == 91:
-                    # 90+ days
-                    cutoff = today - timedelta(days=90)
-
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) < cutoff,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-                    stmt = stmt.where(
-                        and_(
-                            func.date(Application.started_at) < cutoff,
-                            Application.started_at.is_not(None),
-                        )
-                    )
-    
         rows = db.execute(stmt).all()
 
         db_counts = {normalize_key(row.status): int(row.status_count) for row in rows}
@@ -144,9 +76,12 @@ def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None)
             or 0
         )
 
+        filtered_apps = db.scalar(count_stmt) or 0
+
         return ds.ApplicationSummary(
             total_apps=total_apps,
             status_chart=status_chart,
+            filtered_apps=filtered_apps
         )
 
     except Exception as e:
@@ -160,7 +95,7 @@ def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None)
 
 
 def get_department_status_summary(
-    db: Session, status_filter: str | None, sla_filter: int | None
+    db: Session, params: ds.DeptSummaryQueryParams
 ) -> ds.DepartmentSummaryResponse:
     try:
         stmt = (
@@ -184,97 +119,32 @@ def get_department_status_summary(
             Application.is_active
         )
 
-        if status_filter or (sla_filter is not None and sla_filter > 0):
+        if params.status or params.app_age_from or params.app_age_to or params.severity or params.priority:
             stmt = stmt.join(
                 Application,
                 Application.id == ApplicationDepartments.application_id,
             )
 
-        if status_filter and status_filter != "all":
-            stmt = stmt.where(Application.status == status_filter)
-            total_apps_stmt = total_apps_stmt.where(Application.status == status_filter)
+        if params.status and params.status != "all":
+            stmt = stmt.where(Application.status == params.status)
+            total_apps_stmt = total_apps_stmt.where(Application.status == params.status)
 
-        today = date.today()
 
-        if sla_filter and sla_filter > 0:
-            # Always ignore rows with NULL started_at
-            stmt = stmt.where(Application.started_at.is_not(None))
+        if params.severity is not None and len(params.severity) > 0:
 
-            if sla_filter == 30:
-                # 0–30 days
-                lower = today - timedelta(days=30)
+            stmt = stmt.where(Application.severity.in_(params.severity))
 
-                stmt = stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) <= today,
-                        Application.started_at.is_not(None),
-                    )
-                )
-                total_apps_stmt = total_apps_stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) <= today,
-                        Application.started_at.is_not(None),
-                    )
-                )
+        if params.priority is not None and len(params.priority) > 0:
+            stmt = stmt.where(Application.app_priority.in_(params.priority))
 
-            elif sla_filter == 60:
-                # 30–60 days
-                upper = today - timedelta(days=30)
-                lower = today - timedelta(days=60)
-
-                stmt = stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) < upper,
-                        Application.started_at.is_not(None),
-                    )
-                )
-                total_apps_stmt = total_apps_stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) < upper,
-                        Application.started_at.is_not(None),
-                    )
-                )
-
-            elif sla_filter == 90:
-                # 60–90 days
-                upper = today - timedelta(days=60)
-                lower = today - timedelta(days=90)
-
-                stmt = stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) < upper,
-                        Application.started_at.is_not(None),
-                    )
-                )
-                total_apps_stmt = total_apps_stmt.where(
-                    and_(
-                        func.date(Application.started_at) >= lower,
-                        func.date(Application.started_at) < upper,
-                        Application.started_at.is_not(None),
-                    )
-                )
-
-            elif sla_filter == 91:
-                # 90+ days
-                cutoff = today - timedelta(days=90)
-
-                stmt = stmt.where(
-                    and_(
-                        func.date(Application.started_at) < cutoff,
-                        Application.started_at.is_not(None),
-                    )
-                )
-                total_apps_stmt = total_apps_stmt.where(
-                    and_(
-                        func.date(Application.started_at) < cutoff,
-                        Application.started_at.is_not(None),
-                    )
-                )
+        if params.app_age_from and params.app_age_to:
+            stmt = stmt.where(
+                        and_(
+                            Application.started_at.is_not(None), 
+                            Application.started_at >= params.app_age_from
+                        ))
+            if params.app_age_to:
+                stmt = stmt.where( Application.started_at <= params.app_age_to)
 
         rows = db.execute(stmt).all()
 

@@ -56,6 +56,7 @@ const DepartmentInfo: React.FC = () => {
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isEditingCategoryStatus, setIsEditingCategoryStatus] = useState(false);
   const [isEditingStartedAt, setIsEditingStartedAt] = useState(false);
+  const [isEditingEndedAt, setIsEditingEndedAt] = useState(false);
 
   const [statusValue, setStatusValue] = useState<DeptStatuses>();
   const [prevStatus, setPrevStatusVal] = useState<DeptStatuses>();
@@ -65,6 +66,9 @@ const DepartmentInfo: React.FC = () => {
   const [prevCategoryStatus, setPrevCategoryStatus] = useState<string>();
   const [startedAt, setStartedAt] = useState<string>();
   const [prevStartedAt, setPrevStartedAt] = useState<string>();
+
+  const [endedAt, setEndedAt] = useState<string>();
+  const [prevEndedAt, setPrevEndedAt] = useState<string>();
 
   const userDepts = useSelector(selectUserDepts);
 
@@ -81,6 +85,9 @@ const DepartmentInfo: React.FC = () => {
     if (data?.data?.started_at) {
       setStartedAt(parseDateForInput(data.data.started_at));
     }
+    if (data?.data?.ended_at) {
+      setEndedAt(parseDateForInput(data.data.ended_at));
+    }
   }, [data]);
 
   useEffect(() => {
@@ -88,16 +95,19 @@ const DepartmentInfo: React.FC = () => {
     setIsEditingCategory(false);
     setIsEditingCategoryStatus(false);
     setIsEditingStartedAt(false);
+    setIsEditingEndedAt(false);
 
     setStatusValue(undefined);
     setCategoryVal(undefined);
     setCategoryStatus(undefined);
     setStartedAt(undefined);
+    setEndedAt(undefined);
 
     setPrevStatusVal(undefined);
     setPrevCategory(undefined);
     setPrevCategoryStatus(undefined);
     setPrevStartedAt(undefined);
+    setPrevEndedAt(undefined);
   }, [deptId]);
 
   const [updateDepartmentStatus, { isLoading: isUpdatingStatus }] =
@@ -116,11 +126,13 @@ const DepartmentInfo: React.FC = () => {
       statusValue === data?.data.status &&
       categoryVal === data?.data.app_category &&
       categoryStatus === data?.data.category_status &&
-      startedAt === data?.data.started_at
+      startedAt === data?.data.started_at &&
+      endedAt === data?.data.ended_at
     ) {
       setIsEditingStatus(false);
       setIsEditingCategory(false);
       setIsEditingCategoryStatus(false);
+      setIsEditingEndedAt(false);
       return;
     }
 
@@ -135,6 +147,7 @@ const DepartmentInfo: React.FC = () => {
       setIsEditingCategory(false);
       setIsEditingCategoryStatus(false);
       setIsEditingStartedAt(false);
+      setIsEditingEndedAt(false);
       toast.success("Department info updated successfully");
     } catch (err) {
       const errMsg: string = getApiErrorMessage(err) ?? "Error updating status";
@@ -315,6 +328,60 @@ const DepartmentInfo: React.FC = () => {
                       variant="ghost"
                       className="text-red-500"
                       onClick={() => setStartedAt(prevStartedAt)}
+                    >
+                      <X />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* process ended at */}
+            <div className="basis-65 grow">
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap">Ended At:</span>
+
+                <Input
+                  type="date"
+                  readOnly={!isEditingEndedAt}
+                  value={endedAt}
+                  onChange={(e) => setEndedAt(e.target.value)}
+                  className="w-40"
+                />
+
+                {!isEditingEndedAt ? (
+                  userDepts.includes(deptIdNumber) && (
+                    <Hint label="Update process start date">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setIsEditingEndedAt(true);
+                          setPrevEndedAt(endedAt);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Hint>
+                  )
+                ) : (
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-blue-500"
+                      onClick={() => handleStatusSave({ ended_at: endedAt })}
+                    >
+                      <Save />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-red-500"
+                      onClick={() => {
+                        setEndedAt(prevEndedAt);
+                        setIsEditingEndedAt(false);
+                      }}
                     >
                       <X />
                     </Button>

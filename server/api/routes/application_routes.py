@@ -36,6 +36,7 @@ from schemas.auth_schemas import UserOut
 from services.auth.deps import get_current_user, require_admin, require_manager
 from api.controllers import evidence_controller as e_ctrl
 import os
+from datetime import date
 
 ENV = os.getenv("ENV")
 
@@ -92,6 +93,10 @@ async def new_list_all_apps(
     app_type: Annotated[str | None, Query()] = None,
     app_features: Annotated[str | None, Query()] = None,
     severity: Annotated[str | None, Query()] = None,
+
+    app_age_from: Annotated[date | None, Query()] = None,
+    app_age_to: Annotated[date | None, Query()] = None,
+
 ):
 
     status_list = []
@@ -165,7 +170,9 @@ async def new_list_all_apps(
         sla_filter=sla_filter,
         severity=int_severity_list,
         app_features=app_features_list,
-        app_type=app_type_list
+        app_type=app_type_list,
+        app_age_to=app_age_to,
+        app_age_from=app_age_from
     )
     data = list_all_apps(
         db=db,

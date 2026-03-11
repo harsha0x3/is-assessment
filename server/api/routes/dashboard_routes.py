@@ -5,7 +5,8 @@ from db.connection import get_db_conn
 from schemas.auth_schemas import UserOut
 from services.auth.deps import get_current_user
 from typing import Annotated
-from schemas.dashboard_schemas import AppSummaryQueryParams, StatusPerDepartmentParams
+from schemas.dashboard_schemas import AppSummaryQueryParams, StatusPerDepartmentParams, DeptSummaryQueryParams
+from datetime import date
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -16,7 +17,8 @@ def dashboard_summary(
     current_user: Annotated[UserOut, Depends(get_current_user)],
     severity: Annotated[str | None, Query()] = None,
     priority: Annotated[str | None, Query()] = None,
-    sla: Annotated[int | None, Query()] = None,
+    app_age_from: Annotated[date | None, Query()] = None,
+    app_age_to: Annotated[date | None, Query()] = None,
 ):
     int_severity_list = []
     int_priority_list = []
@@ -30,7 +32,7 @@ def dashboard_summary(
 
         int_priority_list = [int(s) for s in priority_list]
     
-    params = AppSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, sla=sla)
+    params = AppSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, app_age_to=app_age_to, app_age_from=app_age_from)
     return dc.get_app_status_summary(db, params=params)
 
 
@@ -38,11 +40,26 @@ def dashboard_summary(
 def get_department_status_summary(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
-    status_filter: Annotated[str | None, Query(...)] = None,
-    sla_filter: Annotated[int | None, Query(...)] = None,
+    app_status: Annotated[str | None, Query(...)] = None,
+    severity: Annotated[str | None, Query()] = None,
+    priority: Annotated[str | None, Query()] = None,
+    app_age_from: Annotated[date | None, Query()] = None,
+    app_age_to: Annotated[date | None, Query()] = None,
 ):
+    int_severity_list = []
+    int_priority_list = []
+    if severity and severity.strip() != "":
+
+        severity_list = severity.split(",")
+        int_severity_list = [int(s) for s in severity_list]
+    
+    if priority and priority.strip() != "":
+        priority_list = priority.split(",")
+
+        int_priority_list = [int(s) for s in priority_list]
+    params = DeptSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, app_age_to=app_age_to, app_age_from=app_age_from, status=app_status)
     return dc.get_department_status_summary(
-        db=db, status_filter=status_filter, sla_filter=sla_filter
+        db=db, params=params
     )
 
 

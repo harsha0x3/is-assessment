@@ -14,6 +14,7 @@ export interface PriorityCountItem {
 export interface ApplicationStatusSummary {
   total_apps: number;
   status_chart: StatusCountItem[];
+  filtered_apps: number;
 }
 
 export interface DepartmentStatusItem {
@@ -84,5 +85,10 @@ export interface DepartmentStatusSummaryParams {
 export interface AppSummaryQueryParams {
   severity?: string;
   priority?: string;
-  sla?: number;
+  app_age_from?: string;
+  app_age_to?: string;
+}
+
+export interface DeptSummaryQueryParams extends AppSummaryQueryParams {
+  app_status?: string;
 }

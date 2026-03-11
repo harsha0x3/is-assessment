@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from .auth_schemas import UserOut
 from datetime import datetime
+from typing import Literal
 
 class AppQuestionOption(BaseModel):
     id: int
@@ -67,6 +68,7 @@ class AppQuestionCreate(BaseModel):
     text: str
     is_medium: bool = False
     is_high: bool = False
+    category: Literal["impact", "likelihood"]
     sequence_number: int | None = None
     is_default: bool = False
     options: list[OptionInput] = []

@@ -38,8 +38,9 @@ interface Props {
   department: string;
   statuses: { status: string; count: number }[];
   deptId: number;
-  deptStatusFilter: string;
-  appSlaFilter?: number;
+  deptStatusFilter?: string;
+  appAgeFrom?: string;
+  appAgeTo?: string;
 }
 
 const DepartmentStatusCard: React.FC<Props> = ({
@@ -47,19 +48,20 @@ const DepartmentStatusCard: React.FC<Props> = ({
   statuses,
   deptId,
   deptStatusFilter,
-  appSlaFilter,
+  appAgeFrom,
+  appAgeTo,
 }) => {
   const navigate = useNavigate();
   return (
     <div className="p-2">
-      <Card className="h-80 px-0 w-md gap-1 hover:shadow-lg hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 transition-all duration-200 ease-in">
+      <Card className="h-96 px-0 w-lg gap-1 hover:shadow-lg hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 transition-all duration-200 ease-in">
         <CardHeader className="pb-2 px-0">
           <CardTitle className="text-sm font-medium text-center capitalize">
             {parseDept(department)}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="h-full w-md px-0">
+        <CardContent className="h-full w-full px-0">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -88,7 +90,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                   className="hover:cursor-pointer"
                   onClick={(data) => {
                     navigate(
-                      `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}&appSlaFilter=${appSlaFilter}`,
+                      `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}&appAgeFrom=${appAgeFrom}&appAgeTo=${appAgeTo}`,
                     );
                   }}
                 >

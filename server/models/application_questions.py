@@ -39,6 +39,7 @@ class ApplicationQuestion(Base):
     )
     sequence_number: Mapped[int] = mapped_column(Integer, nullable=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    category: Mapped[str] = mapped_column(String(20), nullable=True)
     is_high: Mapped[bool] = mapped_column(Boolean, default=False)
     is_medium: Mapped[bool] = mapped_column(Boolean, default=False)
 

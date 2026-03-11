@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import {
   BarChart2,
+  BarChart3,
   ChevronRight,
-  Clock2Icon,
   Laptop,
   LayoutGridIcon,
   Moon,
@@ -81,10 +81,10 @@ const sidebarItems: SidebarData[] = [
     roles: ["admin", "moderator", "user", "manager"],
   },
   {
-    title: "In-Progress",
+    title: "Analytics",
     isActive: false,
-    path: "/dashboard/in_progress",
-    icon: Clock2Icon,
+    path: "/dashboard/analytics",
+    icon: BarChart3,
     roles: ["admin", "moderator", "user", "manager"],
   },
   // {

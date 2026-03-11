@@ -128,7 +128,6 @@ def add_questions_to_set(
         )
 
 @router.post("/answer/bulk/application/{application_id}")
-
 def answer_bulk(application_id: Annotated[str, Path(..., description="The ID of the application")],
     payload: Annotated[list[aq_schemas.AppAnswerWithOption], "The answer data"],
     db: Annotated[Session, Depends(get_db_conn)],

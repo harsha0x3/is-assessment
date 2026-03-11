@@ -1,7 +1,7 @@
 from models import AppQuestionSet, ApplicationAnswer, ApplicationQuestion, Application, ApplicationQuestionOption
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from fastapi import HTTPException, status
 from schemas import app_questions_schemas as aq_schemas
 
@@ -118,29 +118,37 @@ def get_criticality_score(app_id: str, db: Session):
                 detail="Application not found or questionnaire not assigned.",
             )
 
-        score = db.scalar(
+        impact_score = db.scalar(
             select(func.coalesce(func.sum(ApplicationQuestionOption.weight), 0))
             .join(
                 ApplicationAnswer,
                 ApplicationAnswer.answer_option_id == ApplicationQuestionOption.id,
-            )
-            .where(ApplicationAnswer.application_id == app_id)
+            ).join(ApplicationQuestion, ApplicationQuestionOption.app_question_id == ApplicationQuestion.id)
+            .where(and_(ApplicationAnswer.application_id == app_id, ApplicationQuestion.category == "impact"))
+        )
+        likelihood_score = db.scalar(
+            select(func.coalesce(func.sum(ApplicationQuestionOption.weight), 0))
+            .join(
+                ApplicationAnswer,
+                ApplicationAnswer.answer_option_id == ApplicationQuestionOption.id,
+            ).join(ApplicationQuestion, ApplicationQuestionOption.app_question_id == ApplicationQuestion.id)
+            .where(and_(ApplicationAnswer.application_id == app_id, ApplicationQuestion.category == "likelihood"))
         )
 
-        return score
+        return (impact_score or 0) * (likelihood_score or 0)
 
     except HTTPException:
         raise
 
 def determine_criticality(score: int):
-    if score <=12:
+    if score <=45:
         return 1
     
-    if score < 12 and score <=18:
+    if score > 45 and score <=80:
         return 2
-    if score < 18 and score <=26:
+    if score > 80 and score <=110:
         return 3
-    if score < 26:
+    if score > 110:
         return 4
 
 def get_app_criticality(app_id: str, db: Session):
@@ -453,6 +461,7 @@ def add_questions_to_set(
             question = ApplicationQuestion(
                 question_set_id=question_set_id,
                 text=q.text,
+                category = q.category,
                 is_medium=q.is_medium,
                 is_high=q.is_high,
                 sequence_number=q.sequence_number,
