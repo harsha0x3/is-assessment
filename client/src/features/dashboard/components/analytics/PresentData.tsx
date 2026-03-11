@@ -80,7 +80,7 @@ const PresentData: React.FC = () => {
     priority: [],
     app_age_from: undefined,
     app_age_to: undefined,
-    app_status: undefined,
+    app_status: "all",
   });
 
   const [syncFilters, setSyncFilters] = useState<boolean>(false);
@@ -104,10 +104,7 @@ const PresentData: React.FC = () => {
     error: deptSummayErr,
     isFetching: isFetchingDeptSummary,
   } = useGetDepartmentSummaryQuery({
-    app_status:
-      deptFilters?.app_status && deptFilters.severity.length > 0
-        ? deptFilters.severity.join(",")
-        : undefined,
+    app_status: deptFilters?.app_status ?? "all",
     severity:
       deptFilters?.severity && deptFilters.severity.length > 0
         ? deptFilters.severity.join(",")
@@ -122,15 +119,19 @@ const PresentData: React.FC = () => {
 
   const orderedDepartments = useMemo(() => {
     return [...(deptSummay?.departments ?? [])].sort((a, b) =>
-      a.department.localeCompare(b.department, undefined, {
-        sensitivity: "base",
-      }),
+      String(a.department_id).localeCompare(
+        String(b.department_id),
+        undefined,
+        {
+          sensitivity: "base",
+        },
+      ),
     );
   }, [deptSummay?.departments]);
 
   useEffect(() => {
     if (syncFilters) {
-      setDeptFilters({ ...filters });
+      setDeptFilters({ ...filters, app_status: "all" });
     }
   }, [syncFilters, filters]);
 
@@ -146,8 +147,8 @@ const PresentData: React.FC = () => {
 
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">
-      <div className="flex gap-2">
-        <Card className="h-150 flex flex-col gap-1">
+      <div className="flex gap-2 items-center">
+        <Card className="h-150 flex flex-1 flex-col gap-1">
           <CardHeader>
             <CardTitle className="text-xl font-bold flex w-full justify-between px-20">
               Present Data{" "}
@@ -159,6 +160,7 @@ const PresentData: React.FC = () => {
                   </span>
                 </span>
               )}
+              <div></div>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0 flex gap-5">
@@ -200,6 +202,7 @@ const PresentData: React.FC = () => {
                         <Bar
                           dataKey="count"
                           radius={6}
+                          className="hover:cursor-pointer"
                           onClick={(data) => {
                             navigate(
                               `/applications?appStatus=${data.status === "all" ? null : data.status}&appAgeFrom=${filters?.app_age_from ? filters.app_age_from : ""}&appAgeTo=${filters?.app_age_to ? filters.app_age_to : ""}`,
@@ -228,64 +231,26 @@ const PresentData: React.FC = () => {
               )}
             </div>
 
-            <div className="w-64 flex flex-col gap-4 border-l pl-4">
+            <div className="w-64 flex flex-col gap-7 border-l pl-4">
               <h3 className="font-semibold">Filters</h3>
 
-              {/* Severity Filters */}
+              {/* Date Filters */}
               <div className="flex flex-col gap-1">
-                <Label>Severity</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className="bg-transparent w-full flex items-center justify-between"
-                      variant={"outline"}
-                    >
-                      <span className="flex items-center gap-1 flex-wrap flex-1 min-w-0 overflow-hidden">
-                        {visibleSeverity.length === 0 && (
-                          <span className="text-muted-foreground truncate">
-                            Select severity
-                          </span>
-                        )}
+                <Label className="text-sm font-medium">Application Age</Label>
 
-                        {visibleSeverity.map((severity) => (
-                          <Badge
-                            key={severity}
-                            variant="secondary"
-                            className="flex items-center gap-1 shrink-0"
-                          >
-                            {SEVERITY_LABELS[severity]}
-                          </Badge>
-                        ))}
-
-                        {remainingCount > 0 && (
-                          <Badge variant="outline" className="shrink-0">
-                            +{remainingCount}
-                          </Badge>
-                        )}
-                      </span>
-
-                      <Filter
-                        className={`shrink-0 ${
-                          filters?.severity && filters.severity.length > 0
-                            ? "text-primary fill-primary"
-                            : "text-muted-foreground"
-                        }`}
-                        aria-hidden="true"
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <SeverityFilters
-                    selectedValues={filters.severity}
-                    onSubmit={(data: string[]) => {
-                      if (data.length > 0) {
-                        setFilters((prev) => ({ ...prev, severity: data }));
-                      } else {
-                        setFilters((prev) => ({ ...prev, severity: [] }));
-                      }
-                    }}
-                  />
-                </DropdownMenu>
+                <DateRangeFilter
+                  from={filters.app_age_from}
+                  to={filters.app_age_to}
+                  onChange={({ from, to }) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      app_age_from: from,
+                      app_age_to: to,
+                    }))
+                  }
+                />
               </div>
+
               {/* Priority Filters */}
               <div className="flex flex-col gap-1">
                 <Label>Priority</Label>
@@ -342,24 +307,64 @@ const PresentData: React.FC = () => {
                 </DropdownMenu>
               </div>
 
-              {/* Date Filters */}
+              {/* Severity Filters */}
               <div className="flex flex-col gap-1">
-                <Label className="text-sm font-medium">Application Age</Label>
+                <Label>Severity</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="bg-transparent w-full flex items-center justify-between"
+                      variant={"outline"}
+                    >
+                      <span className="flex items-center gap-1 flex-wrap flex-1 min-w-0 overflow-hidden">
+                        {visibleSeverity.length === 0 && (
+                          <span className="text-muted-foreground truncate">
+                            Select severity
+                          </span>
+                        )}
 
-                <DateRangeFilter
-                  from={filters.app_age_from}
-                  to={filters.app_age_to}
-                  onChange={({ from, to }) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      app_age_from: from,
-                      app_age_to: to,
-                    }))
-                  }
-                />
+                        {visibleSeverity.map((severity) => (
+                          <Badge
+                            key={severity}
+                            variant="secondary"
+                            className="flex items-center gap-1 shrink-0"
+                          >
+                            {SEVERITY_LABELS[severity]}
+                          </Badge>
+                        ))}
+
+                        {remainingCount > 0 && (
+                          <Badge variant="outline" className="shrink-0">
+                            +{remainingCount}
+                          </Badge>
+                        )}
+                      </span>
+
+                      <Filter
+                        className={`shrink-0 ${
+                          filters?.severity && filters.severity.length > 0
+                            ? "text-primary fill-primary"
+                            : "text-muted-foreground"
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <SeverityFilters
+                    selectedValues={filters.severity}
+                    onSubmit={(data: string[]) => {
+                      if (data.length > 0) {
+                        setFilters((prev) => ({ ...prev, severity: data }));
+                      } else {
+                        setFilters((prev) => ({ ...prev, severity: [] }));
+                      }
+                    }}
+                  />
+                </DropdownMenu>
               </div>
 
               <div className="inline-flex items-center gap-2">
+                <Label>Sync Filters</Label>
                 <Switch
                   checked={syncFilters}
                   onCheckedChange={setSyncFilters}
@@ -401,11 +406,11 @@ const PresentData: React.FC = () => {
           </CardHeader>
 
           <CardContent className="min-w-0">
-            <div className="flex items-center justify-between pl-9 min-w-0">
+            <div className="flex items-center justify-between px-9 min-w-0">
               <div className="flex items-center gap-2">
                 <p>Applications' Status</p>
                 <Select
-                  value={deptFilters?.app_status}
+                  value={deptFilters.app_status}
                   onValueChange={(value) =>
                     setDeptFilters((prev) => ({
                       ...prev,
@@ -417,19 +422,19 @@ const PresentData: React.FC = () => {
                     id="app-status"
                     className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
                     style={{
-                      backgroundColor: deptFilters?.app_status
+                      backgroundColor: deptFilters.app_status
                         ? STATUS_COLOR_MAP_BG[
-                            deptFilters?.app_status as AppStatuses
+                            deptFilters.app_status as AppStatuses
                           ]
                         : undefined,
-                      color: deptFilters?.app_status
+                      color: deptFilters.app_status
                         ? STATUS_COLOR_MAP_FG[
-                            deptFilters?.app_status as AppStatuses
+                            deptFilters.app_status as AppStatuses
                           ]
                         : undefined,
                     }}
                   >
-                    <SelectValue placeholder="Select priority" />
+                    <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent className="">
                     <SelectItem value="all">All</SelectItem>
@@ -479,7 +484,7 @@ const PresentData: React.FC = () => {
                   "Error getting Department wise summary"}
               </div>
             ) : (
-              <div className="grid grid-flow-col auto-cols-lg gap-4 overflow-x-auto min-w-0">
+              <div className="grid grid-flow-col auto-cols-lg gap-4 overflow-x-auto min-w-0 scroll-smooth">
                 <Suspense
                   fallback={
                     <>
@@ -498,9 +503,13 @@ const PresentData: React.FC = () => {
                       deptStatusFilter={deptFilters?.app_status}
                       appAgeFrom={deptFilters?.app_age_from}
                       appAgeTo={deptFilters?.app_age_to}
+                      assignedApps={dept?.total_apps}
                     />
                   ))}
                 </Suspense>
+                <div>
+                  <Button>Expand</Button>
+                </div>
               </div>
             )}
           </CardContent>

@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import {
   useGetApplicationSummaryQuery,
   useGetDepartmentSummaryQuery,
@@ -46,13 +46,13 @@ interface DeptFilterProps {
 
 const DashboardPage: React.FC = () => {
   // 🔹 Lazy-loaded components
-  const [deptStatusFilter, setDeptStatusFilter] = useState<string>("all");
+
   const [deptFilters, setDeptFilters] = React.useState<DeptFilterProps>({
     severity: [],
     priority: [],
     app_age_from: undefined,
     app_age_to: undefined,
-    app_status: undefined,
+    app_status: "all",
   });
   const {
     data: appsSummary,
@@ -65,10 +65,7 @@ const DashboardPage: React.FC = () => {
     error: deptSummayErr,
     isFetching: isFetchingDeptSummary,
   } = useGetDepartmentSummaryQuery({
-    app_status:
-      deptFilters?.app_status && deptFilters.severity.length > 0
-        ? deptFilters.severity.join(",")
-        : undefined,
+    app_status: deptFilters?.app_status ?? "all",
     severity:
       deptFilters?.severity && deptFilters.severity.length > 0
         ? deptFilters.severity.join(",")
@@ -80,6 +77,10 @@ const DashboardPage: React.FC = () => {
     app_age_from: deptFilters?.app_age_from,
     app_age_to: deptFilters?.app_age_to,
   });
+
+  useEffect(() => {
+    console.log("DEPT FILTES", deptFilters);
+  }, [deptFilters]);
 
   const [trigger, { isLoading }] = useLazyExportApplicationsCSVQuery();
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -210,22 +211,31 @@ const DashboardPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <p>Applications' Status</p>
               <Select
-                value={deptStatusFilter}
-                onValueChange={(value) => setDeptStatusFilter(value)}
+                value={deptFilters.app_status}
+                onValueChange={(value) =>
+                  setDeptFilters((prev) => ({
+                    ...prev,
+                    app_status: value,
+                  }))
+                }
               >
                 <SelectTrigger
                   id="app-status"
                   className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
                   style={{
-                    backgroundColor: deptStatusFilter
-                      ? STATUS_COLOR_MAP_BG[deptStatusFilter as AppStatuses]
+                    backgroundColor: deptFilters.app_status
+                      ? STATUS_COLOR_MAP_BG[
+                          deptFilters.app_status as AppStatuses
+                        ]
                       : undefined,
-                    color: deptStatusFilter
-                      ? STATUS_COLOR_MAP_FG[deptStatusFilter as AppStatuses]
+                    color: deptFilters.app_status
+                      ? STATUS_COLOR_MAP_FG[
+                          deptFilters.app_status as AppStatuses
+                        ]
                       : undefined,
                   }}
                 >
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent className="">
                   <SelectItem value="all">All</SelectItem>
@@ -282,7 +292,7 @@ const DashboardPage: React.FC = () => {
                 "Error getting Department wise summary"}
             </div>
           ) : (
-            <div className="grid grid-flow-col auto-cols-[380px] gap-4 overflow-x-auto">
+            <div className="grid grid-flow-col auto-cols-lg gap-4 overflow-x-auto">
               <Suspense
                 fallback={
                   <>

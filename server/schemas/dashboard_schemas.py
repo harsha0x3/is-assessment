@@ -41,6 +41,7 @@ class DepartmentStatusItem(BaseModel):
 class DepartmentSummaryItem(BaseModel):
     department_id: int
     department: str  # "finance"
+    total_apps: int
     statuses: list[DepartmentStatusItem]
 
 

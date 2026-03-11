@@ -62,7 +62,9 @@ const DateFilterTabs: React.FC<Props> = ({
     <div className="space-y-2">
       {/* Selected Range Display */}
       <div className="flex items-center gap-2 text-sm font-medium">
-        <CalendarIcon className="h-4 w-4" />
+        <CalendarIcon
+          className={`h-4 w-4 ${!!initialFrom || !!initialTo ? "text-primary" : ""}`}
+        />
         {initialFrom && initialTo ? (
           <span>
             {display(initialFrom)} {"  "} – {"  "}

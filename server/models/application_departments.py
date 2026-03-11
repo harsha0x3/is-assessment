@@ -16,7 +16,7 @@ class ApplicationDepartments(Base, BaseMixin):
     )
     status: Mapped[str] = mapped_column(String(40), default="yet_to_connect")
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    ended_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     app_category: Mapped[str] = mapped_column(String(40), nullable=True)
     category_status: Mapped[str] = mapped_column(String(40), nullable=True)

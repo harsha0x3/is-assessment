@@ -1,6 +1,12 @@
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageLoader } from "@/components/loaders/PageLoader";
@@ -57,17 +63,18 @@ const AppQuestionnaire = () => {
   };
 
   return (
-    <Card className="flex flex-col h-full overflow-auto">
+    <Card className="flex flex-col h-full overflow-hidden gap-3">
       <CardHeader>
         <CardTitle>Application Questionnaire</CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col flex-1">
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col flex-1"
-        >
-          <ScrollArea className="flex-1 pr-4">
+      <ScrollArea className="flex-1 min-h-0 pr-1 scroll-smooth">
+        <CardContent className="h-full">
+          <form
+            id="questionnaire-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className=""
+          >
             <div className="space-y-6 py-4">
               {data?.map((question) => (
                 <AppQuestionItem
@@ -78,34 +85,33 @@ const AppQuestionnaire = () => {
                 />
               ))}
             </div>
-          </ScrollArea>
+          </form>
+        </CardContent>
+      </ScrollArea>
+      <CardFooter className="justify-end gap-2 px-7">
+        {!isEditing ? (
+          <Button type="button" onClick={() => setIsEditing(true)}>
+            Edit
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                form.reset();
+                setIsEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
 
-          <div className="pt-4 border-t flex justify-end gap-2">
-            {!isEditing ? (
-              <Button type="button" onClick={() => setIsEditing(true)}>
-                Edit
-              </Button>
-            ) : (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    form.reset();
-                    setIsEditing(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Submitting..." : "Save"}
-                </Button>
-              </>
-            )}
-          </div>
-        </form>
-      </CardContent>
+            <Button type="submit" form="questionnaire-form" disabled={saving}>
+              {saving ? "Submitting..." : "Save"}
+            </Button>
+          </>
+        )}
+      </CardFooter>
     </Card>
   );
 };

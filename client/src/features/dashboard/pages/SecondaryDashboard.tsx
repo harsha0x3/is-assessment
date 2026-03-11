@@ -125,7 +125,7 @@ const SecondaryDashboard: React.FC = () => {
           </Suspense>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="gap-2">
         <Suspense
           fallback={
             <SectionLoader label="Loading vertical wise applications summary" />

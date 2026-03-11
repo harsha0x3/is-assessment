@@ -398,13 +398,19 @@ def change_department_app_status(
             "closed",
         ]:
             dept_app.ended_at = datetime.now(timezone.utc)
+        
+        if dept_app.status != prev_status and dept_app.status not in [
+            "cleared",
+            "closed",
+        ]:
+            dept_app.ended_at = None
 
         db.flush()
         if payload.status and payload.status is not None:
             dept_apps = (
                 db.execute(
                     select(ApplicationDepartments).where(
-                        ApplicationDepartments.application_id == app_id
+                        and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.is_active)
                     )
                 )
                 .scalars()

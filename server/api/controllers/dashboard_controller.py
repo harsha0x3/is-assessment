@@ -115,6 +115,7 @@ def get_department_status_summary(
                 ApplicationDepartments.status,
             )
         )
+
         total_apps_stmt = select(func.count(Application.id)).where(
             Application.is_active
         )
@@ -133,9 +134,11 @@ def get_department_status_summary(
         if params.severity is not None and len(params.severity) > 0:
 
             stmt = stmt.where(Application.severity.in_(params.severity))
+            total_apps_stmt = total_apps_stmt.where(Application.severity.in_(params.severity))
 
         if params.priority is not None and len(params.priority) > 0:
             stmt = stmt.where(Application.app_priority.in_(params.priority))
+            total_apps_stmt = total_apps_stmt.where(Application.app_priority.in_(params.priority))
 
         if params.app_age_from and params.app_age_to:
             stmt = stmt.where(
@@ -143,8 +146,14 @@ def get_department_status_summary(
                             Application.started_at.is_not(None), 
                             Application.started_at >= params.app_age_from
                         ))
+            total_apps_stmt = total_apps_stmt.where(
+                        and_(
+                            Application.started_at.is_not(None), 
+                            Application.started_at >= params.app_age_from
+                        ))
             if params.app_age_to:
                 stmt = stmt.where( Application.started_at <= params.app_age_to)
+                total_apps_stmt = total_apps_stmt.where( Application.started_at <= params.app_age_to)
 
         rows = db.execute(stmt).all()
 
@@ -172,6 +181,7 @@ def get_department_status_summary(
                 ds.DepartmentSummaryItem(
                     department_id=data["dept_id"],
                     department=dept,
+                    total_apps=sum(data["statuses"].values()),
                     statuses=[
                         ds.DepartmentStatusItem(
                             status=status,

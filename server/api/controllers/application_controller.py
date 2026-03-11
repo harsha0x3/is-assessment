@@ -56,7 +56,10 @@ def create_app(
         all_depts_stmt = select(Department)
 
         if not app.is_app_ai:
-            all_depts_stmt = all_depts_stmt.where(not_(Department.id == 8))
+            all_depts_stmt = all_depts_stmt.where(not_(func.lower(Department.name) == "ai security"))
+        
+        if not app.is_privacy_applicable:
+            all_depts_stmt = all_depts_stmt.where(not_(func.lower(Department.name) == "privacy"))
 
         all_depts= db.scalars(all_depts_stmt).all()
 
@@ -498,11 +501,16 @@ def update_app(
 
         db.flush()
 
+
         if app.is_app_ai:
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == 8)))
+            ai_dept = db.scalar(select(Department).where(func.lower(Department.name) == "ai security"))
+            if not ai_dept:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
+            
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == ai_dept.id)))
 
             if not app_dept:
-                new_dept = ApplicationDepartments(application_id = app_id, department_id = 8)
+                new_dept = ApplicationDepartments(application_id = app_id, department_id = ai_dept.id)
                 db.add(new_dept)
                 db.flush()
             
@@ -510,14 +518,42 @@ def update_app(
                 app_dept.is_active = True
         
         else:
-            print("NOT AI")
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == 8)))
-            print(app_dept)
+            ai_dept = db.scalar(select(Department).where(func.lower(Department.name) == "ai security"))
+            if not ai_dept:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
+
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == ai_dept.id)))
+
             if not app_dept:
-                print("FOUND APP")
                 pass
             if app_dept is not None and app_dept.is_active:
-                print("SETING AP not active")
+                app_dept.is_active = False
+        
+        if app.is_privacy_applicable:
+            privacy_dept = db.scalar(select(Department).where(func.lower(Department.name) == "privacy"))
+            if not privacy_dept:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Privacy is applicable but Privacy department is not found to assign")
+            
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == privacy_dept.id)))
+
+            if not app_dept:
+                new_dept = ApplicationDepartments(application_id = app_id, department_id = privacy_dept.id)
+                db.add(new_dept)
+                db.flush()
+            
+            if app_dept is not None and not app_dept.is_active:
+                app_dept.is_active = True
+        
+        else:
+            privacy_dept = db.scalar(select(Department).where(func.lower(Department.name) == "privacy"))
+            if not privacy_dept:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
+
+            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == privacy_dept.id)))
+
+            if not app_dept:
+                pass
+            if app_dept is not None and app_dept.is_active:
                 app_dept.is_active = False
 
 

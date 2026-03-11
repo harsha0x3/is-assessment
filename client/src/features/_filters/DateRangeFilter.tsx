@@ -42,7 +42,10 @@ const DateRangeFilter: React.FC<Props> = ({ from, to, onChange }) => {
           variant="outline"
           className="w-full justify-start gap-2 font-normal"
         >
-          <CalendarIcon className="h-4 w-4" />
+          <CalendarIcon
+            className={`h-4 w-4 ${!!from || !!to ? "text-primary" : ""}`}
+            strokeWidth={!!from || !!to ? 4 : 2}
+          />
 
           <span>{label}</span>
         </Button>

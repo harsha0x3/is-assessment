@@ -24,7 +24,8 @@ export interface DepartmentStatusItem {
 
 export interface DepartmentSummaryItem {
   department_id: number;
-  department: string; // "finance"
+  department: string;
+  total_apps?: number;
   statuses: DepartmentStatusItem[];
 }
 

@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/chart";
 import type { AppStatuses } from "@/utils/globalTypes";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import Hint from "@/components/ui/hint";
 
 const chartConfig: ChartConfig = {
   count: {
@@ -41,6 +43,7 @@ interface Props {
   deptStatusFilter?: string;
   appAgeFrom?: string;
   appAgeTo?: string;
+  assignedApps?: number;
 }
 
 const DepartmentStatusCard: React.FC<Props> = ({
@@ -50,15 +53,22 @@ const DepartmentStatusCard: React.FC<Props> = ({
   deptStatusFilter,
   appAgeFrom,
   appAgeTo,
+  assignedApps,
 }) => {
   const navigate = useNavigate();
   return (
     <div className="p-2">
       <Card className="h-96 px-0 w-lg gap-1 hover:shadow-lg hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 transition-all duration-200 ease-in">
-        <CardHeader className="pb-2 px-0">
+        <CardHeader className="pb-2 flex items-center justify-between px-3">
+          <div />
           <CardTitle className="text-sm font-medium text-center capitalize">
             {parseDept(department)}
           </CardTitle>
+          <Hint label="Assigned Applications">
+            <span>
+              <Badge>{assignedApps}</Badge>
+            </span>
+          </Hint>
         </CardHeader>
 
         <CardContent className="h-full w-full px-0">

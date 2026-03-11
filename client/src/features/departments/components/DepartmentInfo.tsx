@@ -73,21 +73,15 @@ const DepartmentInfo: React.FC = () => {
   const userDepts = useSelector(selectUserDepts);
 
   useEffect(() => {
-    if (data?.data?.status) {
-      setStatusValue(data.data.status);
-    }
-    if (data?.data?.app_category) {
-      setCategoryVal(data.data.app_category);
-    }
-    if (data?.data?.category_status) {
-      setCategoryVal(data.data.category_status);
-    }
-    if (data?.data?.started_at) {
-      setStartedAt(parseDateForInput(data.data.started_at));
-    }
-    if (data?.data?.ended_at) {
-      setEndedAt(parseDateForInput(data.data.ended_at));
-    }
+    setStatusValue(data?.data.status);
+
+    setCategoryVal(data?.data.app_category);
+
+    setCategoryVal(data?.data.category_status);
+
+    setStartedAt(parseDateForInput(data?.data.started_at));
+
+    setEndedAt(parseDateForInput(data?.data.ended_at));
   }, [data]);
 
   useEffect(() => {
