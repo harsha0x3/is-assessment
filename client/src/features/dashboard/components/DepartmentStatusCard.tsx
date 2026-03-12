@@ -100,7 +100,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                   className="hover:cursor-pointer"
                   onClick={(data) => {
                     navigate(
-                      `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}&appAgeFrom=${appAgeFrom}&appAgeTo=${appAgeTo}`,
+                      `/applications?deptFilterId=${deptId}&deptStatus=${data.status}&view=${department}&appStatus=${deptStatusFilter === "all" ? null : deptStatusFilter}&&appAgeFrom=${appAgeFrom ? appAgeFrom : ""}&appAgeTo=${appAgeTo ? appAgeTo : ""}`,
                     );
                   }}
                 >
