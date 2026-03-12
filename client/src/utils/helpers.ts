@@ -62,6 +62,8 @@ export const parseDept = (dept: string) => {
       return "SOC Integration";
     case "ai_security":
       return "AI Security";
+    case "mobile_vapt":
+      return "Mobile VAPT";
     default:
       return dept;
   }
@@ -100,5 +102,15 @@ export const getSeverityLabel = (severity: number | undefined | null) => {
       return "Crown Jewel";
     default:
       return "-";
+  }
+};
+
+export const parseAppType = (appType: string) => {
+  switch (appType) {
+    case "mobile_web":
+      return "Mobile & Web";
+
+    default:
+      return appType;
   }
 };

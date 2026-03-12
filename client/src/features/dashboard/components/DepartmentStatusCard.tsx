@@ -61,7 +61,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
       <Card className="h-96 px-0 w-lg gap-1 hover:shadow-lg hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-primary bg-border/30 transition-all duration-200 ease-in">
         <CardHeader className="pb-2 flex items-center justify-between px-3">
           <div />
-          <CardTitle className="text-sm font-medium text-center capitalize">
+          <CardTitle className="text-md font-semibold text-center capitalize">
             {parseDept(department)}
           </CardTitle>
           <Hint label="Assigned Applications">
@@ -76,7 +76,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={statuses}
-                margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+                margin={{ top: 20, right: 0, left: 0, bottom: 5 }}
               >
                 <XAxis
                   dataKey="status"
@@ -85,7 +85,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                       .toLowerCase()
                       .replace(/^\w/, (c) => c.toUpperCase())
                   }
-                  tick={{ fontSize: 9 }}
+                  tick={{ fontSize: 12, fontWeight: 700 }}
                   interval={0}
                   angle={-20}
                   tickMargin={5}
@@ -113,7 +113,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                   <LabelList
                     dataKey="count"
                     position="top"
-                    style={{ fontSize: 10 }}
+                    style={{ fontSize: 13, fontWeight: 600 }}
                   />
                 </Bar>
               </BarChart>

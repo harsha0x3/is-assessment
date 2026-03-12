@@ -27,7 +27,7 @@ const HistoricalData: React.FC = () => {
   }, [data]);
 
   return (
-    <Card className="w-md flex flex-col max-h-148 overflow-hidden">
+    <Card className="w-[320px] flex-shrink-0 flex flex-col max-h-148 overflow-hidden">
       <CardHeader>
         <CardTitle className="text-xl font-bold text-center">
           Historical Data

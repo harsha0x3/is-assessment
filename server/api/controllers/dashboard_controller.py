@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, case
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from collections import defaultdict
@@ -23,41 +23,50 @@ def humanize(value: str) -> str:
 # ---------- Application status summary ----------
 
 
-def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None) -> ds.ApplicationSummary:
+def get_app_status_summary(
+    db: Session, params: ds.AppSummaryQueryParams | None
+) -> ds.ApplicationSummary:
     try:
-
-        stmt = select(
+        stmt = (
+            select(
                 Application.status.label("status"),
                 func.count().label("status_count"),
-            ).where(Application.is_active).group_by(Application.status)
-    
+            )
+            .where(Application.is_active)
+            .group_by(Application.status)
+        )
+
         count_stmt = select(func.count(Application.id)).where(Application.is_active)
 
         if params:
             if params.severity is not None and len(params.severity) > 0:
-
                 stmt = stmt.where(Application.severity.in_(params.severity))
                 count_stmt = count_stmt.where(Application.severity.in_(params.severity))
 
             if params.priority is not None and len(params.priority) > 0:
                 stmt = stmt.where(Application.app_priority.in_(params.priority))
-                count_stmt = count_stmt.where(Application.app_priority.in_(params.priority))
+                count_stmt = count_stmt.where(
+                    Application.app_priority.in_(params.priority)
+                )
 
             if params.app_age_from and params.app_age_to:
                 stmt = stmt.where(
-                        and_(
-                            Application.started_at.is_not(None), 
-                            Application.started_at >= params.app_age_from
-                        ))
+                    and_(
+                        Application.started_at.is_not(None),
+                        Application.started_at >= params.app_age_from,
+                    )
+                )
                 count_stmt = count_stmt.where(
-                        and_(
-                            Application.started_at.is_not(None), 
-                            Application.started_at >= params.app_age_from
-                        ))
+                    and_(
+                        Application.started_at.is_not(None),
+                        Application.started_at >= params.app_age_from,
+                    )
+                )
                 if params.app_age_to:
-                    stmt = stmt.where( Application.started_at <= params.app_age_to)
-                    count_stmt = count_stmt.where( Application.started_at <= params.app_age_to)
-
+                    stmt = stmt.where(Application.started_at <= params.app_age_to)
+                    count_stmt = count_stmt.where(
+                        Application.started_at <= params.app_age_to
+                    )
 
         rows = db.execute(stmt).all()
 
@@ -81,7 +90,7 @@ def get_app_status_summary(db: Session, params: ds.AppSummaryQueryParams | None)
         return ds.ApplicationSummary(
             total_apps=total_apps,
             status_chart=status_chart,
-            filtered_apps=filtered_apps
+            filtered_apps=filtered_apps,
         )
 
     except Exception as e:
@@ -120,7 +129,13 @@ def get_department_status_summary(
             Application.is_active
         )
 
-        if params.status or params.app_age_from or params.app_age_to or params.severity or params.priority:
+        if (
+            params.status
+            or params.app_age_from
+            or params.app_age_to
+            or params.severity
+            or params.priority
+        ):
             stmt = stmt.join(
                 Application,
                 Application.id == ApplicationDepartments.application_id,
@@ -130,30 +145,25 @@ def get_department_status_summary(
             stmt = stmt.where(Application.status == params.status)
             total_apps_stmt = total_apps_stmt.where(Application.status == params.status)
 
-
         if params.severity is not None and len(params.severity) > 0:
-
             stmt = stmt.where(Application.severity.in_(params.severity))
-            total_apps_stmt = total_apps_stmt.where(Application.severity.in_(params.severity))
+            total_apps_stmt = total_apps_stmt.where(
+                Application.severity.in_(params.severity)
+            )
 
         if params.priority is not None and len(params.priority) > 0:
             stmt = stmt.where(Application.app_priority.in_(params.priority))
-            total_apps_stmt = total_apps_stmt.where(Application.app_priority.in_(params.priority))
-
-        if params.app_age_from and params.app_age_to:
-            stmt = stmt.where(
-                        and_(
-                            Application.started_at.is_not(None), 
-                            Application.started_at >= params.app_age_from
-                        ))
             total_apps_stmt = total_apps_stmt.where(
-                        and_(
-                            Application.started_at.is_not(None), 
-                            Application.started_at >= params.app_age_from
-                        ))
+                Application.app_priority.in_(params.priority)
+            )
+
+        if params.app_age_from:
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
+
             if params.app_age_to:
-                stmt = stmt.where( Application.started_at <= params.app_age_to)
-                total_apps_stmt = total_apps_stmt.where( Application.started_at <= params.app_age_to)
+                stmt = stmt.where(Application.started_at <= params.app_age_to)
 
         rows = db.execute(stmt).all()
 
@@ -402,10 +412,7 @@ def get_department_sub_category(
         )
 
 
-def get_statuses_per_dept(
-    db: Session,
-    params: ds.StatusPerDepartmentParams
-):
+def get_statuses_per_dept(db: Session, params: ds.StatusPerDepartmentParams):
     try:
         stmt = (
             select(
@@ -424,7 +431,6 @@ def get_statuses_per_dept(
         )
 
         if params:
-
             print("Params exist")
 
             if params.severity is not None and len(params.severity) > 0:
@@ -435,33 +441,41 @@ def get_statuses_per_dept(
             if params.priority is not None and len(params.priority) > 0:
                 stmt = stmt.where(Application.app_priority.in_(params.priority))
 
-            today = date.today()
-
-            if params.sla_filter and params.sla_filter > 0:
+            if params.app_age_from:
                 stmt = stmt.where(Application.started_at.is_not(None))
 
-                if params.sla_filter == 30:
-                    stmt = stmt.where(
-                        func.date(Application.started_at) >= today - timedelta(days=30)
-                    )
-                elif params.sla_filter == 60:
-                    stmt = stmt.where(
-                        func.date(Application.started_at).between(
-                            today - timedelta(days=60),
-                            today - timedelta(days=30),
-                        )
-                    )
-                elif params.sla_filter == 90:
-                    stmt = stmt.where(
-                        func.date(Application.started_at).between(
-                            today - timedelta(days=90),
-                            today - timedelta(days=60),
-                        )
-                    )
-                elif params.sla_filter == 91:
-                    stmt = stmt.where(
-                        func.date(Application.started_at) < today - timedelta(days=90)
-                    )
+                stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
+
+                if params.app_age_to:
+                    stmt = stmt.where(Application.started_at <= params.app_age_to)
+
+            # today = date.today()
+
+            # if params.sla_filter and params.sla_filter > 0:
+            #     stmt = stmt.where(Application.started_at.is_not(None))
+
+            #     if params.sla_filter == 30:
+            #         stmt = stmt.where(
+            #             func.date(Application.started_at) >= today - timedelta(days=30)
+            #         )
+            #     elif params.sla_filter == 60:
+            #         stmt = stmt.where(
+            #             func.date(Application.started_at).between(
+            #                 today - timedelta(days=60),
+            #                 today - timedelta(days=30),
+            #             )
+            #         )
+            #     elif params.sla_filter == 90:
+            #         stmt = stmt.where(
+            #             func.date(Application.started_at).between(
+            #                 today - timedelta(days=90),
+            #                 today - timedelta(days=60),
+            #             )
+            #         )
+            #     elif params.sla_filter == 91:
+            #         stmt = stmt.where(
+            #             func.date(Application.started_at) < today - timedelta(days=90)
+            #         )
 
         rows = db.execute(stmt).all()
 
@@ -480,3 +494,49 @@ def get_statuses_per_dept(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error in getting status count per department",
         )
+
+
+def get_app_types_summary(db: Session, params: ds.AppTypeSummaryParams):
+    stmt = select(
+        Application.app_type,
+        func.count(Application.id).label("total_count"),
+        func.sum(case((Application.is_app_ai == True, 1), else_=0)).label("ai_count"),
+        func.sum(case((Application.is_privacy_applicable == True, 1), else_=0)).label(
+            "privacy_count"
+        ),
+    ).group_by(Application.app_type)
+
+    if params:
+        print("Params exist")
+
+        if params.severity is not None and len(params.severity) > 0:
+            print("Params exist")
+
+            stmt = stmt.where(Application.severity.in_(params.severity))
+
+        if params.priority is not None and len(params.priority) > 0:
+            stmt = stmt.where(Application.app_priority.in_(params.priority))
+
+        if params.app_age_from:
+            stmt = stmt.where(Application.started_at.is_not(None))
+
+            stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
+
+            if params.app_age_to:
+                stmt = stmt.where(Application.started_at <= params.app_age_to)
+
+    result = db.execute(stmt).all()
+
+    transformed: list[ds.AppTypeSummaryItem] = []
+
+    for app_type, total, ai, privacy in result:
+        # Replace None with 'Unknown' for frontend display
+        app_type_name = app_type or "Unknown"
+        other = total - (ai or 0) - (privacy or 0)
+        transformed.append(
+            ds.AppTypeSummaryItem(
+                app_type=app_type_name, total=total, ai=ai, privacy=privacy, other=other
+            )
+        )
+
+    return transformed

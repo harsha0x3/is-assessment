@@ -8,7 +8,7 @@ from models import (
     Department,
     AppQuestionSet,
     DepartmentControl,
-    ApplicationControlResult
+    ApplicationControlResult,
 )
 from schemas.app_schemas import (
     ApplicationCreate,
@@ -28,11 +28,13 @@ from schemas.notification_schemas import NewAppData
 import os
 from dotenv import load_dotenv
 from api.controllers.user_management_controller import get_user_departments
+
 load_dotenv()
 
 ENV = os.getenv("PROD_ENV")
 
 is_dev = ENV and ENV.lower() == "false"
+
 
 def create_app(
     payload: ApplicationCreate,
@@ -53,16 +55,25 @@ def create_app(
         db.flush()
 
         # get all departments
-        
+
         all_depts_stmt = select(Department)
 
         if not app.is_app_ai:
-            all_depts_stmt = all_depts_stmt.where(not_(func.lower(Department.name) == "ai security"))
-        
-        if not app.is_privacy_applicable:
-            all_depts_stmt = all_depts_stmt.where(not_(func.lower(Department.name) == "privacy"))
+            all_depts_stmt = all_depts_stmt.where(
+                not_(func.lower(Department.name) == "ai security")
+            )
 
-        all_depts= db.scalars(all_depts_stmt).all()
+        if not app.is_privacy_applicable:
+            all_depts_stmt = all_depts_stmt.where(
+                not_(func.lower(Department.name) == "privacy")
+            )
+
+        if app.app_type and "mobile" not in app.app_type:
+            all_depts_stmt = all_depts_stmt.where(
+                not_(func.lower(Department.name) == "mobile vapt")
+            )
+
+        all_depts = db.scalars(all_depts_stmt).all()
 
         # get question set
         app_questions_set = db.scalars(select(AppQuestionSet).limit(1)).first()
@@ -79,12 +90,9 @@ def create_app(
         app_controls = []
 
         for dept in all_depts:
-
             # create application department
             new_app_dept = ApplicationDepartments(
-                application_id=app.id,
-                department_id=dept.id,
-                status="yet_to_connect"
+                application_id=app.id, department_id=dept.id, status="yet_to_connect"
             )
 
             app_departments.append(new_app_dept)
@@ -108,7 +116,6 @@ def create_app(
         db.refresh(app)
 
         if not is_dev:
-
             background_tasks.add_task(
                 send_new_app_mails_bg,
                 NewAppData(
@@ -136,6 +143,8 @@ def create_app(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create application: {str(e)}",
         )
+
+
 def _has_filters(params: AppQueryParams) -> bool:
     return any(
         [
@@ -148,7 +157,7 @@ def _has_filters(params: AppQueryParams) -> bool:
             params.web_apps is not None,
             params.mobile_web_apps is not None,
             params.privacy_apps is not None,
-            params.app_age_from is not None and params.app_age_to is not None
+            params.app_age_from is not None and params.app_age_to is not None,
         ]
     )
 
@@ -293,8 +302,7 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
             stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
 
             if params.app_age_to:
-                stmt = stmt.where( Application.started_at <= params.app_age_to)
-
+                stmt = stmt.where(Application.started_at <= params.app_age_to)
 
             # Always ignore rows with NULL started_at
             stmt = stmt.where(Application.started_at.is_not(None))
@@ -338,10 +346,14 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
             app_type_conditions = []
 
             if "web" in params.app_type:
-                app_type_conditions.append(Application.app_type.in_(["web", "mobile_web"]))
+                app_type_conditions.append(
+                    Application.app_type.in_(["web", "mobile_web"])
+                )
 
             if "mobile" in params.app_type:
-                app_type_conditions.append(Application.app_type.in_(["mobile", "mobile_web"]))
+                app_type_conditions.append(
+                    Application.app_type.in_(["mobile", "mobile_web"])
+                )
 
             if "api" in params.app_type:
                 app_type_conditions.append(Application.app_type.in_(["api"]))
@@ -380,7 +392,8 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
         filtered_count = db.scalar(select(func.count()).select_from(filtered_subquery))
 
         filtered_apps_summary = get_apps_summary_from_stmt(
-                db=db, stmt=filtered_subquery)
+            db=db, stmt=filtered_subquery
+        )
 
         # -------- pagination ans sorting ---------
 
@@ -426,7 +439,7 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
                 severity=app.severity,
                 is_app_ai=app.is_app_ai,
                 is_privacy_applicable=app.is_privacy_applicable,
-                app_type=app.app_type
+                app_type=app.app_type,
             )
             apps_out.append(data)
 
@@ -509,62 +522,164 @@ def update_app(
 
         db.flush()
 
-
         if app.is_app_ai:
-            ai_dept = db.scalar(select(Department).where(func.lower(Department.name) == "ai security"))
+            ai_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "ai security")
+            )
             if not ai_dept:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
-            
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == ai_dept.id)))
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="AI is applicable but ai department is not found to assign",
+                )
+
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == ai_dept.id,
+                    )
+                )
+            )
 
             if not app_dept:
-                new_dept = ApplicationDepartments(application_id = app_id, department_id = ai_dept.id)
+                new_dept = ApplicationDepartments(
+                    application_id=app_id, department_id=ai_dept.id
+                )
                 db.add(new_dept)
                 db.flush()
-            
+
             if app_dept is not None and not app_dept.is_active:
                 app_dept.is_active = True
-        
-        else:
-            ai_dept = db.scalar(select(Department).where(func.lower(Department.name) == "ai security"))
-            if not ai_dept:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
 
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == ai_dept.id)))
+        else:
+            ai_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "ai security")
+            )
+            if not ai_dept:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="AI is applicable but ai department is not found to assign",
+                )
+
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == ai_dept.id,
+                    )
+                )
+            )
 
             if not app_dept:
                 pass
             if app_dept is not None and app_dept.is_active:
                 app_dept.is_active = False
-        
+
         if app.is_privacy_applicable:
-            privacy_dept = db.scalar(select(Department).where(func.lower(Department.name) == "privacy"))
+            privacy_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "privacy")
+            )
             if not privacy_dept:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Privacy is applicable but Privacy department is not found to assign")
-            
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == privacy_dept.id)))
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Privacy is applicable but Privacy department is not found to assign",
+                )
+
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == privacy_dept.id,
+                    )
+                )
+            )
 
             if not app_dept:
-                new_dept = ApplicationDepartments(application_id = app_id, department_id = privacy_dept.id)
+                new_dept = ApplicationDepartments(
+                    application_id=app_id, department_id=privacy_dept.id
+                )
                 db.add(new_dept)
                 db.flush()
-            
+
             if app_dept is not None and not app_dept.is_active:
                 app_dept.is_active = True
-        
-        else:
-            privacy_dept = db.scalar(select(Department).where(func.lower(Department.name) == "privacy"))
-            if not privacy_dept:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI is applicable but ai department is not found to assign")
 
-            app_dept = db.scalar(select(ApplicationDepartments).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.department_id == privacy_dept.id)))
+        else:
+            privacy_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "privacy")
+            )
+            if not privacy_dept:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="AI is applicable but ai department is not found to assign",
+                )
+
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == privacy_dept.id,
+                    )
+                )
+            )
 
             if not app_dept:
                 pass
             if app_dept is not None and app_dept.is_active:
                 app_dept.is_active = False
 
+        if app.app_type and "mobile" in app.app_type:
+            mobile_vapt_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "mobile vapt")
+            )
+            if not mobile_vapt_dept:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Privacy is applicable but Privacy department is not found to assign",
+                )
 
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == mobile_vapt_dept.id,
+                    )
+                )
+            )
+
+            if not app_dept:
+                new_dept = ApplicationDepartments(
+                    application_id=app_id, department_id=mobile_vapt_dept.id
+                )
+                db.add(new_dept)
+                db.flush()
+
+            if app_dept is not None and not app_dept.is_active:
+                app_dept.is_active = True
+
+        else:
+            mobile_vapt_dept = db.scalar(
+                select(Department).where(func.lower(Department.name) == "mobile vapt")
+            )
+            if not mobile_vapt_dept:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="AI is applicable but ai department is not found to assign",
+                )
+
+            app_dept = db.scalar(
+                select(ApplicationDepartments).where(
+                    and_(
+                        ApplicationDepartments.application_id == app_id,
+                        ApplicationDepartments.department_id == mobile_vapt_dept.id,
+                    )
+                )
+            )
+
+            if not app_dept:
+                pass
+            if app_dept is not None and app_dept.is_active:
+                app_dept.is_active = False
 
         db.commit()
         db.refresh(app)
@@ -591,39 +706,53 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
             )
-        
-        app_depts = db.scalars(select(Department).join(ApplicationDepartments, ApplicationDepartments.department_id == Department.id).where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.is_active))).all()
-        result = ApplicationOut(id = app.id,
-                                name=app.name,
-                                description=app.description,
-                                environment=app.environment,
-                                region=app.region,
-                                owner_name=app.owner_name,
-                                vendor_company=app.vendor_company,
-                                infra_host=app.infra_host,
-                                app_tech=app.app_tech,
-                                vertical=app.vertical,
-                                is_active=app.is_active,
-                                is_completed=app.is_completed,
-                                created_at=app.created_at,
-                                updated_at=app.updated_at,
-                                owner_id=app.owner_id,
-                                status=app.status,
-                                imitra_ticket_id=app.imitra_ticket_id,
-                                titan_spoc=app.titan_spoc,
-                                due_date=app.due_date,
-                                app_priority=app.app_priority,
-                                started_at=app.started_at,
-                                completed_at=app.completed_at,
-                                app_url=app.app_url,
-                                user_type=app.user_type,
-                                data_type=app.data_type,
-                                app_type=app.app_type,
-                                is_app_ai=app.is_app_ai,
-                                is_privacy_applicable=app.is_privacy_applicable,
-                                requested_date=app.requested_date,
-                                severity=app.severity,
-                                departments=[DepartmentOut.model_validate(d) for d in app_depts])
+
+        app_depts = db.scalars(
+            select(Department)
+            .join(
+                ApplicationDepartments,
+                ApplicationDepartments.department_id == Department.id,
+            )
+            .where(
+                and_(
+                    ApplicationDepartments.application_id == app_id,
+                    ApplicationDepartments.is_active,
+                )
+            )
+        ).all()
+        result = ApplicationOut(
+            id=app.id,
+            name=app.name,
+            description=app.description,
+            environment=app.environment,
+            region=app.region,
+            owner_name=app.owner_name,
+            vendor_company=app.vendor_company,
+            infra_host=app.infra_host,
+            app_tech=app.app_tech,
+            vertical=app.vertical,
+            is_active=app.is_active,
+            is_completed=app.is_completed,
+            created_at=app.created_at,
+            updated_at=app.updated_at,
+            owner_id=app.owner_id,
+            status=app.status,
+            imitra_ticket_id=app.imitra_ticket_id,
+            titan_spoc=app.titan_spoc,
+            due_date=app.due_date,
+            app_priority=app.app_priority,
+            started_at=app.started_at,
+            completed_at=app.completed_at,
+            app_url=app.app_url,
+            user_type=app.user_type,
+            data_type=app.data_type,
+            app_type=app.app_type,
+            is_app_ai=app.is_app_ai,
+            is_privacy_applicable=app.is_privacy_applicable,
+            requested_date=app.requested_date,
+            severity=app.severity,
+            departments=[DepartmentOut.model_validate(d) for d in app_depts],
+        )
         return result
 
     except HTTPException:

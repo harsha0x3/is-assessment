@@ -1,12 +1,19 @@
-from api.controllers import dashboard_controller as dc
-from fastapi import APIRouter, Depends, Query, Path
+from datetime import date
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
+
+from api.controllers import dashboard_controller as dc
 from db.connection import get_db_conn
 from schemas.auth_schemas import UserOut
+from schemas.dashboard_schemas import (
+    AppSummaryQueryParams,
+    DeptSummaryQueryParams,
+    StatusPerDepartmentParams,
+    AppTypeSummaryParams,
+)
 from services.auth.deps import get_current_user
-from typing import Annotated
-from schemas.dashboard_schemas import AppSummaryQueryParams, StatusPerDepartmentParams, DeptSummaryQueryParams
-from datetime import date
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -23,16 +30,20 @@ def dashboard_summary(
     int_severity_list = []
     int_priority_list = []
     if severity and severity.strip() != "":
-
         severity_list = severity.split(",")
         int_severity_list = [int(s) for s in severity_list]
-    
+
     if priority and priority.strip() != "":
         priority_list = priority.split(",")
 
         int_priority_list = [int(s) for s in priority_list]
-    
-    params = AppSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, app_age_to=app_age_to, app_age_from=app_age_from)
+
+    params = AppSummaryQueryParams(
+        severity=int_severity_list,
+        priority=int_priority_list,
+        app_age_to=app_age_to,
+        app_age_from=app_age_from,
+    )
     return dc.get_app_status_summary(db, params=params)
 
 
@@ -49,18 +60,21 @@ def get_department_status_summary(
     int_severity_list = []
     int_priority_list = []
     if severity and severity.strip() != "":
-
         severity_list = severity.split(",")
         int_severity_list = [int(s) for s in severity_list]
-    
+
     if priority and priority.strip() != "":
         priority_list = priority.split(",")
 
         int_priority_list = [int(s) for s in priority_list]
-    params = DeptSummaryQueryParams(severity=int_severity_list, priority=int_priority_list, app_age_to=app_age_to, app_age_from=app_age_from, status=app_status)
-    return dc.get_department_status_summary(
-        db=db, params=params
+    params = DeptSummaryQueryParams(
+        severity=int_severity_list,
+        priority=int_priority_list,
+        app_age_to=app_age_to,
+        app_age_from=app_age_from,
+        status=app_status,
     )
+    return dc.get_department_status_summary(db=db, params=params)
 
 
 @router.get("/summary/department/{department_id}/category")
@@ -104,25 +118,62 @@ def get_statuses_per_department(
     current_user: Annotated[UserOut, Depends(get_current_user)],
     app_status: Annotated[str, Query(...)],
     dept_status: Annotated[str, Query(...)],
-    sla_filter: Annotated[int | None, Query(...)] = None,
     severity: Annotated[str | None, Query()] = None,
     priority: Annotated[str | None, Query()] = None,
-    app_sla: Annotated[int | None, Query()] = None,
+    app_age_from: Annotated[date | None, Query()] = None,
+    app_age_to: Annotated[date | None, Query()] = None,
 ):
-    
+
     int_severity_list = []
     int_priority_list = []
     if severity and severity.strip() != "":
-
         severity_list = severity.split(",")
         int_severity_list = [int(s) for s in severity_list]
-    
+
     if priority and priority.strip() != "":
         priority_list = priority.split(",")
 
         int_priority_list = [int(s) for s in priority_list]
-    
-    params = StatusPerDepartmentParams(app_sla=app_sla, severity=int_severity_list, priority=int_priority_list, dept_status=dept_status, app_status=app_status, sla_filter=sla_filter)
-    return dc.get_statuses_per_dept(
-        db=db, params = params
+
+    params = StatusPerDepartmentParams(
+        severity=int_severity_list,
+        priority=int_priority_list,
+        dept_status=dept_status,
+        app_status=app_status,
+        app_age_from=app_age_from,
+        app_age_to=app_age_to,
     )
+    return dc.get_statuses_per_dept(db=db, params=params)
+
+
+@router.get("/summary/app_type")
+async def get_app_type_summary(
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+    app_status: Annotated[str | None, Query(...)] = None,
+    severity: Annotated[str | None, Query()] = None,
+    priority: Annotated[str | None, Query()] = None,
+    app_age_from: Annotated[date | None, Query()] = None,
+    app_age_to: Annotated[date | None, Query()] = None,
+):
+
+    int_severity_list = []
+    int_priority_list = []
+    if severity and severity.strip() != "":
+        severity_list = severity.split(",")
+        int_severity_list = [int(s) for s in severity_list]
+
+    if priority and priority.strip() != "":
+        priority_list = priority.split(",")
+
+        int_priority_list = [int(s) for s in priority_list]
+
+    params = AppTypeSummaryParams(
+        severity=int_severity_list,
+        priority=int_priority_list,
+        app_age_from=app_age_from,
+        app_age_to=app_age_to,
+        app_status=app_status,
+    )
+
+    return dc.get_app_types_summary(db=db, params=params)

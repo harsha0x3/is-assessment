@@ -93,3 +93,12 @@ export interface AppSummaryQueryParams {
 export interface DeptSummaryQueryParams extends AppSummaryQueryParams {
   app_status?: string;
 }
+
+export interface ApptypeSummaryParams extends AppSummaryQueryParams {}
+
+export interface AppTypeSummary {
+  app_type: string;
+  total: number;
+  ai: number;
+  privacy: number;
+}

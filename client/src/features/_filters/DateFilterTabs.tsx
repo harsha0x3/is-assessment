@@ -105,6 +105,20 @@ const DateFilterTabs: React.FC<Props> = ({
               );
             })}
           </div>
+          <div className="flex justify-end">
+            <Button
+              variant={"destructive"}
+              size={"sm"}
+              onClick={() =>
+                onApply({
+                  from: undefined,
+                  to: undefined,
+                })
+              }
+            >
+              Clear
+            </Button>
+          </div>
         </TabsContent>
 
         {/* CUSTOM RANGE */}
@@ -137,20 +151,6 @@ const DateFilterTabs: React.FC<Props> = ({
           </div>
         </TabsContent>
       </Tabs>
-      <div className="flex justify-end">
-        <Button
-          variant={"destructive"}
-          size={"sm"}
-          onClick={() =>
-            onApply({
-              from: undefined,
-              to: undefined,
-            })
-          }
-        >
-          Clear
-        </Button>
-      </div>
     </div>
   );
 };

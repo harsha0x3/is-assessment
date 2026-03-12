@@ -9,6 +9,8 @@ import type {
   DepartmentStatusSummaryParams,
   AppSummaryQueryParams,
   DeptSummaryQueryParams,
+  ApptypeSummaryParams,
+  AppTypeSummary,
 } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({
@@ -50,9 +52,9 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
       DeptStatusCount[],
       {
         app_status: string;
-        sla_filter?: number;
+        app_age_from?: string;
         dept_status: string;
-        app_sla?: number;
+        app_age_to?: string;
         severity?: string;
         priority?: string;
       }
@@ -77,6 +79,13 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
         },
       }),
     }),
+
+    getApptypeSummary: builder.query<AppTypeSummary[], ApptypeSummaryParams>({
+      query: (params) => ({
+        url: `/dashboard/summary/app_type`,
+        params: params,
+      }),
+    }),
   }),
 });
 export const {
@@ -86,4 +95,6 @@ export const {
   useGetVerticalWiseSummaryQuery,
   useGetStatusPerDepartmentQuery,
   useLazyGetDepartmentSubcategoryQuery,
+  useLazyGetStatusPerDepartmentQuery,
+  useGetApptypeSummaryQuery,
 } = dashboardApiSlice;

@@ -78,6 +78,7 @@ class AppSummaryQueryParams(BaseModel):
     app_age_from: date | None
     app_age_to: date | None
 
+
 class DeptSummaryQueryParams(BaseModel):
     status: str | None
     severity: list[int] | None
@@ -85,10 +86,28 @@ class DeptSummaryQueryParams(BaseModel):
     app_age_from: date | None
     app_age_to: date | None
 
+
 class StatusPerDepartmentParams(BaseModel):
     severity: list[int] | None
     priority: list[int] | None
-    app_sla: int | None
-    app_status: str 
-    sla_filter: int | None
+    app_age_from: date | None
+    app_age_to: date | None
+    app_status: str
+
     dept_status: str
+
+
+class AppTypeSummaryParams(BaseModel):
+    severity: list[int] | None
+    priority: list[int] | None
+    app_age_from: date | None
+    app_age_to: date | None
+    app_status: str | None
+
+
+class AppTypeSummaryItem(BaseModel):
+    app_type: str
+    total: int
+    privacy: int
+    ai: int
+    other: int

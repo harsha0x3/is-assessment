@@ -38,8 +38,8 @@ const DepartmentQuestionnaire = lazy(
 const AppQuestionnaire = lazy(
   () => import("@/features/appQuestionnaire/components/AppQuestionnaire"),
 );
-const PresentData = lazy(
-  () => import("./features/dashboard/components/analytics/PresentData"),
+const AnalyticsDashboard = lazy(
+  () => import("./features/dashboard/pages/AnalyticsDashboard"),
 );
 
 function App() {
@@ -81,7 +81,7 @@ function App() {
               path="dashboard/analytics"
               element={
                 <LazyRoute fallbackLabel="Loading Analytics Dashboard..">
-                  <PresentData />
+                  <AnalyticsDashboard />
                 </LazyRoute>
               }
             />
