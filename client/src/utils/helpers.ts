@@ -56,8 +56,8 @@ export const parseDept = (dept: string) => {
 
     case "security_controls":
       return "Security Controls";
-    case "vapt":
-      return "VAPT";
+    case "web_vapt":
+      return "Web VAPT";
     case "soc_integration":
       return "SOC Integration";
     case "ai_security":

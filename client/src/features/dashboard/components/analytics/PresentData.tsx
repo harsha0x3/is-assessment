@@ -18,12 +18,19 @@ const PresentData: React.FC<Props> = ({
   syncFilters,
   setSyncFilters,
 }) => {
-  const { data, isLoading, error } = useGetApplicationSummaryQuery({
-    severity: filters.severity?.join(","),
-    priority: filters.priority?.join(","),
-    app_age_from: filters.app_age_from,
-    app_age_to: filters.app_age_to,
-  });
+  const { data, isLoading, error } = useGetApplicationSummaryQuery(
+    {
+      severity: filters.severity?.join(","),
+      priority: filters.priority?.join(","),
+      app_age_from: filters.app_age_from,
+      app_age_to: filters.app_age_to,
+    },
+    {
+      pollingInterval: 200000,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    },
+  );
 
   return (
     <Card className="h-150 flex flex-col">

@@ -20,6 +20,29 @@ def humanize(value: str) -> str:
     return value.replace("_", " ").title()
 
 
+def _apply_scope_filter(stmt, scope: str | None):
+    if not scope or scope == "all":
+        return stmt
+
+    if scope == "vapt_only":
+        stmt = (
+            stmt.join(
+                ApplicationDepartments,
+                ApplicationDepartments.application_id == Application.id,
+            )
+            .join(
+                Department,
+                Department.id == ApplicationDepartments.department_id,
+            )
+            .where(func.lower(Department.name).in_(["web vapt", "mobile vapt"]))
+        )
+
+    elif scope == "is_assessment":
+        stmt = stmt.where(Application.scope == "is_assessment")
+
+    return stmt
+
+
 # ---------- Application status summary ----------
 
 
@@ -30,11 +53,15 @@ def get_app_status_summary(
         stmt = (
             select(
                 Application.status.label("status"),
-                func.count().label("status_count"),
+                func.count(func.distinct(Application.id)).label("status_count"),
             )
             .where(Application.is_active)
             .group_by(Application.status)
         )
+
+        scope = params.scope if params else None
+
+        stmt = _apply_scope_filter(stmt=stmt, scope=scope)
 
         count_stmt = select(func.count(Application.id)).where(Application.is_active)
 
@@ -524,6 +551,9 @@ def get_app_types_summary(db: Session, params: ds.AppTypeSummaryParams):
 
             if params.app_age_to:
                 stmt = stmt.where(Application.started_at <= params.app_age_to)
+
+        if params.app_status and params.app_status != "all":
+            stmt = stmt.where(Application.status == params.app_status)
 
     result = db.execute(stmt).all()
 

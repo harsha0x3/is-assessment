@@ -67,7 +67,10 @@ const AnalyticsDashboard: React.FC = () => {
       </Suspense>
       <div>
         <Suspense fallback={<CardLoader />}>
-          <AppTypeDonutCard filters={filters} syncFilters={syncFilters} />
+          <AppTypeDonutCard
+            filters={{ ...filters, app_status: "all" }}
+            syncFilters={syncFilters}
+          />
         </Suspense>
       </div>
     </div>

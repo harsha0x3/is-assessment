@@ -75,12 +75,13 @@ const AppsTable: React.FC = () => {
   const [searchParams] = useSearchParams();
   const departmentView = searchParams.get("view");
   type DeptKey =
-    | "vapt"
+    | "web_vapt"
     | "tprm"
     | "security_controls"
     | "iam"
     | "soc_integration"
-    | "ai security";
+    | "ai security"
+    | "mobile_vapt";
 
   const DepartmentsStatusCol: React.FC<{
     depts: AppDepartmentOut[];
@@ -94,8 +95,10 @@ const AppsTable: React.FC = () => {
           return "TPRM";
         case "security controls":
           return "Sec Controls";
-        case "vapt":
-          return "VAPT";
+        case "web_vapt":
+          return "Web VAPT";
+        case "mobile_vapt":
+          return "Mobile VAPT";
         case "soc integration":
           return "SOC";
         case "ai security":
@@ -156,8 +159,8 @@ const AppsTable: React.FC = () => {
   };
 
   const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
-    vapt: [
-      createDepartmentStatusColumn("vapt", "VAPT"),
+    web_vapt: [
+      createDepartmentStatusColumn("web_vapt", "Web VAPT"),
       colHelper.accessor("latest_comment", {
         header: "Latest Comment",
         minSize: 300,
@@ -171,40 +174,43 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
-      colHelper.accessor("titan_spoc", {
-        header: "Titan SPOC",
+
+      colHelper.accessor("app_url", {
+        header: "App URL",
         cell: (info) => {
+          return info.getValue();
+        },
+      }),
+    ],
+    mobile_vapt: [
+      createDepartmentStatusColumn("mobile_vapt", "Mobile VAPT"),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
           return (
-            <p className="whitespace-normal wrap-break-word">
-              {info.getValue()}
-            </p>
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
           );
         },
       }),
-      // colHelper.accessor("app_url", {
-      //   header: "App URL",
-      //   cell: (info) => {
-      //     return info.getValue();
-      //   },
-      // }),
+
+      colHelper.accessor("app_url", {
+        header: "App URL",
+        cell: (info) => {
+          return info.getValue();
+        },
+      }),
     ],
 
     tprm: [
-      // colHelper.accessor("vendor_company", {
-      //   header: "Vendor",
-      //   cell: (info) => {
-      //     return info.getValue();
-      //   },
-      // }),
-      createDepartmentStatusColumn("tprm", "TPRM"),
-      colHelper.accessor("titan_spoc", {
-        header: "Titan SPOC",
+      colHelper.accessor("vendor_company", {
+        header: "Vendor",
         cell: (info) => {
-          return (
-            <p className="whitespace-normal wrap-break-word">
-              {info.getValue()}
-            </p>
-          );
+          return info.getValue();
         },
       }),
 

@@ -143,6 +143,7 @@ export interface AppQueryParams {
 
   app_age_from?: string;
   app_age_to?: string;
+  scope?: string;
 }
 
 export interface AppStatusSummary {

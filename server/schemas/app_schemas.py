@@ -38,6 +38,8 @@ class ApplicationCreate(BaseModel):
 
     requested_date: date | None = None
 
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
+
     app_url: str | None
 
 
@@ -118,6 +120,8 @@ class ApplicationUpdate(BaseModel):
     severity: int | None = None
     is_privacy_applicable: bool | None = None
 
+    scope: Literal["is_assessment", "vapt_only"] | None = None
+
 
 class ListApplicationsOut(BaseModel):
     id: str
@@ -160,6 +164,8 @@ class NewAppListOut(BaseModel):
     departments: list[AppDepartmentOut] | None = None
     latest_comment: CommentOut | None
 
+    app_url: str | None
+
     severity: int | None
 
 
@@ -196,6 +202,8 @@ class AppQueryParams(BaseModel):
 
     app_age_from: date | None
     app_age_to: date | None
+
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
 
     @field_validator("sort_by")
     @classmethod

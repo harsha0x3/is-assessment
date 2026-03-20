@@ -31,6 +31,7 @@ export const useApplications = () => {
   const appSeverity = searchParams.get("appSeverity");
   const appType = searchParams.get("appType");
   const appFeatures = searchParams.get("appFeatures");
+  const appScope = searchParams.get("appScope");
 
   const appAgeFromFilter = searchParams.get("appAgeFrom");
   const appAgeToFilter = searchParams.get("appAgeTo");
@@ -74,6 +75,7 @@ export const useApplications = () => {
         appAgeToFilter && appAgeToFilter.trim() !== ""
           ? appAgeToFilter
           : undefined,
+      scope: appScope ?? undefined,
     });
 
   const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);

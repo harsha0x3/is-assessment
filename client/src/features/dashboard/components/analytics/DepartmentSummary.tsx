@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, Suspense } from "react";
+import React, { useEffect, useMemo, Suspense, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetDepartmentSummaryQuery } from "../../store/dashboardApiSlice";
 import DepartmentStatusCard from "../DepartmentStatusCard";
@@ -59,19 +59,34 @@ const DepartmentSummarySection: React.FC<Props> = ({
 
   /* ---------------- API Query ---------------- */
 
-  const { data, isLoading, error, isFetching } = useGetDepartmentSummaryQuery({
-    app_status: deptFilters?.app_status ?? "all",
-    severity:
-      deptFilters?.severity?.length > 0
-        ? deptFilters.severity.join(",")
-        : undefined,
-    priority:
-      deptFilters?.priority?.length > 0
-        ? deptFilters.priority.join(",")
-        : undefined,
-    app_age_from: deptFilters?.app_age_from,
-    app_age_to: deptFilters?.app_age_to,
-  });
+  const { data, isLoading, error, isFetching } = useGetDepartmentSummaryQuery(
+    {
+      app_status: deptFilters?.app_status ?? "all",
+      severity:
+        deptFilters?.severity?.length > 0
+          ? deptFilters.severity.join(",")
+          : undefined,
+      priority:
+        deptFilters?.priority?.length > 0
+          ? deptFilters.priority.join(",")
+          : undefined,
+      app_age_from: deptFilters?.app_age_from,
+      app_age_to: deptFilters?.app_age_to,
+    },
+    {
+      pollingInterval: 200000,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    },
+  );
+
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isFetching) {
+      setIsFilterLoading(false);
+    }
+  }, [isFetching]);
 
   /* ---------------- Sort Departments ---------------- */
 
@@ -102,7 +117,7 @@ const DepartmentSummarySection: React.FC<Props> = ({
           </CardTitle>
         </div>
 
-        {isFetching && (
+        {isFetching && isFilterLoading && (
           <div className="w-full flex items-center justify-center text-sm text-muted-foreground">
             <p className="flex items-center gap-2 border p-2 rounded w-fit">
               <Loader className="animate-spin h-4 w-4" />
@@ -123,12 +138,14 @@ const DepartmentSummarySection: React.FC<Props> = ({
 
             <Select
               value={deptFilters.app_status}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                setIsFilterLoading(true);
+
                 setDeptFilters((prev) => ({
                   ...prev,
                   app_status: value,
-                }))
-              }
+                }));
+              }}
             >
               <SelectTrigger
                 id="app-status"
@@ -178,13 +195,14 @@ const DepartmentSummarySection: React.FC<Props> = ({
             <DateRangeFilter
               from={deptFilters.app_age_from}
               to={deptFilters.app_age_to}
-              onChange={({ from, to }) =>
+              onChange={({ from, to }) => {
+                setIsFilterLoading(true);
                 setDeptFilters((prev) => ({
                   ...prev,
                   app_age_from: from,
                   app_age_to: to,
-                }))
-              }
+                }));
+              }}
             />
           </div>
         </div>

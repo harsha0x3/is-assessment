@@ -27,13 +27,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { PRIORITY_LABELS, SEVERITY_LABELS } from "@/utils/globalValues";
+import {
+  AppStatusOptions,
+  PRIORITY_LABELS,
+  SEVERITY_LABELS,
+  STATUS_COLOR_MAP_BG,
+  STATUS_COLOR_MAP_FG,
+} from "@/utils/globalValues";
 
 import type { FilterProps } from "../../pages/AnalyticsDashboard";
 import { parseAppType } from "@/utils/helpers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { AppStatuses } from "@/utils/globalTypes";
+import { Separator } from "@/components/ui/separator";
 
+interface AppTypeFilters extends FilterProps {
+  app_status: string;
+}
 interface Props {
-  filters: FilterProps;
+  filters: AppTypeFilters;
   syncFilters: boolean;
 }
 
@@ -42,11 +60,12 @@ const COLORS = ["#6366F1", "#22C55E", "#F59E0B", "#06B6D4", "#8B5CF6"];
 const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
   /* ---------------- Local Filters ---------------- */
 
-  const [localFilters, setLocalFilters] = useState<FilterProps>({
+  const [localFilters, setLocalFilters] = useState<AppTypeFilters>({
     severity: [],
     priority: [],
     app_age_from: undefined,
     app_age_to: undefined,
+    app_status: "all",
   });
 
   /* ---------------- Sync Filters ---------------- */
@@ -59,18 +78,29 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
 
   /* ---------------- API ---------------- */
 
-  const { data, isLoading, error } = useGetApptypeSummaryQuery({
-    severity:
-      localFilters.severity?.length > 0
-        ? localFilters.severity.join(",")
-        : undefined,
-    priority:
-      localFilters.priority?.length > 0
-        ? localFilters.priority.join(",")
-        : undefined,
-    app_age_from: localFilters.app_age_from,
-    app_age_to: localFilters.app_age_to,
-  });
+  const { data, isLoading, error } = useGetApptypeSummaryQuery(
+    {
+      severity:
+        localFilters.severity?.length > 0
+          ? localFilters.severity.join(",")
+          : undefined,
+      priority:
+        localFilters.priority?.length > 0
+          ? localFilters.priority.join(",")
+          : undefined,
+      app_age_from: localFilters.app_age_from,
+      app_age_to: localFilters.app_age_to,
+      app_status:
+        localFilters.app_status && localFilters.app_status !== "all"
+          ? localFilters.app_status
+          : undefined,
+    },
+    {
+      pollingInterval: 200000,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    },
+  );
 
   /* ---------------- Chart Data ---------------- */
 
@@ -305,6 +335,55 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
               {/* Legend */}
 
               <div className="flex flex-col gap-3 min-w-40">
+                <div className="flex flex-col gap-1">
+                  <Label>Application Status</Label>
+
+                  <Select
+                    value={localFilters.app_status}
+                    onValueChange={(value) =>
+                      setLocalFilters((prev) => ({
+                        ...prev,
+                        app_status: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger
+                      id="app-status"
+                      className="w-44"
+                      style={{
+                        backgroundColor: localFilters.app_status
+                          ? STATUS_COLOR_MAP_BG[
+                              localFilters.app_status as AppStatuses
+                            ]
+                          : undefined,
+                        color: localFilters.app_status
+                          ? STATUS_COLOR_MAP_FG[
+                              localFilters.app_status as AppStatuses
+                            ]
+                          : undefined,
+                      }}
+                    >
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+
+                      {AppStatusOptions.map((s, idx) => (
+                        <React.Fragment key={s.value}>
+                          <SelectItem
+                            value={s.value}
+                            style={{ color: STATUS_COLOR_MAP_FG[s.value] }}
+                          >
+                            {s.label}
+                          </SelectItem>
+
+                          {idx !== AppStatusOptions.length - 1 && <Separator />}
+                        </React.Fragment>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {chartData.map((item, i) => (
                   <div
                     key={item.name}

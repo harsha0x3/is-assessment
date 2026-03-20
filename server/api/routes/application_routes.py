@@ -11,7 +11,6 @@ from fastapi import (
     BackgroundTasks,
 )
 from sqlalchemy.orm import Session
-from models import Application
 from pydantic import BaseModel
 
 from api.controllers.application_controller import (
@@ -93,10 +92,9 @@ async def new_list_all_apps(
     app_type: Annotated[str | None, Query()] = None,
     app_features: Annotated[str | None, Query()] = None,
     severity: Annotated[str | None, Query()] = None,
-
     app_age_from: Annotated[date | None, Query()] = None,
     app_age_to: Annotated[date | None, Query()] = None,
-
+    scope: Annotated[Literal["is_assessment", "vapt_only"], Query()] = "is_assessment",
 ):
 
     status_list = []
@@ -172,13 +170,10 @@ async def new_list_all_apps(
         app_features=app_features_list,
         app_type=app_type_list,
         app_age_to=app_age_to,
-        app_age_from=app_age_from
+        app_age_from=app_age_from,
+        scope=scope,
     )
-    data = list_all_apps(
-        db=db,
-        params=params,
-        current_user = current_user
-    )
+    data = list_all_apps(db=db, params=params, current_user=current_user)
     return {"msg": "Applications fetched successfully", "data": data}
 
 

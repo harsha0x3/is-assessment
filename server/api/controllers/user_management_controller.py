@@ -208,13 +208,21 @@ def get_all_users(db: Session):
             detail={"msg": "Error getting all users", "err_stack": str(e)},
         )
 
-def get_user_departments(db:Session, user_id: str):
+
+def get_user_departments(db: Session, user_id: str):
     try:
-        user_depts = db.scalars(select(DepartmentUsers).where(and_(DepartmentUsers.user_id == user_id, DepartmentUsers.is_active))).all()
-        print("DEPT USERS",user_depts)
+        user_depts = db.scalars(
+            select(DepartmentUsers).where(
+                and_(DepartmentUsers.user_id == user_id, DepartmentUsers.is_active)
+            )
+        ).all()
+        # print("DEPT USERS",user_depts)
         return [u.department_id for u in user_depts]
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error getting user departments")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting user departments",
+        )

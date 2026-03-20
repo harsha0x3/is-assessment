@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
+from typing import Literal
 
 # ---------- Common ----------
 
@@ -77,6 +78,7 @@ class AppSummaryQueryParams(BaseModel):
     priority: list[int] | None
     app_age_from: date | None
     app_age_to: date | None
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
 
 
 class DeptSummaryQueryParams(BaseModel):
@@ -85,6 +87,7 @@ class DeptSummaryQueryParams(BaseModel):
     priority: list[int] | None
     app_age_from: date | None
     app_age_to: date | None
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
 
 
 class StatusPerDepartmentParams(BaseModel):

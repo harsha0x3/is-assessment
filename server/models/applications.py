@@ -50,6 +50,8 @@ class Application(Base, BaseMixin):
 
     severity: Mapped[int] = mapped_column(Integer, nullable=True)
 
+    scope: Mapped[str] = mapped_column(String(40), default="is_assessment", nullable=True)
+
     # -- Relationships --
     creator = relationship(
         "User", back_populates="created_applications", foreign_keys=[creator_id]

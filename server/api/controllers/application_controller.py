@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status, BackgroundTasks
-from sqlalchemy import select, and_, desc, asc, func, or_, not_
+from sqlalchemy import select, and_, desc, asc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from models import (
@@ -35,6 +35,36 @@ ENV = os.getenv("PROD_ENV")
 
 is_dev = ENV and ENV.lower() == "false"
 
+DEPARTMENT_RULES = {
+    "iam": lambda app: app.assessment_category == "is_assessment",
+    "soc integration": lambda app: app.assessment_category == "is_assessment",
+    "security controls": lambda app: app.assessment_category == "is_assessment",
+    "web vapt": lambda app: (
+        app.assessment_category == "is_assessment"
+        or app.assessment_category == "vapt_only"
+    ),
+    "tprm": lambda app: app.assessment_category == "is_assessment",
+    "mobile vapt": lambda app: (
+        app.assessment_category == "vapt_only"
+        or app.app_type in ["mobile", "mobile_web"]
+    ),
+    "ai security": lambda app: app.is_app_ai,
+    "privacy": lambda app: app.is_privacy_applicable,
+}
+
+
+def _resolve_departments(db: Session, app: Application):
+
+    dept_names = []
+
+    for dept, rule in DEPARTMENT_RULES.items():
+        if rule(app):
+            dept_names.append(dept)
+
+    stmt = select(Department).where(func.lower(Department.name).in_(dept_names))
+
+    return db.scalars(stmt).all()
+
 
 def create_app(
     payload: ApplicationCreate,
@@ -56,24 +86,7 @@ def create_app(
 
         # get all departments
 
-        all_depts_stmt = select(Department)
-
-        if not app.is_app_ai:
-            all_depts_stmt = all_depts_stmt.where(
-                not_(func.lower(Department.name) == "ai security")
-            )
-
-        if not app.is_privacy_applicable:
-            all_depts_stmt = all_depts_stmt.where(
-                not_(func.lower(Department.name) == "privacy")
-            )
-
-        if app.app_type and "mobile" not in app.app_type:
-            all_depts_stmt = all_depts_stmt.where(
-                not_(func.lower(Department.name) == "mobile vapt")
-            )
-
-        all_depts = db.scalars(all_depts_stmt).all()
+        all_depts = _resolve_departments(db=db, app=app)
 
         # get question set
         app_questions_set = db.scalars(select(AppQuestionSet).limit(1)).first()
@@ -246,7 +259,6 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
     try:
         user_depts = get_user_departments(db=db, user_id=current_user.id)
 
-        print("PARAMS", params.model_dump())
         stmt = (
             select(Application)
             .distinct()
@@ -258,6 +270,21 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
             print("USER DEPTS", user_depts)
             if len(user_depts) == 1 and 9 in user_depts:
                 stmt = stmt.where(Application.is_privacy_applicable)
+
+        if params.scope == "vapt_only":
+            stmt = (
+                stmt.join(
+                    ApplicationDepartments,
+                    ApplicationDepartments.application_id == Application.id,
+                )
+                .join(Department, Department.id == ApplicationDepartments.department_id)
+                .where(func.lower(Department.name).in_(["web vapt", "mobile vapt"]))
+            )
+
+        elif params.scope == "is_assessment":
+            stmt = stmt.where(Application.scope == "is_assessment")
+
+        print("STMT = > ", stmt)
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total_count = db.scalar(count_stmt)
@@ -306,41 +333,6 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
 
             # Always ignore rows with NULL started_at
             stmt = stmt.where(Application.started_at.is_not(None))
-
-            if params.sla_filter == 30:
-                # 0–30 days
-                lower = today - timedelta(days=30)
-
-                stmt = stmt.where(
-                    func.date(Application.started_at) >= lower,
-                    func.date(Application.started_at) <= today,
-                )
-
-            elif params.sla_filter == 60:
-                # 30–60 days
-                upper = today - timedelta(days=30)
-                lower = today - timedelta(days=60)
-
-                stmt = stmt.where(
-                    func.date(Application.started_at) >= lower,
-                    func.date(Application.started_at) < upper,
-                )
-
-            elif params.sla_filter == 90:
-                # 60–90 days
-                upper = today - timedelta(days=60)
-                lower = today - timedelta(days=90)
-
-                stmt = stmt.where(
-                    func.date(Application.started_at) >= lower,
-                    func.date(Application.started_at) < upper,
-                )
-
-            elif params.sla_filter == 91:
-                # 90+ days
-                cutoff = today - timedelta(days=90)
-
-                stmt = stmt.where(func.date(Application.started_at) < cutoff)
 
         if params.app_type:
             app_type_conditions = []
@@ -440,6 +432,7 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
                 is_app_ai=app.is_app_ai,
                 is_privacy_applicable=app.is_privacy_applicable,
                 app_type=app.app_type,
+                app_url=app.app_url,
             )
             apps_out.append(data)
 
