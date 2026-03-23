@@ -1,6 +1,6 @@
 export type PresetRange = {
   label: string;
-  getRange: () => { from: Date; to?: Date };
+  getRange: () => { from: Date; to: Date };
 };
 
 const today = () => new Date();
