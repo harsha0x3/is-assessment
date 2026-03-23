@@ -82,6 +82,8 @@ class ApplicationOut(BaseModel):
 
     departments: list[DepartmentOut] | None
 
+    scope: Literal["is_assessment", "vapt_only"] | None | str
+
     # Automatically convert UTC -> Asia/Kolkata
 
     model_config = ConfigDict(from_attributes=True)
@@ -120,7 +122,7 @@ class ApplicationUpdate(BaseModel):
     severity: int | None = None
     is_privacy_applicable: bool | None = None
 
-    scope: Literal["is_assessment", "vapt_only"] | None = None
+    scope: Literal["is_assessment", "vapt_only"] | None = "is_assessment"
 
 
 class ListApplicationsOut(BaseModel):

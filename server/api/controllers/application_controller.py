@@ -266,7 +266,9 @@ def apply_scope_filter(stmt, scope: str | None):
         return stmt.where(Application.id.in_(subq))
 
     elif scope == "is_assessment":
-        return stmt.where(Application.scope == "is_assessment")
+        return stmt.where(
+            or_(Application.scope == "is_assessment", Application.scope.is_(None))
+        )
 
     return stmt
 
@@ -745,6 +747,7 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
             requested_date=app.requested_date,
             severity=app.severity,
             departments=[DepartmentOut.model_validate(d) for d in app_depts],
+            scope=app.scope,
         )
         return result
 
