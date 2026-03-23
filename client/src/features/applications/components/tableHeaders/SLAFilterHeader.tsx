@@ -37,6 +37,7 @@ const SLAFilterHeader: React.FC = () => {
           initialFrom={appAgeFromFilter ?? undefined}
           initialTo={appAgeToFilter ?? undefined}
           onApply={({ from, to }) => {
+            console.log("UPDATING", { from, to });
             updateSearchParams({
               appAgeFrom: from,
               appAgeTo: to,

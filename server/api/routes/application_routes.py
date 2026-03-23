@@ -94,13 +94,13 @@ async def new_list_all_apps(
     severity: Annotated[str | None, Query()] = None,
     app_age_from: Annotated[date | None, Query()] = None,
     app_age_to: Annotated[date | None, Query()] = None,
-    scope: Annotated[Literal["is_assessment", "vapt_only"], Query()] = "is_assessment",
+    scope: Annotated[
+        Literal["is_assessment", "vapt_only", "all"], Query()
+    ] = "is_assessment",
 ):
 
     status_list = []
     severity_list = []
-
-    print("Severity", severity)
 
     str_severity = (
         str(severity) if severity and not isinstance(severity, str) else severity

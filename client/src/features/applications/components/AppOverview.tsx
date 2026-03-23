@@ -89,6 +89,7 @@ const applicationDefaultValues: ApplicationOut = {
   is_privacy_applicable: false,
 
   requested_date: null,
+  scope: null,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -151,7 +152,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
     try {
       toast.promise(
         (async () => {
-          await addAppMutation(payload);
+          await addAppMutation(payload).unwrap();
         })(),
         {
           loading: "Creating new app...",
@@ -987,6 +988,49 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                           placeholder="Infra Host"
                           autoComplete="off"
                         />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+
+                  {/* App Scope */}
+                  <Controller
+                    name="scope"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Field
+                        data-invalid={fieldState.invalid}
+                        className="gap-2"
+                      >
+                        <FieldLabel className="text-bold" htmlFor="app-scope">
+                          App Scope
+                        </FieldLabel>
+                        <Select
+                          disabled={!(isEditing || isNew)}
+                          value={
+                            field.value != null
+                              ? String(field.value)
+                              : undefined
+                          }
+                          onValueChange={(value) => field.onChange(value)}
+                        >
+                          <SelectTrigger
+                            id="app-scope"
+                            className="disabled:border disabled:font-medium disabled:text-card-foreground disabled:opacity-100 disabled:cursor-auto"
+                          >
+                            <SelectValue placeholder="Select Scope" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="is_assessment">
+                              IS Assessment
+                            </SelectItem>
+                            <Separator />
+
+                            <SelectItem value="vapt_only">VAPT Only</SelectItem>
+                          </SelectContent>
+                        </Select>
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />
                         )}

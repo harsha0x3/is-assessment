@@ -86,6 +86,10 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
         params: params,
       }),
     }),
+
+    getVAPTSummaryPerStatus: builder.query({
+      query: () => `/dashboard/summary/vapt`,
+    }),
   }),
 });
 export const {
@@ -97,4 +101,5 @@ export const {
   useLazyGetDepartmentSubcategoryQuery,
   useLazyGetStatusPerDepartmentQuery,
   useGetApptypeSummaryQuery,
+  useGetVAPTSummaryPerStatusQuery,
 } = dashboardApiSlice;

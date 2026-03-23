@@ -105,6 +105,7 @@ class AppTypeSummaryParams(BaseModel):
     priority: list[int] | None
     app_age_from: date | None
     app_age_to: date | None
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
     app_status: str | None
 
 
@@ -114,3 +115,18 @@ class AppTypeSummaryItem(BaseModel):
     privacy: int
     ai: int
     other: int
+
+
+class VerticalWiseSummaryParams(BaseModel):
+    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
+
+
+class VAPTSummaryItem(BaseModel):
+    statuses: list[StatusCountItem]
+    total_apps: int
+    filtered_apps: int
+    app_type: str  # Literal["web", "mobile", "mobile_web", "others"]
+
+
+class VAPTSummary(BaseModel):
+    data: list[VAPTSummaryItem]

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from schemas.dashboard_schemas import (
     DeptSummaryQueryParams,
     StatusPerDepartmentParams,
     AppTypeSummaryParams,
+    VerticalWiseSummaryParams,
 )
 from services.auth.deps import get_current_user
 
@@ -108,8 +109,10 @@ def priority_wise_summary(
 def vertical_wise_summary(
     db: Annotated[Session, Depends(get_db_conn)],
     current_user: Annotated[UserOut, Depends(get_current_user)],
+    scope: Annotated[Literal["is_assessment", "vapt_only"], Query()] = "is_assessment",
 ):
-    return dc.get_vertical_wise_app_statuses(db=db)
+    params = VerticalWiseSummaryParams(scope=scope)
+    return dc.get_vertical_wise_app_statuses(db=db, params=params)
 
 
 @router.get("/summary/departments/status")
@@ -177,3 +180,11 @@ async def get_app_type_summary(
     )
 
     return dc.get_app_types_summary(db=db, params=params)
+
+
+@router.get("/summary/vapt")
+async def get_vapt_summary(
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+):
+    return dc.get_vapt_summary_per_status(db=db)

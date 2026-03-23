@@ -36,17 +36,13 @@ ENV = os.getenv("PROD_ENV")
 is_dev = ENV and ENV.lower() == "false"
 
 DEPARTMENT_RULES = {
-    "iam": lambda app: app.assessment_category == "is_assessment",
-    "soc integration": lambda app: app.assessment_category == "is_assessment",
-    "security controls": lambda app: app.assessment_category == "is_assessment",
-    "web vapt": lambda app: (
-        app.assessment_category == "is_assessment"
-        or app.assessment_category == "vapt_only"
-    ),
-    "tprm": lambda app: app.assessment_category == "is_assessment",
+    "iam": lambda app: app.scope == "is_assessment",
+    "soc integration": lambda app: app.scope == "is_assessment",
+    "security controls": lambda app: app.scope == "is_assessment",
+    "web vapt": lambda app: app.scope == "is_assessment" or app.scope == "vapt_only",
+    "tprm": lambda app: app.scope == "is_assessment",
     "mobile vapt": lambda app: (
-        app.assessment_category == "vapt_only"
-        or app.app_type in ["mobile", "mobile_web"]
+        app.scope == "vapt_only" or app.app_type in ["mobile", "mobile_web"]
     ),
     "ai security": lambda app: app.is_app_ai,
     "privacy": lambda app: app.is_privacy_applicable,
@@ -128,18 +124,18 @@ def create_app(
         db.commit()
         db.refresh(app)
 
-        if not is_dev:
-            background_tasks.add_task(
-                send_new_app_mails_bg,
-                NewAppData(
-                    app_name=app.name,
-                    description=app.description,
-                    vertical=app.vertical,
-                    vendor_company=app.vendor_company,
-                    sla=app.due_date,
-                ),
-                db,
-            )
+        # if not is_dev:
+        #     background_tasks.add_task(
+        #         send_new_app_mails_bg,
+        #         NewAppData(
+        #             app_name=app.name,
+        #             description=app.description,
+        #             vertical=app.vertical,
+        #             vendor_company=app.vendor_company,
+        #             sla=app.due_date,
+        #         ),
+        #         db,
+        #     )
 
         return ApplicationOut.model_validate(app)
 
@@ -150,6 +146,7 @@ def create_app(
         )
 
     except Exception as e:
+        print("APP CREATE ERR", e)
         db.rollback()
 
         raise HTTPException(
@@ -255,6 +252,25 @@ def get_apps_summary_from_stmt(db: Session, stmt):
         )
 
 
+def apply_scope_filter(stmt, scope: str | None):
+    if not scope or scope == "all":
+        return stmt
+
+    if scope == "vapt_only":
+        subq = (
+            select(ApplicationDepartments.application_id)
+            .join(Department)
+            .where(func.lower(Department.name).in_(["web vapt", "mobile vapt"]))
+        )
+
+        return stmt.where(Application.id.in_(subq))
+
+    elif scope == "is_assessment":
+        return stmt.where(Application.scope == "is_assessment")
+
+    return stmt
+
+
 def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
     try:
         user_depts = get_user_departments(db=db, user_id=current_user.id)
@@ -267,24 +283,10 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
         )
 
         if current_user.role != "user":
-            print("USER DEPTS", user_depts)
             if len(user_depts) == 1 and 9 in user_depts:
                 stmt = stmt.where(Application.is_privacy_applicable)
 
-        if params.scope == "vapt_only":
-            stmt = (
-                stmt.join(
-                    ApplicationDepartments,
-                    ApplicationDepartments.application_id == Application.id,
-                )
-                .join(Department, Department.id == ApplicationDepartments.department_id)
-                .where(func.lower(Department.name).in_(["web vapt", "mobile vapt"]))
-            )
-
-        elif params.scope == "is_assessment":
-            stmt = stmt.where(Application.scope == "is_assessment")
-
-        print("STMT = > ", stmt)
+        stmt = apply_scope_filter(stmt=stmt, scope=params.scope)
 
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total_count = db.scalar(count_stmt)
@@ -320,8 +322,6 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
 
         if params.severity and len(params.severity) > 0:
             stmt = stmt.where(Application.severity.in_(params.severity))
-
-        today = date.today()
 
         if params.app_age_from:
             stmt = stmt.where(Application.started_at.is_not(None))

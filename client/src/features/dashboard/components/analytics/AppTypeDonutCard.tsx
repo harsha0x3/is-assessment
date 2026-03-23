@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import {
+  APP_TYPE_COLOR_MAP_FG,
   AppStatusOptions,
   PRIORITY_LABELS,
   SEVERITY_LABELS,
@@ -297,10 +298,13 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
                         outerRadius={100}
                         paddingAngle={3}
                       >
-                        {chartData.map((entry, i) => (
+                        {chartData.map((entry) => (
                           <Cell
                             key={entry.name}
-                            fill={COLORS[i % COLORS.length]}
+                            fill={
+                              APP_TYPE_COLOR_MAP_FG[entry.name] ||
+                              APP_TYPE_COLOR_MAP_FG["others"]
+                            }
                           />
                         ))}
                         <ChartLabel

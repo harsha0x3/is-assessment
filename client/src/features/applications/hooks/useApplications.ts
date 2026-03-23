@@ -146,6 +146,7 @@ export const useApplications = () => {
     appFeatures,
     appAgeFromFilter,
     appAgeToFilter,
+    appScope,
   };
 };
 

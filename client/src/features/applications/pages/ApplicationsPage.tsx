@@ -6,7 +6,7 @@ import AppPagination from "../components/AppPagination";
 import { Button } from "@/components/ui/button";
 import StatusProgressBar from "../components/StatusProgressBar";
 import { useSearchParams } from "react-router-dom";
-import { parseDept } from "@/utils/helpers";
+import { parseAppScope, parseDept } from "@/utils/helpers";
 
 const AppsTable = lazy(() => import("../components/AppsTable"));
 const NewAppDialog = lazy(
@@ -34,6 +34,7 @@ const ApplicationsPage: React.FC = () => {
     isLoading,
     error,
     isFetching,
+    appScope,
   } = useApplicationsContext();
   const [openNewApp, setIsopenNewApp] = useState<boolean>(false);
   const currentUserInfo = useSelector(selectAuth);
@@ -100,6 +101,12 @@ const ApplicationsPage: React.FC = () => {
             <p>
               <span className="text-muted-foreground">Department:</span>{" "}
               {parseDept(departmentView)}
+            </p>
+          )}
+
+          {appScope && (
+            <p className="capitalize font-bold">
+              {parseAppScope(appScope)} Applications
             </p>
           )}
           <div className="hidden md:flex items-center gap-3">

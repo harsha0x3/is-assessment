@@ -46,7 +46,7 @@ const DateFilterTabs: React.FC<Props> = ({
     })?.label;
   }, [initialFrom, initialTo]);
 
-  const applyPreset = (getRange: () => { from: Date; to: Date }) => {
+  const applyPreset = (getRange: () => { from: Date; to?: Date }) => {
     const { from, to } = getRange();
 
     onApply({
@@ -98,7 +98,9 @@ const DateFilterTabs: React.FC<Props> = ({
                   key={preset.label}
                   variant={isSelected ? "default" : "outline"}
                   className="w-full justify-start"
-                  onClick={() => applyPreset(preset.getRange)}
+                  onClick={() => {
+                    applyPreset(preset.getRange);
+                  }}
                 >
                   {preset.label}
                 </Button>

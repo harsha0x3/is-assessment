@@ -62,6 +62,8 @@ export interface ApplicationOut {
 
   severity?: number;
 
+  scope?: string | null;
+
   departments?: DepartmentOut[];
 }
 

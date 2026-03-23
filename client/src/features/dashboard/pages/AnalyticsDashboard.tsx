@@ -1,5 +1,9 @@
 import React, { lazy, Suspense, useState } from "react";
 import { CardLoader, SectionLoader } from "../components/Loaders";
+const VAPTStatusStackedChart = lazy(
+  () => import("../components/vapt/VAPTStatusStackedChart"),
+);
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PresentData = lazy(() => import("../components/analytics/PresentData"));
 const HistoricalData = lazy(
@@ -71,6 +75,18 @@ const AnalyticsDashboard: React.FC = () => {
             filters={{ ...filters, app_status: "all" }}
             syncFilters={syncFilters}
           />
+        </Suspense>
+      </div>
+      <div>
+        <Suspense fallback={<CardLoader />}>
+          <Card>
+            <CardHeader>
+              <CardTitle>VAPT Applications Summary per Status</CardTitle>
+            </CardHeader>
+            <CardContent className="h-150">
+              <VAPTStatusStackedChart />
+            </CardContent>
+          </Card>
         </Suspense>
       </div>
     </div>

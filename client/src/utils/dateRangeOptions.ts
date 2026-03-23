@@ -1,6 +1,6 @@
 export type PresetRange = {
   label: string;
-  getRange: () => { from: Date; to: Date };
+  getRange: () => { from: Date; to?: Date };
 };
 
 const today = () => new Date();
@@ -36,8 +36,8 @@ export const PRESET_RANGES: PresetRange[] = [
   {
     label: "90+ days",
     getRange: () => ({
-      from: daysAgo(90),
-      to: today(),
+      from: daysAgo(3000),
+      to: daysAgo(90),
     }),
   },
 ];

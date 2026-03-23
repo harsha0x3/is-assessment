@@ -127,9 +127,6 @@ def get_app_status_summary(
         )
 
 
-# ---------- Department-wise status summary ----------
-
-
 def get_department_status_summary(
     db: Session, params: ds.DeptSummaryQueryParams
 ) -> ds.DepartmentSummaryResponse:
@@ -297,15 +294,16 @@ def get_priority_wise_grouped_summary(db: Session, status_filter: str | None):
         )
 
 
-def get_vertical_wise_app_statuses(db: Session):
+def get_vertical_wise_app_statuses(db: Session, params: ds.VerticalWiseSummaryParams):
     try:
-        rows = db.execute(
-            select(
-                Application.vertical.label("vertical"),
-                Application.status.label("status"),
-                func.count().label("status_count"),
-            ).group_by(Application.vertical, Application.status)
-        )
+        stmt = select(
+            Application.vertical.label("vertical"),
+            Application.status.label("status"),
+            func.count().label("status_count"),
+        ).group_by(Application.vertical, Application.status)
+
+        stmt = _apply_scope_filter(stmt=stmt, scope=params.scope)
+        rows = db.execute(stmt)
 
     except Exception as e:
         raise HTTPException(
@@ -570,3 +568,128 @@ def get_app_types_summary(db: Session, params: ds.AppTypeSummaryParams):
         )
 
     return transformed
+
+
+def get_vapt_summary(db: Session) -> ds.VAPTSummary:
+    try:
+        app_type_case = case(
+            (
+                Application.app_type.in_(["web", "mobile", "mobile_web"]),
+                Application.app_type,
+            ),
+            else_="others",
+        ).label("app_type_cat")
+
+        stmt = (
+            select(
+                app_type_case,
+                Application.status.label("status"),
+                func.count(func.distinct(Application.id)).label("status_count"),
+            )
+            .join(
+                ApplicationDepartments,
+                ApplicationDepartments.application_id == Application.id,
+            )
+            .join(
+                Department,
+                Department.id == ApplicationDepartments.department_id,
+            )
+            .where(
+                Application.is_active,
+                func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+            )
+            .group_by(app_type_case, Application.status)
+        )
+
+        rows = db.execute(stmt).all()
+
+        grouped: dict[str, dict] = defaultdict(lambda: {"total": 0, "statuses": []})
+
+        for row in rows:
+            app_type_cat = row.app_type_cat
+            status_ = row.status
+            count = row.status_count
+
+            grouped[app_type_cat]["statuses"].append(
+                ds.StatusCountItem(status=status_, count=count)
+            )
+            grouped[app_type_cat]["total"] += count
+
+        data: list[ds.VAPTSummaryItem] = []
+
+        for app_type_cat, info in grouped.items():
+            data.append(
+                ds.VAPTSummaryItem(
+                    statuses=info["statuses"],
+                    total_apps=info["total"],
+                    filtered_apps=info["total"],  # same as total since no filters
+                    app_type=app_type_cat,
+                )
+            )
+
+        return ds.VAPTSummary(data=data)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching VAPT summary",
+        )
+
+
+def get_vapt_summary_per_status(db: Session):
+    try:
+        stmt = (
+            select(
+                Application.status.label("status"),
+                Application.app_type.label("app_type"),
+                func.count(func.distinct(Application.id)).label("status_count"),
+            )
+            .select_from(Application)
+            .join(
+                ApplicationDepartments,
+                ApplicationDepartments.application_id == Application.id,
+            )
+            .join(
+                Department,
+                Department.id == ApplicationDepartments.department_id,
+            )
+            .where(
+                Application.is_active,
+                func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+            )
+            .group_by(Application.status, Application.app_type)
+        )
+
+        rows = db.execute(stmt).all()
+
+        # ---------- Transform ----------
+        grouped: dict[str, dict] = defaultdict(lambda: defaultdict(int))
+
+        for row in rows:
+            status_ = normalize_key(row.status)
+            app_type = normalize_key(row.app_type or "unknown")
+            count = int(row.status_count or 0)
+
+            grouped[status_][app_type] += count
+
+        result = []
+
+        for status_ in ALL_APP_STATUSES:
+            status_key = normalize_key(status_)
+
+            item = {"status": status_key}
+
+            # fill whatever app types exist
+            for app_type, count in grouped.get(status_key, {}).items():
+                item[app_type] = count
+
+            result.append(item)
+
+        return result
+
+    except Exception as e:
+        print("ERROR:", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching VAPT summary",
+        )

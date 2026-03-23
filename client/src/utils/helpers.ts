@@ -114,3 +114,14 @@ export const parseAppType = (appType: string) => {
       return appType;
   }
 };
+
+export const parseAppScope = (scope: string) => {
+  switch (scope) {
+    case "is_assessment":
+      return "IS Assessment";
+    case "vapt_only":
+      return "VAPT";
+    default:
+      return scope;
+  }
+};

@@ -203,7 +203,7 @@ class AppQueryParams(BaseModel):
     app_age_from: date | None
     app_age_to: date | None
 
-    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
+    scope: Literal["is_assessment", "vapt_only", "all"] = "is_assessment"
 
     @field_validator("sort_by")
     @classmethod

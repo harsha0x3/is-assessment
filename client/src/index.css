@@ -104,6 +104,30 @@
   /* Cancelled — Warm gray (red undertone) */
   --status-cancelled-bg: hsl(10 15% 92%);
   --status-cancelled-fg: hsl(10, 91%, 31%);
+
+  /* Web — Deep Blue */
+  --app-type-web-bg: hsl(210 90% 95%);
+  --app-type-web-fg: hsl(210 85% 45%);
+
+  /* Mobile — Emerald Green */
+  --app-type-mobile-bg: hsl(150 70% 92%);
+  --app-type-mobile-fg: hsl(150 70% 35%);
+
+  /* Mobile Web — Teal */
+  --app-type-mobile-web-bg: hsl(180 70% 92%);
+  --app-type-mobile-web-fg: hsl(180 70% 35%);
+
+  /* API — Purple */
+  --app-type-api-bg: hsl(270 70% 94%);
+  --app-type-api-fg: hsl(270 70% 45%);
+
+  /* Automation — Amber */
+  --app-type-automation-bg: hsl(40 95% 92%);
+  --app-type-automation-fg: hsl(40 90% 45%);
+
+  /* Others — Neutral Gray */
+  --app-type-others-bg: hsl(220 10% 92%);
+  --app-type-others-fg: hsl(220 10% 40%);
 }
 
 .dark {

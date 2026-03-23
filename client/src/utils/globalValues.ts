@@ -71,6 +71,26 @@ export const STATUS_COLOR_MAP_BG: Record<
   go_live: "var(--status-go-live-bg)",
 };
 
+// utils/appTypeColors.ts
+
+export const APP_TYPE_COLOR_MAP_FG: Record<string, string> = {
+  web: "var(--app-type-web-fg)",
+  mobile: "var(--app-type-mobile-fg)",
+  mobile_web: "var(--app-type-mobile-web-fg)",
+  api: "var(--app-type-api-fg)",
+  automation: "var(--app-type-automation-fg)",
+  others: "var(--app-type-others-fg)",
+};
+
+export const APP_TYPE_COLOR_MAP_BG: Record<string, string> = {
+  web: "var(--app-type-web-bg)",
+  mobile: "var(--app-type-mobile-bg)",
+  mobile_web: "var(--app-type-mobile-web-bg)",
+  api: "var(--app-type-api-bg)",
+  automation: "var(--app-type-automation-bg)",
+  others: "var(--app-type-others-bg)",
+};
+
 export const PriorityLabelMap: Record<string, string> = {
   1: "low",
   2: "medium",

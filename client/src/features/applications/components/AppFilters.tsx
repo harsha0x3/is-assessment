@@ -17,7 +17,7 @@ import { Check, SlidersHorizontalIcon } from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 
 const AppFilters: React.FC = () => {
-  const { updateSearchParams, appSearchBy, appSortBy, appSortOrder } =
+  const { updateSearchParams, appSearchBy, appSortBy, appSortOrder, appScope } =
     useApplicationsContext();
 
   const validSearchBys = [
@@ -33,6 +33,12 @@ const AppFilters: React.FC = () => {
     { started_at: "Start Date" },
     { updated_at: "Updated Date" },
     { app_priority: "Priority" },
+  ];
+
+  const validScopes = [
+    { is_assessment: "IS Assessment" },
+    { vapt_only: "VAPT Only" },
+    { all: "All" },
   ];
 
   return (
@@ -110,6 +116,28 @@ const AppFilters: React.FC = () => {
                       }
                     >
                       {appSortBy == val && <Check />}
+
+                      {label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          {/* App Scope filters*/}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>App Scope</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                {validScopes.map((item, idx) => {
+                  const [val, label] = Object.entries(item)[0];
+                  return (
+                    <DropdownMenuItem
+                      key={idx}
+                      data-value={val}
+                      onClick={() => updateSearchParams({ appScope: val })}
+                    >
+                      {appScope == val && <Check />}
 
                       {label}
                     </DropdownMenuItem>
