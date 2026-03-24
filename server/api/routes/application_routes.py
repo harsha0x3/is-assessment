@@ -49,14 +49,17 @@ async def create_application(
     current_user: Annotated[UserOut, Depends(require_manager)],
     background_tasks: BackgroundTasks,
 ):
-    data = create_app(
-        payload=payload,
-        db=db,
-        creator=current_user,
-        owner=current_user,
-        background_tasks=background_tasks,
-    )
-    return {"msg": "Application created successfully", "data": data}
+    try:
+        data = create_app(
+            payload=payload,
+            db=db,
+            creator=current_user,
+            owner=current_user,
+            background_tasks=background_tasks,
+        )
+        return {"msg": "Application created successfully", "data": data}
+    except Exception as e:
+        print(e)
 
 
 @router.get("/list")

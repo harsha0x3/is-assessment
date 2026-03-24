@@ -38,7 +38,7 @@ class ApplicationCreate(BaseModel):
 
     requested_date: date | None = None
 
-    scope: Literal["is_assessment", "vapt_only"] = "is_assessment"
+    scope: Literal["is_assessment", "vapt_only"] | None = "is_assessment"
 
     app_url: str | None
 
