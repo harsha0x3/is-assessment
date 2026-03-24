@@ -59,12 +59,6 @@ export interface UserWithDepartments extends UserOut {
   department_ids: number[];
 }
 
-export interface AuthState extends UserWithDepartmentInfo {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
 // ---------- REGISTER & UPDATE ----------
 export interface RegisterPayload {
   full_name: string;

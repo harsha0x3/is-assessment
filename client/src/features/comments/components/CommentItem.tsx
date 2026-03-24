@@ -12,11 +12,15 @@ import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 
 import { parseStatus } from "@/utils/helpers";
 import { Badge } from "@/components/ui/badge";
+import { useSelector } from "react-redux";
+import { selectAuth } from "@/features/auth/store/authSlice";
+import { Pencil } from "lucide-react";
 
 const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [saveEditComment] = useUpdateCommentMutation();
+  const currentUser = useSelector(selectAuth);
 
   const handleEditComment = async (commentId: string) => {
     try {
@@ -31,6 +35,31 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
   };
 
   const created = new Date(comment.created_at + "Z").toLocaleString();
+
+  // const isSameDay = (dateString?: string) => {
+  //   if (!dateString) return false;
+
+  //   const commentDate = new Date(dateString + "Z");
+  //   const now = new Date();
+
+  //   return (
+  //     commentDate.getFullYear() === now.getFullYear() &&
+  //     commentDate.getMonth() === now.getMonth() &&
+  //     commentDate.getDate() === now.getDate()
+  //   );
+  // };
+
+  const isWithin24Hours = (dateString?: string) => {
+    if (!dateString) return false;
+
+    const created = new Date(dateString + "Z").getTime();
+    const now = Date.now();
+
+    return now - created <= 24 * 60 * 60 * 1000;
+  };
+
+  const isAuthor = currentUser?.id === comment.author_id;
+  const canEdit = isAuthor && isWithin24Hours(comment.created_at);
 
   return (
     <div className="border rounded-lg px-2 py-3 shadow-sm bg-card">
@@ -99,7 +128,7 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
             </div>
 
             {/* Actions */}
-            {/* {!isEditing && (
+            {!isEditing && canEdit && (
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
@@ -109,15 +138,15 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
                   <Pencil size={16} />
                 </Button>
 
-                <Button
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onDelete(comment.id)}
                 >
                   <Trash2 size={16} className="text-red-500" />
-                </Button>
+                </Button> */}
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </div>

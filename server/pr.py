@@ -9,17 +9,11 @@ import time
 def test_rate_limit(url, data, headers=None, cookies=None, num_requests=50):
     """
     Generic rate-limit tester (use only on systems you own or have permission to test)
-
-    Args:
-        url (str): Endpoint URL
-        data (dict): POST data
-        headers (dict): Optional headers
-        cookies (dict): Optional cookies (DO NOT hardcode real session tokens)
-        num_requests (int): Number of requests to send
-        delay (float): Delay between requests (seconds)
     """
 
     results = {}
+
+    start_time = time.time()  # start timer
 
     for i in range(num_requests):
         try:
@@ -35,9 +29,15 @@ def test_rate_limit(url, data, headers=None, cookies=None, num_requests=50):
         except Exception as e:
             print(f"Request {i + 1} failed: {e}")
 
+    end_time = time.time()  # end timer
+
+    total_time = end_time - start_time
+
     print("\nSummary:")
     for status, count in results.items():
         print(f"{status}: {count} responses")
+
+    print(f"\nTotal time taken: {total_time:.2f} seconds")
 
     return results
 
