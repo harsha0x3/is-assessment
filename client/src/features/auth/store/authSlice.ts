@@ -14,6 +14,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  verticals: [],
 };
 
 const authSlice = createSlice({
