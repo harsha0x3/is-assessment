@@ -188,3 +188,11 @@ async def get_vapt_summary(
     current_user: Annotated[UserOut, Depends(get_current_user)],
 ):
     return dc.get_vapt_summary_per_status(db=db)
+
+
+@router.get("/summary/completion")
+async def get_application_completion_stats(
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[UserOut, Depends(get_current_user)],
+):
+    return dc.get_application_completion_stats(db=db)

@@ -1,6 +1,13 @@
 // src\features\auth\types.ts
 
-export type RoleEnum = "admin" | "manager" | "moderator" | "user";
+import type { VerticalItem } from "../verticals/types";
+
+export type RoleEnum =
+  | "admin"
+  | "manager"
+  | "moderator"
+  | "user"
+  | "vertical_owner";
 
 // ---------- BASE MODELS ----------
 export interface AllUsersOut {
@@ -34,6 +41,7 @@ export interface CompleteUserOut {
 
 export interface AllUsersWithDepartments extends CompleteUserOut {
   departments: DepartmentInAuth[];
+  verticals: VerticalItem[];
 }
 
 export interface UserOut {
@@ -48,6 +56,7 @@ export interface UserOut {
 
 export interface UserWithDepartmentInfo extends UserOut {
   departments: DepartmentInAuth[];
+  verticals: VerticalItem[];
 }
 
 export interface AuthState extends UserWithDepartmentInfo {
@@ -70,6 +79,7 @@ export interface RegisterPayload {
 
 export interface RegisterRequest extends RegisterPayload {
   department_ids: number[];
+  vertical_ids: number[];
 }
 
 export interface RegisterResponse extends CompleteUserOut {
@@ -82,6 +92,7 @@ export interface UserUpdateRequest {
   role?: RoleEnum | null;
   enable_mfa?: boolean;
   department_ids?: number[] | null;
+  vertical_ids?: number[] | null;
 }
 
 // ---------- AUTH ----------

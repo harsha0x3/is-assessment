@@ -34,8 +34,8 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
+import { VerticalsMultiSelect } from "@/features/verticals/components/VerticalsMultiSelect";
 // import { PasswordInput } from "@/features/auth/components/PasswordInput";
-
 interface Props {
   user: AllUsersWithDepartments | UserWithDepartmentInfo | null;
   open: boolean;
@@ -53,6 +53,10 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
   const [departmentIds, setDepartmentIds] = useState<number[]>([]);
   const currentUserInfo = useSelector(selectAuth);
   const isAdmin = currentUserInfo.role == "admin";
+  const [verticalIds, setVerticalIds] = useState<number[]>([]);
+
+  const isAdminOrManager =
+    currentUserInfo.role === "admin" || currentUserInfo.role === "manager";
   // const [password, setPassword] = useState<string>("");
   // const [confirmPassword, setConfirmPassword] = useState<string>("");
   const isNew = !user;
@@ -62,6 +66,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
       setEmail(user.email);
       setDepartmentIds(user.departments.map((d) => d.department_id) ?? []);
       setRole(user.role as RoleEnum);
+      setVerticalIds(user.verticals?.map((v) => v.id) ?? []);
     }
   }, [user]);
 
@@ -75,6 +80,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
             full_name: fullName,
             department_ids: departmentIds,
             role: role,
+            vertical_ids: verticalIds,
           },
         }).unwrap();
 
@@ -90,6 +96,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
           role: role,
           enable_mfa: false,
           department_ids: departmentIds,
+          vertical_ids: verticalIds,
         };
         await createNewUser({
           payload,
@@ -160,6 +167,28 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
                   <li key={d.department_id}>{d.department_name}</li>
                 ))}
               </ul>
+            )}
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Verticals</Label>
+
+            {editMode || isNew ? (
+              <VerticalsMultiSelect
+                value={verticalIds}
+                onChange={setVerticalIds}
+                canCreate={isAdminOrManager}
+              />
+            ) : (
+              <div>
+                {user.verticals && user.verticals.length > 0 && (
+                  <ul className="text-sm list-disc ml-5">
+                    {user.verticals.map((v) => (
+                      <li key={v.id}>{v.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
 

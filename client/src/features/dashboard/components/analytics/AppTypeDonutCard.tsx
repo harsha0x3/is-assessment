@@ -160,7 +160,7 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
   /* ---------------- UI ---------------- */
 
   return (
-    <Card className="h-110 w-xl flex flex-col">
+    <Card className="h-120 w-xl flex flex-col">
       <CardHeader>
         <CardTitle className="text-center">Application Type Summary</CardTitle>
       </CardHeader>

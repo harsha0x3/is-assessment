@@ -1,8 +1,9 @@
-from models import User, DepartmentUsers, Department
+from models import User, DepartmentUsers, Department, Vertical, VerticalOwnerMap
 from schemas import auth_schemas as a_schemas
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_
 from fastapi import HTTPException, status
+from schemas.vertical_schemas import VerticalBase
 
 
 def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
@@ -11,7 +12,12 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
+                detail="User already registered",
+            )
+        if payload.role == "vertical_owner" and not payload.vertical_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="Vertical owner must have at least one vertical assigned",
             )
         new_user = User(
             full_name=payload.full_name,
@@ -26,11 +32,29 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
         db.add(new_user)
         db.flush()
 
-        new_usr_associations = [
-            DepartmentUsers(user_id=new_user.id, department_id=dept_id)
-            for dept_id in payload.department_ids
-        ]
-        db.add_all(new_usr_associations)
+        if payload.department_ids and len(payload.department_ids) > 0:
+            new_usr_associations = [
+                DepartmentUsers(user_id=new_user.id, department_id=dept_id)
+                for dept_id in payload.department_ids
+            ]
+            if len(payload.department_ids) != len(set(payload.department_ids)):
+                raise HTTPException(400, "Duplicate department ids in request")
+            db.add_all(new_usr_associations)
+
+        if payload.vertical_ids:
+            verticals = db.scalars(
+                select(Vertical).where(Vertical.id.in_(payload.vertical_ids))
+            ).all()
+
+            if len(verticals) != len(set(payload.vertical_ids)):
+                raise HTTPException(400, "Invalid vertical ids")
+
+            vertical_links = [
+                VerticalOwnerMap(user_id=new_user.id, vertical_id=v.id)
+                for v in verticals
+            ]
+            db.add_all(vertical_links)
+
         db.flush()
         db.commit()
         db.refresh(new_user)
@@ -45,6 +69,10 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
             )
             for link in new_user.department_links
         ]
+        verticals = [
+            VerticalBase(id=v.id, name=v.name, description=v.description)
+            for v in new_user.verticals
+        ]
 
         return a_schemas.UserWithDepartmentInfo(
             id=new_user.id,
@@ -54,12 +82,14 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
             created_at=new_user.created_at,
             updated_at=new_user.updated_at,
             departments=user_depts,
+            verticals=verticals,
         )
 
     except HTTPException:
         raise
 
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "Error in creating new user", "err_stack": str(e)},
@@ -125,6 +155,36 @@ def update_user_profile(
                 if dept_id not in incoming_ids:
                     db.delete(link)
 
+        if payload.vertical_ids is not None:
+            if editing_user.role == "vertical_owner" and not payload.vertical_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Vertical owner must have at least one vertical",
+                )
+
+            verticals = db.scalars(
+                select(Vertical).where(Vertical.id.in_(payload.vertical_ids))
+            ).all()
+
+            if len(verticals) != len(set(payload.vertical_ids)):
+                raise HTTPException(400, "Invalid vertical ids")
+
+            existing_links = {
+                link.vertical_id: link for link in editing_user.vertical_links
+            }
+
+            incoming_ids = set(payload.vertical_ids)
+
+            # ADD / UPDATE
+            for v in verticals:
+                if v.id not in existing_links:
+                    editing_user.vertical_links.append(VerticalOwnerMap(vertical=v))
+
+            # DELETE
+            for vid, link in existing_links.items():
+                if vid not in incoming_ids:
+                    db.delete(link)
+
         db.commit()
         db.refresh(editing_user)
 
@@ -140,6 +200,11 @@ def update_user_profile(
             for link in editing_user.department_links
         ]
 
+        verticals = [
+            VerticalBase(id=v.id, name=v.name, description=v.description)
+            for v in editing_user.verticals
+        ]
+
         return a_schemas.UserWithDepartmentInfo(
             id=editing_user.id,
             full_name=editing_user.full_name,
@@ -148,6 +213,7 @@ def update_user_profile(
             created_at=editing_user.created_at,
             updated_at=editing_user.updated_at,
             departments=user_depts,
+            verticals=verticals,
         )
 
     except HTTPException:
@@ -187,6 +253,12 @@ def get_all_users(db: Session):
                     department_description=dept.description,
                 )
                 user_depts.append(user_dept_info)
+
+            verticals = [
+                VerticalBase(id=v.id, name=v.name, description=v.description)
+                for v in user.verticals
+            ]
+
             res_data = a_schemas.AllUsersWithDepartments(
                 id=user.id,
                 full_name=user.full_name,
@@ -197,6 +269,7 @@ def get_all_users(db: Session):
                 departments=user_depts,
                 mfa_recovery_codes=user.mfa_recovery_codes,
                 mfa_secret=user.mfa_secret,
+                verticals=verticals,
             )
             result.append(res_data)
 

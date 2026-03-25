@@ -15,6 +15,9 @@ const DepartmentSummary = lazy(
 const AppTypeDonutCard = lazy(
   () => import("../components/analytics/AppTypeDonutCard"),
 );
+const AppCompletionChart = lazy(
+  () => import("../components/analytics/AppCompletionChart"),
+);
 export interface FilterProps {
   severity: string[];
   priority: string[];
@@ -69,13 +72,21 @@ const AnalyticsDashboard: React.FC = () => {
           syncFilters={syncFilters}
         />
       </Suspense>
-      <div>
-        <Suspense fallback={<CardLoader />}>
-          <AppTypeDonutCard
-            filters={{ ...filters, app_status: "all" }}
-            syncFilters={syncFilters}
-          />
-        </Suspense>
+      <div className="flex w-full gap-5">
+        <div className="min-w-0">
+          <Suspense fallback={<CardLoader />}>
+            <AppTypeDonutCard
+              filters={{ ...filters, app_status: "all" }}
+              syncFilters={syncFilters}
+            />
+          </Suspense>
+        </div>
+
+        <div className="min-w-0">
+          <Suspense fallback={<CardLoader />}>
+            <AppCompletionChart />
+          </Suspense>
+        </div>
       </div>
       <div>
         <Suspense fallback={<CardLoader />}>

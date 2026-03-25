@@ -130,3 +130,8 @@ class VAPTSummaryItem(BaseModel):
 
 class VAPTSummary(BaseModel):
     data: list[VAPTSummaryItem]
+
+
+class ApplicationCompletionStats(BaseModel):
+    bucket: str
+    count: int

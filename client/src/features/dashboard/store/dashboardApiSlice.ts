@@ -11,6 +11,7 @@ import type {
   DeptSummaryQueryParams,
   ApptypeSummaryParams,
   AppTypeSummary,
+  AppCompletionSummary,
 } from "../types";
 
 const dashboardApiSlice = rootApiSlice.injectEndpoints({
@@ -90,6 +91,9 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
     getVAPTSummaryPerStatus: builder.query({
       query: () => `/dashboard/summary/vapt`,
     }),
+    getAppCompletionSummary: builder.query<AppCompletionSummary[], void>({
+      query: () => `/dashboard/summary/completion`,
+    }),
   }),
 });
 export const {
@@ -102,4 +106,5 @@ export const {
   useLazyGetStatusPerDepartmentQuery,
   useGetApptypeSummaryQuery,
   useGetVAPTSummaryPerStatusQuery,
+  useGetAppCompletionSummaryQuery,
 } = dashboardApiSlice;

@@ -2,6 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
+from .vertical_schemas import VerticalBase
 
 
 class AllUsersOut(BaseModel):
@@ -38,7 +39,8 @@ class CompleteUserOut(BaseModel):
 
 
 class AllUsersWithDepartments(CompleteUserOut, BaseModel):
-    departments: list[DepartmentInAuth] | list
+    departments: list[DepartmentInAuth] | None = []
+    verticals: list[VerticalBase] | None = []
 
 
 class UserOut(BaseModel):
@@ -57,6 +59,7 @@ class UserOut(BaseModel):
 
 class UserWithDepartmentInfo(UserOut, BaseModel):
     departments: list[DepartmentInAuth] | list
+    verticals: list[VerticalBase] | None = []
 
 
 class UserWithDepartments(UserOut, BaseModel):
@@ -68,6 +71,7 @@ class RoleEnum(str, Enum):
     manager = "manager"
     moderator = "moderator"
     user = "user"
+    vertical_owner = "vertical_owner"
 
 
 class RegisterPayload(BaseModel):
@@ -79,7 +83,8 @@ class RegisterPayload(BaseModel):
 
 
 class RegisterRequest(RegisterPayload, BaseModel):
-    department_ids: list[int]
+    department_ids: list[int] | None = None
+    vertical_ids: list[int] | None = None
 
 
 class RegisterResponse(CompleteUserOut, BaseModel):
@@ -92,6 +97,7 @@ class UserUpdateRequest(BaseModel):
     role: RoleEnum | None = RoleEnum.user
     enable_mfa: bool = True
     department_ids: list[int] | None = None
+    vertical_ids: list[int] | None = None
 
 
 class LoginRequest(BaseModel):

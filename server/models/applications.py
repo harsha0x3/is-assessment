@@ -18,6 +18,10 @@ class Application(Base, BaseMixin):
     infra_host: Mapped[str] = mapped_column(String(512), nullable=True)
     app_tech: Mapped[str] = mapped_column(Text, nullable=True)
     vertical: Mapped[str] = mapped_column(String(128), nullable=True)
+    vertical_id: Mapped[int] = mapped_column(
+        ForeignKey("verticals.id", ondelete="set null", onupdate="cascade"),
+        nullable=True,
+    )
     is_completed: Mapped[bool] = mapped_column(default=False)
     creator_id: Mapped[str] = mapped_column(String(40), ForeignKey("users.id"))
     owner_id: Mapped[str] = mapped_column(
@@ -50,7 +54,9 @@ class Application(Base, BaseMixin):
 
     severity: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    scope: Mapped[str] = mapped_column(String(40), default="is_assessment", nullable=True)
+    scope: Mapped[str] = mapped_column(
+        String(40), default="is_assessment", nullable=True
+    )
 
     # -- Relationships --
     creator = relationship(
@@ -71,12 +77,13 @@ class Application(Base, BaseMixin):
         back_populates="application",
         cascade="all, delete-orphan",
     )
+    app_vertical = relationship("Vertical", back_populates="applications")
 
     control_results = relationship(
-    "ApplicationControlResult",
-    back_populates="application",
-    cascade="all, delete-orphan",
-)
+        "ApplicationControlResult",
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<app_id={self.id}, app_name={self.name}>"

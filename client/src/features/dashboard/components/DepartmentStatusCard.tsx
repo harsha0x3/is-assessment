@@ -88,7 +88,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
                   tick={{ fontSize: 12, fontWeight: 700 }}
                   interval={0}
                   angle={-20}
-                  tickMargin={5}
+                  tickMargin={10}
                 />
                 <YAxis allowDecimals={false} domain={[0, "dataMax + 2"]} />
                 {/* <ChartTooltip content={<div>Show Details</div>} /> */}

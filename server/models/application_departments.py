@@ -17,11 +17,16 @@ class ApplicationDepartments(Base, BaseMixin):
     status: Mapped[str] = mapped_column(String(40), default="yet_to_connect")
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    go_live_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     app_category: Mapped[str] = mapped_column(String(40), nullable=True)
     category_status: Mapped[str] = mapped_column(String(40), nullable=True)
 
-    updated_by: Mapped[str] = mapped_column(String(40), ForeignKey("users.id", ondelete="set null", onupdate="cascade"), nullable=True)
+    updated_by: Mapped[str] = mapped_column(
+        String(40),
+        ForeignKey("users.id", ondelete="set null", onupdate="cascade"),
+        nullable=True,
+    )
 
     updated_by_user = relationship("User", foreign_keys=[updated_by])
     # -- Table Constraints --

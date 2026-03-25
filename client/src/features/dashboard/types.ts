@@ -104,3 +104,8 @@ export interface AppTypeSummary {
   ai: number;
   privacy: number;
 }
+
+export interface AppCompletionSummary {
+  bucket: string;
+  count: number;
+}

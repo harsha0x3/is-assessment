@@ -21,7 +21,8 @@ from models import (
     app_dept_answers,
     application_questions,
     application_answers,
-    department_controls
+    department_controls,
+    verticals,
 )
 
 

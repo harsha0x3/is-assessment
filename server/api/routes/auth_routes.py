@@ -23,6 +23,7 @@ from services.auth.deps import get_current_user
 from models import User
 
 from services.auth.csrf_handler import clear_csrf_cookie
+from schemas.vertical_schemas import VerticalBase
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -116,6 +117,11 @@ def get_me(
             )
             user_depts.append(user_dept_info)
 
+        verticals = [
+            VerticalBase(id=v.id, name=v.name, description=v.description)
+            for v in user.verticals
+        ]
+
         result = UserWithDepartmentInfo(
             id=user.id,
             full_name=user.full_name,
@@ -124,6 +130,7 @@ def get_me(
             created_at=user.created_at,
             updated_at=user.updated_at,
             departments=user_depts,
+            verticals=verticals,
         )
 
         return {"msg": "", "data": result}

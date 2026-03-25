@@ -147,7 +147,10 @@ const StatusBarChart: React.FC<Props> = ({ data, isLoading, filters }) => {
     <div className="flex-1 min-w-0">
       <ChartContainer config={appStatusChartConfig} className="h-full w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data.status_chart}>
+          <BarChart
+            data={data.status_chart}
+            margin={{ top: 10, right: 0, left: 0, bottom: 5 }}
+          >
             <CartesianGrid vertical={false} />
 
             <XAxis

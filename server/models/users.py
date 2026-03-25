@@ -21,7 +21,7 @@ from services.auth.utils import (
 class User(Base, BaseMixin):
     __tablename__ = "users"
 
-    full_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=True)
+    full_name: Mapped[str] = mapped_column(String(50), unique=False, nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(15), nullable=False, default="user")
@@ -39,7 +39,7 @@ class User(Base, BaseMixin):
     disabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
-        Index("ix_users_full_name", "full_name", unique=True),
+        Index("ix_users_full_name", "full_name", unique=False),
         Index("ix_users_email", "email", unique=True),
     )
 
@@ -68,6 +68,9 @@ class User(Base, BaseMixin):
         "department_links",
         "department",
     )
+
+    vertical_links = relationship("VerticalOwnerMap", back_populates="owner")
+    verticals = association_proxy("vertical_links", "vertical")
 
     # ----------------------Functions---------------------------------
     def set_password(self, plain_password: str) -> None:

@@ -18,6 +18,7 @@ from schemas.auth_schemas import (
     ResetPasswordPayload,
     OTPEmailPaylod,
 )
+from schemas.vertical_schemas import VerticalBase
 from datetime import datetime, timezone
 from services.notifications.password_reset_otp import send_email
 from services.auth.csrf_handler import set_csrf_cookie
@@ -85,6 +86,10 @@ def login_user(
             response=response, access_token=access, refresh_token=refresh
         )
         set_csrf_cookie(response)
+        verticals = [
+            VerticalBase(id=v.id, name=v.name, description=v.description)
+            for v in user.verticals
+        ]
         result = UserWithDepartmentInfo(
             id=user.id,
             full_name=user.full_name,
@@ -93,6 +98,7 @@ def login_user(
             created_at=user.created_at,
             updated_at=user.updated_at,
             departments=user_depts,
+            verticals=verticals,
         )
 
         return result

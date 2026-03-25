@@ -1,11 +1,13 @@
-from sqlalchemy import select, func, and_, case
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 from collections import defaultdict
-from api.constants.statuses import ALL_APP_STATUSES, ALL_DEPT_STATUSES
+from datetime import date, timedelta
+
+from fastapi import HTTPException, status
+from sqlalchemy import and_, case, func, select
+from sqlalchemy.orm import Session
+
 from api.constants.priorities import PRIORITY_ID_TO_KEY
-from datetime import timedelta, date
-from models import Application, Department, ApplicationDepartments
+from api.constants.statuses import ALL_APP_STATUSES, ALL_DEPT_STATUSES
+from models import Application, ApplicationDepartments, Department
 from schemas import dashboard_schemas as ds
 
 
@@ -692,4 +694,51 @@ def get_vapt_summary_per_status(db: Session):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching VAPT summary",
+        )
+
+
+def get_application_completion_stats(
+    db: Session,
+) -> list[ds.ApplicationCompletionStats]:
+    try:
+        days_diff = func.datediff(func.now(), Application.completed_at)
+
+        bucket_case = case(
+            (
+                and_(Application.completed_at.is_not(None), days_diff <= 30),
+                "0-30 days",
+            ),
+            (
+                and_(
+                    Application.completed_at.is_not(None),
+                    days_diff > 30,
+                    days_diff <= 60,
+                ),
+                "31-60 days",
+            ),
+            (
+                and_(
+                    Application.completed_at.is_not(None),
+                    days_diff > 60,
+                    days_diff <= 90,
+                ),
+                "61-90 days",
+            ),
+            else_="90+ days",
+        )
+
+        results = (
+            db.query(bucket_case.label("bucket"), func.count(Application.id))
+            .where(and_(Application.is_active, Application.status == "completed"))
+            .group_by(bucket_case)
+            .all()
+        )
+
+        return [ds.ApplicationCompletionStats(bucket=r[0], count=r[1]) for r in results]
+
+    except Exception as e:
+        print("ERROR:", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching application completion statistics",
         )

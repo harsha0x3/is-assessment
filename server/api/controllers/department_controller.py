@@ -9,7 +9,7 @@ from models import (
     ApplicationDepartments,
     Comment,
     DepartmentControl,
-    ApplicationControlResult
+    ApplicationControlResult,
 )
 from datetime import datetime, timezone
 from schemas import department_schemas as d_schemas
@@ -59,13 +59,16 @@ def add_departments_to_application(app_id: str, department_ids: list[int], db: S
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Application not found.",
             )
-        
+
         if not application.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Application is deleted"
             )
         departments = (
-            db.query(Department).where(Department.is_active).filter(Department.id.in_(department_ids)).all()
+            db.query(Department)
+            .where(Department.is_active)
+            .filter(Department.id.in_(department_ids))
+            .all()
         )
         if len(departments) != len(department_ids):
             raise HTTPException(
@@ -117,7 +120,12 @@ def get_departments_by_application(app_id: str, db: Session):
         stmt = (
             select(Department, ApplicationDepartments)
             .join(ApplicationDepartments)
-            .where(and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.is_active))
+            .where(
+                and_(
+                    ApplicationDepartments.application_id == app_id,
+                    ApplicationDepartments.is_active,
+                )
+            )
         )
 
         departments = db.execute(stmt).all()
@@ -126,38 +134,44 @@ def get_departments_by_application(app_id: str, db: Session):
             exists = db.get(Application, app_id)
             if not exists:
                 raise HTTPException(404, "Application not found")
-            
+
         results: list[d_schemas.AppDepartmentOut] = []
 
         for dep, app_dept in departments:
             controls = db.execute(
-    select(
-        DepartmentControl.id,
-        DepartmentControl.name,
-        ApplicationControlResult.status
-    )
-    .join(ApplicationControlResult,
-          ApplicationControlResult.department_control_id == DepartmentControl.id)
-    .where(
-        ApplicationControlResult.application_id == app_id,
-        DepartmentControl.department_id == dep.id
-    )
-).all()
+                select(
+                    DepartmentControl.id,
+                    DepartmentControl.name,
+                    ApplicationControlResult.status,
+                )
+                .join(
+                    ApplicationControlResult,
+                    ApplicationControlResult.department_control_id
+                    == DepartmentControl.id,
+                )
+                .where(
+                    ApplicationControlResult.application_id == app_id,
+                    DepartmentControl.department_id == dep.id,
+                )
+            ).all()
             controls_out = [
                 d_schemas.ControlResultOut.model_validate(c) for c in controls
             ]
 
-            results.append(d_schemas.AppDepartmentOut(
-                id=dep.id,
-                name=dep.name,
-                description=dep.description,
-                status=app_dept.status,
-                started_at=app_dept.started_at,
-                ended_at=app_dept.ended_at,
-                controls=controls_out,
-                app_category=app_dept.app_category,
-            category_status=app_dept.category_status,
-            ))
+            results.append(
+                d_schemas.AppDepartmentOut(
+                    id=dep.id,
+                    name=dep.name,
+                    description=dep.description,
+                    status=app_dept.status,
+                    started_at=app_dept.started_at,
+                    ended_at=app_dept.ended_at,
+                    controls=controls_out,
+                    app_category=app_dept.app_category,
+                    category_status=app_dept.category_status,
+                    go_live_at=app_dept.go_live_at,
+                )
+            )
 
         return results
     except HTTPException:
@@ -251,6 +265,7 @@ def add_user_to_multiple_departments(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 def get_department_info(db: Session, app_id: str, dept_id: int):
 
     try:
@@ -294,10 +309,7 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             .order_by(Comment.created_at.desc())
         ).all()
 
-        comments = [
-            d_schemas.CommentOut.model_validate(c)
-            for c in cmnt_query
-        ]
+        comments = [d_schemas.CommentOut.model_validate(c) for c in cmnt_query]
 
         # fetch controls + results
         controls = db.execute(
@@ -309,19 +321,15 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             .outerjoin(
                 ApplicationControlResult,
                 and_(
-                    ApplicationControlResult.department_control_id == DepartmentControl.id,
+                    ApplicationControlResult.department_control_id
+                    == DepartmentControl.id,
                     ApplicationControlResult.application_id == app_id,
                 ),
             )
-            .where(
-                DepartmentControl.department_id == dept_id
-            )
+            .where(DepartmentControl.department_id == dept_id)
         ).all()
 
-        controls_out = [
-            d_schemas.ControlResultOut.model_validate(c)
-            for c in controls
-        ]
+        controls_out = [d_schemas.ControlResultOut.model_validate(c) for c in controls]
 
         return d_schemas.DepartmentInfo(
             id=dept.id,
@@ -335,13 +343,14 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
             app_category=app_dept.app_category,
             category_status=app_dept.category_status,
             controls=controls_out,
+            go_live_at=app_dept.go_live_at,
         )
 
     except HTTPException:
         raise
 
     except Exception as e:
-        print("ERRO IN DEP INFO",e)
+        print("ERRO IN DEP INFO", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
@@ -349,7 +358,8 @@ def get_department_info(db: Session, app_id: str, dept_id: int):
                 "err_stack": str(e),
             },
         )
-    
+
+
 def change_department_app_status(
     app_id: str, dept_id: int, payload: d_schemas.DeptStatusPayload, db: Session
 ):
@@ -366,8 +376,6 @@ def change_department_app_status(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Application and department are not mapped",
             )
-        
-        print("DEPT UPDATE PAYLOAD", payload.model_dump())
 
         prev_status = dept_app.status
 
@@ -398,7 +406,16 @@ def change_department_app_status(
             "closed",
         ]:
             dept_app.ended_at = datetime.now(timezone.utc)
-        
+        if dept_app.status != prev_status and dept_app.status in [
+            "go_live",
+        ]:
+            dept_app.go_live_at = datetime.now(timezone.utc)
+
+        if dept_app.status != prev_status and dept_app.status not in [
+            "go_live",
+        ]:
+            dept_app.go_live_at = None
+
         if dept_app.status != prev_status and dept_app.status not in [
             "cleared",
             "closed",
@@ -410,7 +427,10 @@ def change_department_app_status(
             dept_apps = (
                 db.execute(
                     select(ApplicationDepartments).where(
-                        and_(ApplicationDepartments.application_id == app_id, ApplicationDepartments.is_active)
+                        and_(
+                            ApplicationDepartments.application_id == app_id,
+                            ApplicationDepartments.is_active,
+                        )
                     )
                 )
                 .scalars()
@@ -446,11 +466,7 @@ def change_department_app_status(
 
 
 def update_control_result(
-    app_id: str,
-    control_id: int,
-    control_status: str,
-    user_id: str,
-    db: Session
+    app_id: str, control_id: int, control_status: str, user_id: str, db: Session
 ):
     try:
         # 1️⃣ Get control to determine department
@@ -458,8 +474,7 @@ def update_control_result(
 
         if not control:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Control not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Control not found"
             )
 
         dept_id = control.department_id
@@ -468,7 +483,7 @@ def update_control_result(
         result = db.scalar(
             select(ApplicationControlResult).where(
                 ApplicationControlResult.application_id == app_id,
-                ApplicationControlResult.department_control_id == control_id
+                ApplicationControlResult.department_control_id == control_id,
             )
         )
 
@@ -478,7 +493,7 @@ def update_control_result(
                 department_control_id=control_id,
                 status=control_status,
                 updated_by=user_id,
-                updated_at=datetime.now(timezone.utc)
+                updated_at=datetime.now(timezone.utc),
             )
             db.add(result)
         else:
@@ -493,11 +508,11 @@ def update_control_result(
             select(ApplicationControlResult.status)
             .join(
                 DepartmentControl,
-                DepartmentControl.id == ApplicationControlResult.department_control_id
+                DepartmentControl.id == ApplicationControlResult.department_control_id,
             )
             .where(
                 ApplicationControlResult.application_id == app_id,
-                DepartmentControl.department_id == dept_id
+                DepartmentControl.department_id == dept_id,
             )
         ).all()
 
@@ -505,7 +520,10 @@ def update_control_result(
         if any(s == "remediation_required" for s in control_statuses):
             dept_status = "hold"
 
-        elif all(s in ("compliant", "not_applicable", "risk_accepted") for s in control_statuses):
+        elif all(
+            s in ("compliant", "not_applicable", "risk_accepted")
+            for s in control_statuses
+        ):
             dept_status = "cleared"
 
         else:
@@ -515,7 +533,7 @@ def update_control_result(
         dept_app = db.scalar(
             select(ApplicationDepartments).where(
                 ApplicationDepartments.application_id == app_id,
-                ApplicationDepartments.department_id == dept_id
+                ApplicationDepartments.department_id == dept_id,
             )
         )
 
@@ -556,13 +574,12 @@ def update_control_result(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error updating control result: {str(e)}"
+            detail=f"Error updating control result: {str(e)}",
         )
-    
+
+
 def create_department_control(
-    dept_id: int,
-    payload: d_schemas.DepartmentControlCreate,
-    db: Session
+    dept_id: int, payload: d_schemas.DepartmentControlCreate, db: Session
 ):
     try:
         dept = db.get(Department, dept_id)
@@ -571,9 +588,7 @@ def create_department_control(
             raise HTTPException(404, "Department not found")
 
         control = DepartmentControl(
-            department_id=dept_id,
-            name=payload.name,
-            control_type=payload.control_type
+            department_id=dept_id, name=payload.name, control_type=payload.control_type
         )
 
         db.add(control)
@@ -585,22 +600,17 @@ def create_department_control(
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500,
-            detail=f"Error creating department control: {str(e)}"
+            status_code=500, detail=f"Error creating department control: {str(e)}"
         )
-    
+
+
 def get_department_controls(dept_id: int, db: Session):
     try:
         controls = db.scalars(
-            select(DepartmentControl).where(
-                DepartmentControl.department_id == dept_id
-            )
+            select(DepartmentControl).where(DepartmentControl.department_id == dept_id)
         ).all()
 
-        return [
-            d_schemas.DepartmentControlOut.model_validate(c)
-            for c in controls
-        ]
+        return [d_schemas.DepartmentControlOut.model_validate(c) for c in controls]
 
     except Exception as e:
         raise HTTPException(500, str(e))

@@ -61,11 +61,6 @@ def update_profile(
     request: UserUpdateRequest,
 ):
     try:
-        dept_payload = NewUserDepartmentAssign(user_id=editing_user_id)
-        department_ids = request.department_ids if request.department_ids else []
-        add_user_to_multiple_departments(
-            payload=dept_payload, department_ids=department_ids, db=db
-        )
         curr_usr = UserOut.model_validate(current_user)
         return usr_ctrl.update_user_profile(
             current_user=curr_usr,

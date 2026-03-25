@@ -8,12 +8,14 @@ class DepartmentCreate(BaseModel):
     name: str
     description: str | None = None
 
+
 class ControlResultOut(BaseModel):
     id: int
     name: str
     status: str | None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class DepartmentOut(BaseModel):
     id: int
@@ -22,10 +24,12 @@ class DepartmentOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AppDepartmentOut(DepartmentOut):
     status: str
     started_at: datetime | None
     ended_at: datetime | None
+    go_live_at: datetime | None
     app_category: str | None
     category_status: str | None
     controls: list[ControlResultOut] = []
@@ -82,6 +86,6 @@ class DepartmentControlOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ControlStatusPayload(BaseModel):
     status: str
-
