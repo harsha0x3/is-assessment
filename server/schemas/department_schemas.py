@@ -21,12 +21,12 @@ class DepartmentOut(BaseModel):
     id: int
     name: str
     description: str | None = None
+    status: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class AppDepartmentOut(DepartmentOut):
-    status: str
     started_at: datetime | None
     ended_at: datetime | None
     go_live_at: datetime | None

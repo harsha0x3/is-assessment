@@ -40,19 +40,20 @@ const AppCompletionChart: React.FC = () => {
   );
 
   return (
-    <Card className="w-full h-120">
+    <Card className="w-150 h-150">
       <CardHeader>
         <CardTitle className="text-center">
           Application Completion Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="w-xl h-full">
+      <CardContent className="w-full h-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sortedData}
-            margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+            margin={{ top: 10, right: 0, left: 0, bottom: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} />
+
             <XAxis dataKey="bucket" tickMargin={10} />
             <YAxis allowDecimals={false} />
             <Tooltip />

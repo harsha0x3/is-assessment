@@ -15,6 +15,11 @@ import { getApiErrorMessage } from "@/utils/handleApiError";
 import { useSelector } from "react-redux";
 import { selectUserDepts } from "@/features/auth/store/authSlice";
 import { PageLoader } from "@/components/loaders/PageLoader";
+import { Dot } from "lucide-react";
+import { STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
+import type { AppStatuses } from "@/utils/globalTypes";
+import Hint from "@/components/ui/hint";
+import { parseStatus } from "@/utils/helpers";
 
 const AppInfoDialog: React.FC = () => {
   const location = useLocation();
@@ -166,18 +171,41 @@ const AppInfoDialog: React.FC = () => {
                       {appDetails?.data?.departments?.map((dept) => {
                         const isActiveDept = String(dept.id) === activeDeptId;
                         return (
-                          <NavLink
+                          <Hint
                             key={dept.id}
-                            to={`/applications/details/${appId}/departments/${dept.id}/comments?${searchParams.toString()}`}
-                            state={{ appName, department: dept }}
-                            className={cn(
-                              "px-4 py-1.5 rounded-md text-xs transition-colors hover:bg-muted",
-                              isActiveDept &&
-                                "bg-muted font-semibold text-primary border-l-2 border-primary",
-                            )}
+                            label={
+                              <p className="capitalize">
+                                Status:{" "}
+                                {parseStatus(!!dept?.status ? dept.status : "")}
+                              </p>
+                            }
+                            side="right"
                           >
-                            {dept.name}
-                          </NavLink>
+                            <NavLink
+                              to={`/applications/details/${appId}/departments/${dept.id}/comments?${searchParams.toString()}`}
+                              state={{ appName, department: dept }}
+                              key={dept.id}
+                              className={cn(
+                                "px-4 py-1.5 rounded-md text-xs transition-colors hover:bg-muted flex items-center gap-1",
+                                isActiveDept &&
+                                  "bg-muted font-semibold text-primary border-l-2 border-primary",
+                              )}
+                            >
+                              <span>
+                                <Dot
+                                  key={dept.id}
+                                  className="h-2.5 w-2.5 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      STATUS_COLOR_MAP_FG[
+                                        dept.status as AppStatuses
+                                      ],
+                                  }}
+                                />
+                              </span>
+                              {dept.name}
+                            </NavLink>
+                          </Hint>
                         );
                       })}
                     </div>

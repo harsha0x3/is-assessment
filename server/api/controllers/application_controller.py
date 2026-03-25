@@ -702,8 +702,8 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"App not found {app_id}"
             )
 
-        app_depts = db.scalars(
-            select(Department)
+        rows = db.execute(
+            select(Department, ApplicationDepartments.status)
             .join(
                 ApplicationDepartments,
                 ApplicationDepartments.department_id == Department.id,
@@ -715,6 +715,7 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
                 )
             )
         ).all()
+
         result = ApplicationOut(
             id=app.id,
             name=app.name,
@@ -746,7 +747,15 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
             is_privacy_applicable=app.is_privacy_applicable,
             requested_date=app.requested_date,
             severity=app.severity,
-            departments=[DepartmentOut.model_validate(d) for d in app_depts],
+            departments=[
+                DepartmentOut(
+                    id=row[0].id,
+                    name=row[0].name,
+                    description=row[0].description,
+                    status=row[1],
+                )
+                for row in rows
+            ],
             scope=app.scope,
         )
         return result

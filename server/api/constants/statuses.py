@@ -16,6 +16,7 @@ ALL_DEPT_STATUSES: list[str] = [
     "cleared",
     "closed",
     "hold",
+    "cancelled",
     "go_live",
 ]
 

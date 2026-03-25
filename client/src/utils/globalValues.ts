@@ -34,6 +34,7 @@ export const DeptStatusOptions: DeptStatusOption[] = [
   { value: "cleared", label: "Cleared" },
   { value: "closed", label: "Closed" },
   { value: "hold", label: "Hold" },
+  { value: "cancelled", label: "Cancelled" },
   { value: "go_live", label: "Go Live" },
 ];
 
@@ -112,12 +113,8 @@ export const DepartmentCategoryMap: Record<string, SelectItemType[]> = {
     { value: "privacy", label: "Privacy" },
     { value: "non_privacy", label: "Non Privacy" },
   ],
-  vapt: [
-    { value: "mobile", label: "Mobile" },
-    { value: "web", label: "Web" },
-    { value: "ai", label: "AI" },
-    { value: "mobile_web", label: "Mobile & Web" },
-  ],
+  "web vapt": [{ value: "ai", label: "AI" }],
+  "mobile vapt": [{ value: "ai", label: "AI" }],
   "soc integration": [{ value: "hosting", label: "Hosting" }],
   "security controls": [{ value: "hosting", label: "Hosting" }],
 };
@@ -131,7 +128,12 @@ export const DepartmentCategoryStatusMap: Record<string, SelectItemType[]> = {
     { value: "approved", label: "Approved" },
     { value: "rejected", label: "Rejected" },
   ],
-  vapt: [
+  "web vapt": [
+    { value: "pending", label: "Pending" },
+    { value: "remediation", label: "Remediation" },
+    { value: "testing", label: "Testing" },
+  ],
+  "mobile vapt": [
     { value: "pending", label: "Pending" },
     { value: "remediation", label: "Remediation" },
     { value: "testing", label: "Testing" },

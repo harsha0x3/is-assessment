@@ -6,9 +6,9 @@ const VAPTStatusStackedChart = lazy(
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PresentData = lazy(() => import("../components/analytics/PresentData"));
-const HistoricalData = lazy(
-  () => import("../components/analytics/HistoricalData"),
-);
+// const HistoricalData = lazy(
+//   () => import("../components/analytics/HistoricalData"),
+// );
 const DepartmentSummary = lazy(
   () => import("../components/analytics/DepartmentSummary"),
 );
@@ -24,6 +24,8 @@ export interface FilterProps {
   app_age_from?: string;
   app_age_to?: string;
 }
+
+const SHOW_VAPT_ANALYTICS = import.meta.env.VITE_SHOW_VAPT_ANALYTICS === "true";
 
 export interface DeptFilterProps extends FilterProps {
   app_status?: string;
@@ -45,7 +47,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">
-      <div className="flex w-full items-center gap-3">
+      <div className="flex w-full items-center gap-5">
         <div className="min-w-0 flex-1">
           <Suspense fallback={<CardLoader />}>
             <PresentData
@@ -59,7 +61,7 @@ const AnalyticsDashboard: React.FC = () => {
 
         <div>
           <Suspense fallback={<CardLoader />}>
-            <HistoricalData />
+            <AppCompletionChart />
           </Suspense>
         </div>
       </div>
@@ -82,24 +84,26 @@ const AnalyticsDashboard: React.FC = () => {
           </Suspense>
         </div>
 
-        <div className="min-w-0">
+        {/* <div className="min-w-0">
           <Suspense fallback={<CardLoader />}>
-            <AppCompletionChart />
+            <HistoricalData />
+          </Suspense>
+        </div> */}
+      </div>
+      {SHOW_VAPT_ANALYTICS && (
+        <div>
+          <Suspense fallback={<CardLoader />}>
+            <Card>
+              <CardHeader>
+                <CardTitle>VAPT Applications Summary per Status</CardTitle>
+              </CardHeader>
+              <CardContent className="h-150">
+                <VAPTStatusStackedChart />
+              </CardContent>
+            </Card>
           </Suspense>
         </div>
-      </div>
-      <div>
-        <Suspense fallback={<CardLoader />}>
-          <Card>
-            <CardHeader>
-              <CardTitle>VAPT Applications Summary per Status</CardTitle>
-            </CardHeader>
-            <CardContent className="h-150">
-              <VAPTStatusStackedChart />
-            </CardContent>
-          </Card>
-        </Suspense>
-      </div>
+      )}
     </div>
   );
 };

@@ -95,9 +95,9 @@ const AppsTable: React.FC = () => {
           return "TPRM";
         case "security controls":
           return "Sec Controls";
-        case "web_vapt":
+        case "web vapt":
           return "Web VAPT";
-        case "mobile_vapt":
+        case "mobile vapt":
           return "Mobile VAPT";
         case "soc integration":
           return "SOC";
@@ -141,7 +141,7 @@ const AppsTable: React.FC = () => {
                   />
                 )}
                 <span
-                  className="hover:underline hover:text-ring hover:cursor-pointer transition-all"
+                  className="hover:underline hover:text-ring hover:cursor-pointer transition-all whitespace-nowrap"
                   onClick={() =>
                     navigate(
                       `details/${appId}/departments/${d.id}/comments?${searchParams.toString()}`,
@@ -538,7 +538,7 @@ const AppsTable: React.FC = () => {
       return [
         colHelper.accessor("departments", {
           header: "Departments",
-          minSize: 220,
+          minSize: 300,
           cell: ({ getValue, row }) => (
             <DepartmentsStatusCol depts={getValue()} appId={row.original.id} />
           ),

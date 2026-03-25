@@ -18,6 +18,7 @@ export interface DepartmentOut {
   description?: string | null;
   created_at?: Date | null;
   updated_at?: Date | null;
+  status?: DeptStatuses;
 }
 
 export interface AppDepartmentOut extends DepartmentOut {

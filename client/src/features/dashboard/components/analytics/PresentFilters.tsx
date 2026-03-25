@@ -7,12 +7,13 @@ import PriorityFilters from "@/features/_filters/PriorityFilters";
 import type { FilterProps } from "../../pages/AnalyticsDashboard";
 import { Badge } from "@/components/ui/badge";
 import { PRIORITY_LABELS, SEVERITY_LABELS } from "@/utils/globalValues";
-import { Filter } from "lucide-react";
+import { Filter, Info } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import Hint from "@/components/ui/hint";
 
 interface Props {
   filters: FilterProps;
@@ -165,7 +166,12 @@ const PresentFilters: React.FC<Props> = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <Label>Sync Filters</Label>
+        <Label>
+          <Hint label="Toggle this to sync filters across the dashboard.">
+            <Info className="w-4 h-4 text-blue-700" />
+          </Hint>{" "}
+          Sync Filters
+        </Label>
         <Switch checked={syncFilters} onCheckedChange={setSyncFilters} />
       </div>
     </div>

@@ -76,7 +76,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={statuses}
-                margin={{ top: 20, right: 0, left: 0, bottom: 5 }}
+                margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
               >
                 <XAxis
                   dataKey="status"

@@ -15,7 +15,8 @@ export type DeptStatuses =
   | "cleared"
   | "closed"
   | "hold"
-  | "go_live";
+  | "go_live"
+  | "cancelled";
 
 export type AppStatusOption = {
   value: AppStatuses;
