@@ -56,7 +56,7 @@ interface Props {
   syncFilters: boolean;
 }
 
-const COLORS = ["#6366F1", "#22C55E", "#F59E0B", "#06B6D4", "#8B5CF6"];
+// const COLORS = ["#6366F1", "#22C55E", "#F59E0B", "#06B6D4", "#8B5CF6"];
 
 const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
   /* ---------------- Local Filters ---------------- */
@@ -388,7 +388,7 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                {chartData.map((item, i) => (
+                {chartData.map((item) => (
                   <div
                     key={item.name}
                     className="flex items-center justify-between text-sm"
