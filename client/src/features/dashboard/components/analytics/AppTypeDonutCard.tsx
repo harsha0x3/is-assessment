@@ -396,7 +396,11 @@ const AppTypeDonutCard: React.FC<Props> = ({ filters, syncFilters }) => {
                     <div className="flex items-center gap-2">
                       <span
                         className="h-3 w-3 rounded-sm"
-                        style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        style={{
+                          backgroundColor:
+                            APP_TYPE_COLOR_MAP_FG[item.name] ||
+                            APP_TYPE_COLOR_MAP_FG["others"],
+                        }}
                       />
                       <span className="capitalize text-muted-foreground">
                         {parseAppType(item.name)}

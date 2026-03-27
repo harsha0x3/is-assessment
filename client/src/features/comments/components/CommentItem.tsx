@@ -73,7 +73,7 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
           {!isEditing ? (
             <div className="mt-2 text-[14px] overflow-auto pr-3">
               <ScrollArea className="max-h-120">
-                <p>{comment.content}</p>
+                <p className="whitespace-pre-line">{comment.content}</p>
               </ScrollArea>
             </div>
           ) : (
