@@ -8,6 +8,13 @@ from .checklist_schemas import ChecklistOut
 from .comment_schemas import CommentOut
 
 
+class VerticalOut(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ApplicationCreate(BaseModel):
     name: str
     description: str | None = None
@@ -35,6 +42,8 @@ class ApplicationCreate(BaseModel):
     app_type: str | None = None
     is_app_ai: bool | None = None
     is_privacy_applicable: bool | None = None
+
+    vertical_id: int | None = None
 
     requested_date: date | None = None
 
@@ -79,6 +88,9 @@ class ApplicationOut(BaseModel):
     is_privacy_applicable: bool | None
     requested_date: date | None = None
     severity: int | None
+    vertical_id: int | None = None
+
+    app_vertical: VerticalOut | None
 
     departments: list[DepartmentOut] | None
 
@@ -122,6 +134,8 @@ class ApplicationUpdate(BaseModel):
     severity: int | None = None
     is_privacy_applicable: bool | None = None
 
+    vertical_id: int | None = None
+
     scope: Literal["is_assessment", "vapt_only"] | None = "is_assessment"
 
 
@@ -145,6 +159,9 @@ class NewAppListOut(BaseModel):
     name: str
     description: str | None
     vertical: str | None = None
+
+    app_vertical: VerticalOut | None
+
     imitra_ticket_id: str | None = None
     status: str
     app_priority: int | None = None

@@ -1,6 +1,7 @@
 import type { AppStatuses } from "@/utils/globalTypes";
 import type { AppDepartmentOut, DepartmentOut } from "../departments/types";
 import type { CommentOut } from "../comments/types";
+import type { VerticalItem } from "../verticals/types";
 
 // app_schemas.ts
 export interface ApplicationCreate {
@@ -60,6 +61,9 @@ export interface ApplicationOut {
   is_app_ai?: boolean;
   is_privacy_applicable?: boolean;
 
+  app_vertical?: VerticalItem;
+  vertical_id?: number | null;
+
   severity?: number;
 
   scope?: string | null;
@@ -93,6 +97,7 @@ export interface ApplicationUpdate {
   app_type?: string | null;
   is_app_ai?: boolean | null;
   is_privacy_applicable?: boolean;
+  vertical_id?: number | null;
 }
 
 export interface NewAppListOut {
@@ -118,6 +123,8 @@ export interface NewAppListOut {
   is_privacy_applicable?: boolean;
   app_type?: string;
   severity?: number;
+
+  app_vertical?: VerticalItem;
 }
 
 export interface AppQueryParams {

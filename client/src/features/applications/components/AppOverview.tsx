@@ -47,6 +47,7 @@ import {
 } from "@/utils/helpers";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { VerticalsMultiSelect } from "@/features/verticals/components/VerticalsMultiSelect";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -90,6 +91,8 @@ const applicationDefaultValues: ApplicationOut = {
 
   requested_date: null,
   scope: null,
+
+  vertical_id: null,
 };
 
 const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
@@ -528,6 +531,35 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                           placeholder="Vertical"
                           autoComplete="off"
                         />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+
+                  {/* Vertical Select */}
+                  <Controller
+                    name="vertical_id"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Field
+                        data-invalid={fieldState.invalid}
+                        className="gap-2"
+                      >
+                        <FieldLabel></FieldLabel>
+                        <VerticalsMultiSelect
+                          label="Vertical"
+                          isDisabled={!(isNew || isEditing)}
+                          value={field.value ? [field.value] : []}
+                          isMultiSelect={false} // 👈 IMPORTANT
+                          canCreate={isAdmin}
+                          onChange={(val) => {
+                            const selected = Array.isArray(val) ? val[0] : val;
+                            field.onChange(selected ?? null);
+                          }}
+                        />
+
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />
                         )}

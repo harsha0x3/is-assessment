@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,18 +18,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 import {
   useGetAllVerticalsQuery,
   useCreateVerticalMutation,
 } from "../store/verticalsApiSlice";
-import { toast } from "sonner";
 
 interface Props {
-  value: number[];
-  onChange: (val: number[]) => void;
+  value: number[] | number | null;
+  onChange: (val: number[] | number | null) => void;
   label?: string;
   canCreate?: boolean;
+  isMultiSelect?: boolean;
+  isDisabled?: boolean;
 }
 
 export const VerticalsMultiSelect = ({
@@ -37,6 +39,8 @@ export const VerticalsMultiSelect = ({
   onChange,
   label = "Verticals",
   canCreate = false,
+  isMultiSelect = true,
+  isDisabled = false,
 }: Props) => {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -45,26 +49,39 @@ export const VerticalsMultiSelect = ({
   const [createVertical, { isLoading: isCreating }] =
     useCreateVerticalMutation();
 
-  const [selectedValues, setSelectedValues] = useState<number[]>(value || []);
+  const [selectedValues, setSelectedValues] = useState<number[]>(
+    Array.isArray(value) ? value : value ? [value] : [],
+  );
   const [search, setSearch] = useState("");
   const [creatingMode, setCreatingMode] = useState(false);
   const [newVertical, setNewVertical] = useState("");
 
   const verticals = data ?? [];
 
-  console.log("VERTICALS😒", verticals);
+  useEffect(() => {
+    // Keep selectedValues in sync with value prop
+    if (isMultiSelect) {
+      setSelectedValues(Array.isArray(value) ? value : value ? [value] : []);
+    } else {
+      setSelectedValues(value ? [value as number] : []);
+    }
+  }, [value, isMultiSelect]);
 
   const toggleSelection = (id: number) => {
-    let updated: number[];
-
-    if (selectedValues.includes(id)) {
-      updated = selectedValues.filter((v) => v !== id);
+    if (isMultiSelect) {
+      let updated: number[];
+      if (selectedValues.includes(id)) {
+        updated = selectedValues.filter((v) => v !== id);
+      } else {
+        updated = [...selectedValues, id];
+      }
+      setSelectedValues(updated);
+      onChange(updated);
     } else {
-      updated = [...selectedValues, id];
+      setSelectedValues([id]);
+      onChange(id);
+      setOpen(false); // close popover after single select
     }
-
-    setSelectedValues(updated);
-    onChange(updated);
   };
 
   const handleCreate = async () => {
@@ -77,10 +94,15 @@ export const VerticalsMultiSelect = ({
       }).unwrap();
 
       const newId = res.id;
-
-      const updated = [...selectedValues, newId];
-      setSelectedValues(updated);
-      onChange(updated);
+      if (isMultiSelect) {
+        const updated = [...selectedValues, newId];
+        setSelectedValues(updated);
+        onChange(updated);
+      } else {
+        setSelectedValues([newId]);
+        onChange(newId);
+        setOpen(false);
+      }
 
       setNewVertical("");
       setCreatingMode(false);
@@ -93,22 +115,29 @@ export const VerticalsMultiSelect = ({
     <div className="w-full space-y-2">
       <Label htmlFor={id}>{label}</Label>
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={isDisabled ? false : open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id={id}
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            disabled={isDisabled}
             className="h-auto min-h-9 w-full justify-between"
           >
             {selectedValues.length > 0 ? (
-              <span>
-                <Badge variant="outline">{selectedValues.length}</Badge>{" "}
-                selected
-              </span>
+              isMultiSelect ? (
+                <span>
+                  <Badge variant="outline">{selectedValues.length}</Badge>{" "}
+                  selected
+                </span>
+              ) : (
+                <span>
+                  {verticals.find((v) => v.id === selectedValues[0])?.name}
+                </span>
+              )
             ) : (
-              <span className="text-muted-foreground">Select verticals</span>
+              <span className="text-muted-foreground">Select vertical</span>
             )}
             <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50" />
           </Button>
@@ -116,7 +145,6 @@ export const VerticalsMultiSelect = ({
 
         <PopoverContent className="w-(--radix-popper-anchor-width) p-0">
           <Command>
-            {/* SEARCH */}
             <CommandInput
               placeholder="Search vertical..."
               value={search}
@@ -147,14 +175,15 @@ export const VerticalsMultiSelect = ({
                       onSelect={() => toggleSelection(v.id)}
                     >
                       <span>{v.name}</span>
-                      {selectedValues.includes(v.id) && (
+                      {(isMultiSelect
+                        ? selectedValues.includes(v.id)
+                        : selectedValues[0] === v.id) && (
                         <CheckIcon size={16} className="ml-auto" />
                       )}
                     </CommandItem>
                   ))}
               </CommandGroup>
 
-              {/* CREATE NEW */}
               {canCreate && (
                 <div className="border-t p-2 space-y-2">
                   {!creatingMode ? (

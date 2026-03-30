@@ -17,6 +17,7 @@ from schemas.app_schemas import (
     NewAppListOut,
     AppQueryParams,
     AppStatuses,
+    VerticalOut,
 )
 from schemas.department_schemas import DepartmentOut
 from .comments_controller import get_latest_app_dept_comment
@@ -414,6 +415,8 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
                     app_id=app.id, dept_id=params.dept_filter_id, db=db
                 )
             depts_out = get_departments_by_application(app_id=app.id, db=db)
+            if app.vertical:
+                print("APP VERTICAL", app.app_vertical)
             data = NewAppListOut(
                 id=app.id,
                 name=app.name,
@@ -435,6 +438,9 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: UserOut):
                 is_privacy_applicable=app.is_privacy_applicable,
                 app_type=app.app_type,
                 app_url=app.app_url,
+                app_vertical=VerticalOut.model_validate(app.app_vertical)
+                if app.app_vertical
+                else None,
             )
             apps_out.append(data)
 
@@ -747,6 +753,9 @@ def get_app_details(app_id: str, db: Session, current_user: UserOut):
             is_privacy_applicable=app.is_privacy_applicable,
             requested_date=app.requested_date,
             severity=app.severity,
+            app_vertical=VerticalOut.model_validate(app.app_vertical)
+            if app.app_vertical
+            else None,
             departments=[
                 DepartmentOut(
                     id=row[0].id,
