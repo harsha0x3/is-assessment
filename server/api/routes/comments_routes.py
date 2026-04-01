@@ -16,7 +16,8 @@ from typing import Annotated
 from api.controllers import comments_controller as comment_ctrl
 from db.connection import get_db_conn
 from services.auth.deps import get_current_user
-from schemas.auth_schemas import UserOut
+from models import User
+
 from schemas import comment_schemas as c_schemas
 from api.controllers.evidence_controller import (
     save_evidence_file_local,
@@ -40,7 +41,7 @@ router = APIRouter(prefix="/comments", tags=["comments"])
 async def create_comment(
     content: Annotated[str, Form(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     app_id: Annotated[str, Path(...)],
     dept_id: Annotated[int, Path(...)],
     severity: Annotated[str | None, Form()] = None,
@@ -142,7 +143,7 @@ async def update_comment(
     comment_id: Annotated[str, Path(..., description="The ID of the comment")],
     payload: Annotated[c_schemas.NewCommentRequest, "Comment payload"],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     data = comment_ctrl.update_comment(
         comment_id=comment_id,
@@ -161,7 +162,7 @@ async def update_comment(
 async def get_comments_for_application(
     app_id: Annotated[str, Path(..., description="Application ID")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     data = comment_ctrl.get_comments_for_application(app_id=app_id, db=db)
     return {"msg": "", "data": data}
@@ -176,7 +177,7 @@ async def get_comments_for_department(
     app_id: Annotated[str, Path(..., description="Application ID")],
     dept_id: Annotated[int, Path(..., description="Department ID")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     data = comment_ctrl.get_comments_for_department(
         app_id=app_id,

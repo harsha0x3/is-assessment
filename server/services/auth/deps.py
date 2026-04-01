@@ -2,7 +2,6 @@ from fastapi import Cookie, Depends, HTTPException, Request, status, Header, Res
 from sqlalchemy.orm import Session
 
 from db.connection import get_db_conn
-from schemas.auth_schemas import UserOut
 from models.users import User
 
 from .jwt_handler import (
@@ -22,7 +21,7 @@ def get_current_user(
     db: Session = Depends(get_db_conn),
     csrf_token: str | None = Cookie(default=None, alias="csrf_token"),
     csrf_header: str | None = Header(default=None, alias="X-CSRF-Token"),
-) -> UserOut:
+) -> User:
     payload = None
 
     # Try decoding access token first
@@ -111,10 +110,10 @@ def get_current_user(
                 detail="CSRF token missing or invalid",
             )
 
-    return UserOut.model_validate(user)
+    return user
 
 
-def require_moderator(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+def require_moderator(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role not in ["super_admin", "admin", "moderator"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"
@@ -122,7 +121,7 @@ def require_moderator(current_user: UserOut = Depends(get_current_user)) -> User
     return current_user
 
 
-def require_admin(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role not in ["super_admin", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"
@@ -130,7 +129,7 @@ def require_admin(current_user: UserOut = Depends(get_current_user)) -> UserOut:
     return current_user
 
 
-def require_manager(current_user: UserOut = Depends(get_current_user)) -> UserOut:
+def require_manager(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role not in ["super_admin", "admin", "manager"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Access Denied"

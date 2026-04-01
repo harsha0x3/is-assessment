@@ -17,8 +17,14 @@ import { Check, SlidersHorizontalIcon } from "lucide-react";
 import { useApplicationsContext } from "../context/ApplicationsContext";
 
 const AppFilters: React.FC = () => {
-  const { updateSearchParams, appSearchBy, appSortBy, appSortOrder, appScope } =
-    useApplicationsContext();
+  const {
+    updateSearchParams,
+    appSearchBy,
+    appSortBy,
+    appSortOrder,
+    appScope,
+    appEnvironment,
+  } = useApplicationsContext();
 
   const validSearchBys = [
     { name: "Name" },
@@ -70,6 +76,38 @@ const AppFilters: React.FC = () => {
                     </DropdownMenuItem>
                   );
                 })}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          {/* Environment Filters */}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Environment</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem
+                  data-value="internal"
+                  onClick={() =>
+                    updateSearchParams({
+                      appEnvironment: "internal",
+                      appPage: 1,
+                    })
+                  }
+                >
+                  {appEnvironment == "internal" && <Check />}
+                  Internal
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-value="external"
+                  onClick={() =>
+                    updateSearchParams({
+                      appEnvironment: "external",
+                      appPage: 1,
+                    })
+                  }
+                >
+                  {appEnvironment == "external" && <Check />}
+                  External
+                </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

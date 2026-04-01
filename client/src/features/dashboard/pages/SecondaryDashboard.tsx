@@ -1,9 +1,5 @@
-import React, { Suspense, useMemo, useState } from "react";
-import { useGetPriorityWiseSummaryQuery } from "../store/dashboardApiSlice";
-import { buildPriorityStackedData } from "@/lib/chartHelpers";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CardLoader, SectionLoader } from "../components/Loaders";
-import { getApiErrorMessage } from "@/utils/handleApiError";
 import {
   Select,
   SelectContent,
@@ -11,17 +7,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { selectAuth } from "@/features/auth/store/authSlice";
+import { buildPriorityStackedData } from "@/lib/chartHelpers";
+import type { AppStatuses } from "@/utils/globalTypes";
 import {
   AppStatusOptions,
   STATUS_COLOR_MAP_BG,
   STATUS_COLOR_MAP_FG,
 } from "@/utils/globalValues";
-import { Separator } from "@/components/ui/separator";
-import type { AppStatuses } from "@/utils/globalTypes";
-import { Button } from "@/components/ui/button";
-import { useLazyExportVerticalAppsQuery } from "../store/exportsApiSlice";
+import { getApiErrorMessage } from "@/utils/handleApiError";
 import { Loader } from "lucide-react";
+import React, { Suspense, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { CardLoader, SectionLoader } from "../components/Loaders";
+import { useGetPriorityWiseSummaryQuery } from "../store/dashboardApiSlice";
+import { useLazyExportVerticalAppsQuery } from "../store/exportsApiSlice";
 
 const PriorityStatusStackCard = React.lazy(
   () => import("../components/PriorityStatusStackCard"),
@@ -47,6 +50,12 @@ const SecondaryDashboard: React.FC = () => {
     () => (prioritySummary ? buildPriorityStackedData(prioritySummary) : []),
     [prioritySummary],
   );
+
+  const currentUserInfo = useSelector(selectAuth);
+  const navigate = useNavigate();
+  if (currentUserInfo?.role === "digital_head") {
+    navigate("/executive_dashboard");
+  }
 
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">

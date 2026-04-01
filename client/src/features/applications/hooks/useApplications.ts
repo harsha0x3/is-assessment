@@ -12,14 +12,15 @@ export const useApplications = () => {
   const appSortOrder = (searchParams.get("appSortOrder") || "desc") as
     | "asc"
     | "desc";
-  const appSearchBy = (searchParams.get("appSearchBy") || "name") as
+  const appSearchBy = searchParams.get("appSearchBy") as
     | "name"
     | "environment"
     | "region"
     | "owner_name"
     | "vendor_company"
     | "vertical"
-    | "ticket_id";
+    | "ticket_id"
+    | undefined;
   const appSearchValue = searchParams.get("appSearch") || "";
   const appStatus = searchParams.get("appStatus");
   const deptStatus = searchParams.get("deptStatus");
@@ -35,6 +36,7 @@ export const useApplications = () => {
 
   const appAgeFromFilter = searchParams.get("appAgeFrom");
   const appAgeToFilter = searchParams.get("appAgeTo");
+  const appEnvironment = searchParams.get("appEnvironment");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -44,11 +46,10 @@ export const useApplications = () => {
     () => (appPriority ? appPriority.split(",").filter(Boolean) : undefined),
     [appPriority],
   );
+  const appVerticalIds = searchParams.get("appVerticalIds");
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [lastAppPage, setLastAppPage] = useState(rawAppPage);
-
-  console.log("APP Severity", appSeverity);
 
   const { data, isSuccess, isError, error, isLoading, isFetching } =
     useListAllAppsQuery({
@@ -57,7 +58,7 @@ export const useApplications = () => {
       sort_by: appSortBy,
       sort_order: appSortOrder,
       search: debouncedSearch || "",
-      search_by: appSearchBy,
+      search_by: appSearchBy ?? undefined,
       status: appStatusList,
       dept_filter_id: deptFilterId ?? undefined,
       dept_status: deptStatus ?? undefined,
@@ -66,6 +67,7 @@ export const useApplications = () => {
       severity: appSeverity ?? undefined,
       app_features: appFeatures ?? undefined,
       app_type: appType ?? undefined,
+      vertical_ids: appVerticalIds ?? undefined,
 
       app_age_from:
         appAgeFromFilter && appAgeFromFilter.trim() !== ""
@@ -76,13 +78,20 @@ export const useApplications = () => {
           ? appAgeToFilter
           : undefined,
       scope: appScope ?? undefined,
+      environment: appEnvironment ?? undefined,
     });
 
-  const totalApps = useMemo(() => data?.data?.total_count ?? 0, [data]);
-  const filteredApps = useMemo(() => data?.data?.filtered_count ?? 0, [data]);
+  const totalApps = useMemo(
+    () => data?.data?.apps_summary?.total_apps ?? 0,
+    [data],
+  );
+  const filteredApps = useMemo(
+    () => data?.data?.filtered_apps_summary?.total_apps ?? 0,
+    [data],
+  );
   const appStatusSummary = useMemo(() => data?.data?.apps_summary, [data]);
   const filteredAppsSummary = useMemo(
-    () => data?.data?.filtered_summary,
+    () => data?.data?.filtered_apps_summary,
     [data],
   );
 
@@ -147,6 +156,8 @@ export const useApplications = () => {
     appAgeFromFilter,
     appAgeToFilter,
     appScope,
+    appVerticalIds,
+    appEnvironment,
   };
 };
 

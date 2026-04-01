@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from api.controllers import dashboard_controller as dc
 from db.connection import get_db_conn
-from schemas.auth_schemas import UserOut
+from models import User
+
 from schemas.dashboard_schemas import (
     AppSummaryQueryParams,
     DeptSummaryQueryParams,
@@ -22,7 +23,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 @router.get("/summary/applications")
 def dashboard_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     severity: Annotated[str | None, Query()] = None,
     priority: Annotated[str | None, Query()] = None,
     app_age_from: Annotated[date | None, Query()] = None,
@@ -51,7 +52,7 @@ def dashboard_summary(
 @router.get("/summary/departments")
 def get_department_status_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     app_status: Annotated[str | None, Query(...)] = None,
     severity: Annotated[str | None, Query()] = None,
     priority: Annotated[str | None, Query()] = None,
@@ -81,7 +82,7 @@ def get_department_status_summary(
 @router.get("/summary/department/{department_id}/category")
 def get_department_category_status_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     dept_status: Annotated[str, Query(...)],
     department_id: Annotated[int, Path(...)],
     app_status: Annotated[str, Query(...)],
@@ -99,7 +100,7 @@ def get_department_category_status_summary(
 @router.get("/summary/priority-wise")
 def priority_wise_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     status_filter: Annotated[str | None, Query(...)] = None,
 ):
     return dc.get_priority_wise_grouped_summary(db=db, status_filter=status_filter)
@@ -108,7 +109,7 @@ def priority_wise_summary(
 @router.get("/summary/vertical-wise")
 def vertical_wise_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     scope: Annotated[Literal["is_assessment", "vapt_only"], Query()] = "is_assessment",
 ):
     params = VerticalWiseSummaryParams(scope=scope)
@@ -118,7 +119,7 @@ def vertical_wise_summary(
 @router.get("/summary/departments/status")
 def get_statuses_per_department(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     app_status: Annotated[str, Query(...)],
     dept_status: Annotated[str, Query(...)],
     severity: Annotated[str | None, Query()] = None,
@@ -152,7 +153,7 @@ def get_statuses_per_department(
 @router.get("/summary/app_type")
 async def get_app_type_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     app_status: Annotated[str | None, Query(...)] = None,
     severity: Annotated[str | None, Query()] = None,
     priority: Annotated[str | None, Query()] = None,
@@ -185,7 +186,7 @@ async def get_app_type_summary(
 @router.get("/summary/vapt")
 async def get_vapt_summary(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return dc.get_vapt_summary_per_status(db=db)
 
@@ -193,6 +194,6 @@ async def get_vapt_summary(
 @router.get("/summary/completion")
 async def get_application_completion_stats(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return dc.get_application_completion_stats(db=db)

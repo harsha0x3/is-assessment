@@ -34,8 +34,7 @@ def list_verticals(
     db: Annotated[Session, Depends(get_db_conn)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    require_manager_or_admin(user)
-    return ctrl.get_all_verticals(db)
+    return ctrl.get_all_verticals(db, current_user=user)
 
 
 @router.patch("/{vertical_id}")

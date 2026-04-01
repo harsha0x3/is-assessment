@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
 import { useGetMeQuery } from "./features/auth/store/authApiSlice";
+import ExecDashboardLayout from "./features/dashboard/layouts/ExecDashboardLayout";
 const DashboardPage = lazy(
   () => import("./features/dashboard/pages/DashboardPage"),
 );
@@ -43,7 +44,7 @@ const AnalyticsDashboard = lazy(
 );
 
 function App() {
-  const { data: _data } = useGetMeQuery();
+  const { data: userData } = useGetMeQuery();
   return (
     <>
       <Toaster
@@ -58,7 +59,13 @@ function App() {
         <Route path="/" element={<ProtectedLayout />}>
           <Route
             path="/"
-            element={<Navigate to="/dashboard/primary" replace />}
+            element={
+              userData && userData.data.role === "digital_head" ? (
+                <Navigate to="/executive_dashboard" replace />
+              ) : (
+                <Navigate to="/dashboard/primary" replace />
+              )
+            }
           />
           <Route element={<RootLayout />}>
             <Route
@@ -87,6 +94,77 @@ function App() {
             />
 
             <Route path="applications" element={<ApplicationsLayout />}>
+              <Route
+                element={
+                  <LazyRoute fallbackLabel="Loading overview…">
+                    <AppInfoDialog />
+                  </LazyRoute>
+                }
+              >
+                <Route path="details/:appId" element={<Outlet />}>
+                  <Route
+                    path="overview"
+                    element={
+                      <LazyRoute fallbackLabel="Loading overview…">
+                        <AppOverview />
+                      </LazyRoute>
+                    }
+                  />
+
+                  <Route
+                    path="departments"
+                    element={
+                      <LazyRoute fallbackLabel="Loading departments…">
+                        <AppDepartments />
+                      </LazyRoute>
+                    }
+                  >
+                    <Route
+                      path=":deptId/comments"
+                      element={
+                        <LazyRoute fallbackLabel="Loading departments…">
+                          <DepartmentInfo />
+                        </LazyRoute>
+                      }
+                    />
+                    <Route
+                      path=":deptId/evidences"
+                      element={
+                        <LazyRoute fallbackLabel="Loading evidences…">
+                          <EvidencesTab />
+                        </LazyRoute>
+                      }
+                    />
+                    <Route
+                      path=":deptId/questionnaire"
+                      element={
+                        <LazyRoute fallbackLabel="Loading questionnaire…">
+                          <DepartmentQuestionnaire />
+                        </LazyRoute>
+                      }
+                    />
+                  </Route>
+
+                  <Route
+                    path="evidences"
+                    element={
+                      <LazyRoute fallbackLabel="Loading evidences…">
+                        <EvidencesTab />
+                      </LazyRoute>
+                    }
+                  />
+                  <Route
+                    path="questionnaire"
+                    element={
+                      <LazyRoute fallbackLabel="Loading questionnaire…">
+                        <AppQuestionnaire />
+                      </LazyRoute>
+                    }
+                  />
+                </Route>
+              </Route>
+            </Route>
+            <Route path="executive_dashboard" element={<ExecDashboardLayout />}>
               <Route
                 element={
                   <LazyRoute fallbackLabel="Loading overview…">

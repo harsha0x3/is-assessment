@@ -87,6 +87,13 @@ const sidebarItems: SidebarData[] = [
     icon: BarChart3,
     roles: ["admin", "moderator", "user", "manager"],
   },
+  {
+    title: "Executive Dashboard",
+    isActive: false,
+    path: "/executive_dashboard",
+    icon: BarChart3,
+    roles: ["admin", "moderator", "user", "manager", "digital_head"],
+  },
   // {
   //   title: "Dashboard",
   //   path: "/dashboard/primary",

@@ -14,7 +14,7 @@ def admin_create_user(payload: a_schemas.RegisterRequest, db: Session):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User already registered",
             )
-        if payload.role == "vertical_owner" and not payload.vertical_ids:
+        if payload.role == "digital_head" and not payload.vertical_ids:
             raise HTTPException(
                 status_code=400,
                 detail="Vertical owner must have at least one vertical assigned",
@@ -156,7 +156,7 @@ def update_user_profile(
                     db.delete(link)
 
         if payload.vertical_ids is not None:
-            if editing_user.role == "vertical_owner" and not payload.vertical_ids:
+            if editing_user.role == "digital_head" and not payload.vertical_ids:
                 raise HTTPException(
                     status_code=400,
                     detail="Vertical owner must have at least one vertical",

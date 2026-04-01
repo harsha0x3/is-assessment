@@ -32,6 +32,8 @@ interface Props {
   canCreate?: boolean;
   isMultiSelect?: boolean;
   isDisabled?: boolean;
+
+  orientation?: "horizontal" | "vertical";
 }
 
 export const VerticalsMultiSelect = ({
@@ -41,6 +43,7 @@ export const VerticalsMultiSelect = ({
   canCreate = false,
   isMultiSelect = true,
   isDisabled = false,
+  orientation = "vertical",
 }: Props) => {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -101,7 +104,6 @@ export const VerticalsMultiSelect = ({
       } else {
         setSelectedValues([newId]);
         onChange(newId);
-        setOpen(false);
       }
 
       setNewVertical("");
@@ -112,7 +114,9 @@ export const VerticalsMultiSelect = ({
   };
 
   return (
-    <div className="w-full space-y-2">
+    <div
+      className={`${orientation === "horizontal" ? "flex items-center gap-2 h-full" : ""} w-full space-y-2`}
+    >
       <Label htmlFor={id}>{label}</Label>
 
       <Popover open={isDisabled ? false : open} onOpenChange={setOpen}>
@@ -123,7 +127,7 @@ export const VerticalsMultiSelect = ({
             role="combobox"
             aria-expanded={open}
             disabled={isDisabled}
-            className="h-auto min-h-9 w-full justify-between"
+            className={`h-auto min-h-9 w-full justify-between bg-transparent/90`}
           >
             {selectedValues.length > 0 ? (
               isMultiSelect ? (
@@ -132,8 +136,11 @@ export const VerticalsMultiSelect = ({
                   selected
                 </span>
               ) : (
-                <span>
-                  {verticals.find((v) => v.id === selectedValues[0])?.name}
+                <span className="truncate">
+                  {
+                    verticals.find((v) => v.id === Number(selectedValues[0]))
+                      ?.name
+                  }
                 </span>
               )
             ) : (

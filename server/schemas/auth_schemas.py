@@ -71,7 +71,7 @@ class RoleEnum(str, Enum):
     manager = "manager"
     moderator = "moderator"
     user = "user"
-    vertical_owner = "vertical_owner"
+    digital_head = "digital_head"
 
 
 class RegisterPayload(BaseModel):

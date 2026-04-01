@@ -31,7 +31,7 @@ from schemas.app_schemas import (
     ApplicationUpdate,
     AppQueryParams,
 )
-from schemas.auth_schemas import UserOut
+from models import User
 from services.auth.deps import get_current_user, require_admin, require_manager
 from api.controllers import evidence_controller as e_ctrl
 import os
@@ -46,7 +46,7 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 async def create_application(
     payload: Annotated[ApplicationCreate, "Request fields for creating an application"],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_manager)],
+    current_user: Annotated[User, Depends(require_manager)],
     background_tasks: BackgroundTasks,
 ):
     try:
@@ -65,7 +65,7 @@ async def create_application(
 @router.get("/list")
 async def new_list_all_apps(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     sort_by: Annotated[str, Query()] = "started_at",
     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
     search: Annotated[str | None, Query()] = None,
@@ -80,9 +80,10 @@ async def new_list_all_apps(
             "vendor_company",
             "vertical",
             "ticket_id",
+            None,
         ],
         Query(),
-    ] = "name",
+    ] = None,
     status: Annotated[
         str | None,
         Query(),
@@ -100,10 +101,13 @@ async def new_list_all_apps(
     scope: Annotated[
         Literal["is_assessment", "vapt_only", "all"], Query()
     ] = "is_assessment",
+    vertical_ids: Annotated[str | None, Query()] = None,
+    environment: Annotated[Literal["external", "internal"] | None, Query()] = None,
 ):
 
     status_list = []
     severity_list = []
+    vertical_ids_list = []
 
     str_severity = (
         str(severity) if severity and not isinstance(severity, str) else severity
@@ -116,6 +120,15 @@ async def new_list_all_apps(
         and status.strip() != "undefined"
     ):
         status_list = status.split(",")
+
+    if (
+        vertical_ids
+        and vertical_ids.strip() != "null"
+        and vertical_ids.strip() != "all"
+        and vertical_ids.strip() != "undefined"
+    ):
+        vertical_ids_list = vertical_ids.split(",")
+
     if (
         str_severity
         and str_severity.strip() != "null"
@@ -175,6 +188,8 @@ async def new_list_all_apps(
         app_age_to=app_age_to,
         app_age_from=app_age_from,
         scope=scope,
+        vertical_ids=[int(v) for v in vertical_ids_list],
+        environment=environment,
     )
     data = list_all_apps(db=db, params=params, current_user=current_user)
     return {"msg": "Applications fetched successfully", "data": data}
@@ -184,7 +199,7 @@ async def new_list_all_apps(
 async def get_application(
     app_id: Annotated[str, Path(title="App Id of the app to be fetched")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Get a specific application by its ID.
@@ -198,7 +213,7 @@ async def update_application(
     payload: Annotated[ApplicationUpdate, Body(title="App update payload")],
     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_manager)],
+    current_user: Annotated[User, Depends(require_manager)],
 ):
     data = update_app(payload, app_id, db, current_user)
     return {"msg": "", "data": data}
@@ -223,7 +238,7 @@ class StatusVal(BaseModel):
 async def update_applicaion_status(
     db: Annotated[Session, Depends(get_db_conn)],
     payload: Annotated[StatusVal, ""],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[User, Depends(require_admin)],
     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
 ):
     data = change_app_status(app_id=app_id, status_val=payload.status_val, db=db)
@@ -234,7 +249,7 @@ async def update_applicaion_status(
 # async def add_application_evidences(
 #     app_id: Annotated[str, Path(...)],
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(require_manager)],
+#     current_user: Annotated[User, Depends(require_manager)],
 #     severity: Annotated[str | None, Form()] = None,
 #     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
 # ):
@@ -288,7 +303,7 @@ async def update_applicaion_status(
 async def get_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     try:
         result = e_ctrl.get_application_evidences(app_id=app_id, db=db)
@@ -309,7 +324,7 @@ async def get_application_evidences(
 # async def delete_application(
 #     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 # ) -> dict[str, Any]:
 #     if current_user.role != "admin":
 #         raise HTTPException(
@@ -324,7 +339,7 @@ async def get_application_evidences(
 # async def restore_app_from_trash(
 #     app_id: Annotated[str, Path(title="App Id of the app to be updated")],
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 # ):
 #     # return {"msg": "Hello"}
 #     if current_user.role != "admin":
@@ -339,7 +354,7 @@ async def get_application_evidences(
 # @router.get("/trash")
 # async def get_apps_in_trash(
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 # ):
 #     if current_user.role != "admin":
 #         raise HTTPException(
@@ -353,7 +368,7 @@ async def get_application_evidences(
 # @router.patch("/{app_id}/set-priority")
 # def set_app_priority(
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 #     priority_val: Annotated[
 #         PriorityVal,
 #         Body(description="Priority value 1 = Low, 2 = Medium, 3 = High"),
@@ -387,7 +402,7 @@ async def get_application_evidences(
 # @router.get("")
 # async def get_apps(
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 #     sort_by: Annotated[str, Query()] = "created_at",
 #     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
 #     search: Annotated[str | None, Query()] = None,
@@ -425,7 +440,7 @@ async def get_application_evidences(
 # @router.get("/with_details")
 # async def get_applications_with_details(
 #     db: Annotated[Session, Depends(get_db_conn)],
-#     current_user: Annotated[UserOut, Depends(get_current_user)],
+#     current_user: Annotated[User, Depends(get_current_user)],
 #     sort_by: Annotated[str, Query()] = "created_at",
 #     sort_order: Annotated[Literal["asc", "desc"], Query()] = "desc",
 #     search: Annotated[str | None, Query()] = None,

@@ -108,6 +108,7 @@ export const DepartmentCategoryMap: Record<string, SelectItemType[]> = {
     { value: "sso", label: "SSO" },
     { value: "scim", label: "SCIM" },
     { value: "both", label: "Both" },
+    { value: "n/a", label: "Not Applicable" },
   ],
   tprm: [
     { value: "privacy", label: "Privacy" },

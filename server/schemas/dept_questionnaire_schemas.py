@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from .auth_schemas import UserOut
 
 
@@ -9,6 +9,15 @@ class NewDeptQuestionSet(BaseModel):
 class NewDeptQuestion(BaseModel):
     text: str
     sequence_number: int
+
+
+class BulkDeptQuestionsPayload(BaseModel):
+    question_set_id: int = Field(
+        ..., description="The ID of the department question set"
+    )
+    questions: list[NewDeptQuestion] = Field(
+        ..., description="List of questions to insert"
+    )
 
 
 class NewAppDeptLink(BaseModel):

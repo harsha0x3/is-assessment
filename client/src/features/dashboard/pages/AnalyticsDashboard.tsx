@@ -4,6 +4,9 @@ const VAPTStatusStackedChart = lazy(
   () => import("../components/vapt/VAPTStatusStackedChart"),
 );
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSelector } from "react-redux";
+import { selectAuth } from "@/features/auth/store/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const PresentData = lazy(() => import("../components/analytics/PresentData"));
 // const HistoricalData = lazy(
@@ -44,6 +47,12 @@ const AnalyticsDashboard: React.FC = () => {
   });
 
   const [syncFilters, setSyncFilters] = useState(false);
+
+  const currentUserInfo = useSelector(selectAuth);
+  const navigate = useNavigate();
+  if (currentUserInfo?.role === "digital_head") {
+    navigate("/executive_dashboard");
+  }
 
   return (
     <div className="space-y-6 p-2 h-full overflow-auto">

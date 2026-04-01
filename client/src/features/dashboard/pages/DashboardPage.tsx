@@ -1,12 +1,7 @@
-import React, { Suspense, useEffect, useMemo, useState } from "react";
-import {
-  useGetApplicationSummaryQuery,
-  useGetDepartmentSummaryQuery,
-} from "../store/dashboardApiSlice";
-import { buildDonutData } from "@/lib/chartHelpers";
-import { Loader } from "lucide-react";
-import { getApiErrorMessage } from "@/utils/handleApiError";
+import { PageLoader } from "@/components/loaders/PageLoader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,27 +9,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { buildDonutData } from "@/lib/chartHelpers";
+import type { AppStatuses } from "@/utils/globalTypes";
 import {
   AppStatusOptions,
   STATUS_COLOR_MAP_BG,
   STATUS_COLOR_MAP_FG,
 } from "@/utils/globalValues";
-import type { AppStatuses } from "@/utils/globalTypes";
-import { Separator } from "@/components/ui/separator";
-import { PageLoader } from "@/components/loaders/PageLoader";
-import { CardLoader, SectionLoader } from "../components/Loaders";
-import { Label } from "@/components/ui/label";
+import { getApiErrorMessage } from "@/utils/handleApiError";
+import { Loader } from "lucide-react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import AppStatusCard from "../components/AppStatusCard";
-import { Button } from "@/components/ui/button";
+import { CardLoader, SectionLoader } from "../components/Loaders";
+import {
+  useGetApplicationSummaryQuery,
+  useGetDepartmentSummaryQuery,
+} from "../store/dashboardApiSlice";
 
 const StatusDonut = React.lazy(() => import("../components/StatusDonut"));
 const DepartmentStatusCard = React.lazy(
   () => import("../components/DepartmentStatusCard"),
 );
 
-import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
-import { toast } from "sonner";
 import DateRangeFilter from "@/features/_filters/DateRangeFilter";
+import { selectAuth } from "@/features/auth/store/authSlice";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
+import { useLazyExportApplicationsCSVQuery } from "../store/exportsApiSlice";
+import { useNavigate } from "react-router-dom";
 
 interface DeptFilterProps {
   severity: string[];
@@ -46,6 +49,8 @@ interface DeptFilterProps {
 
 const DashboardPage: React.FC = () => {
   // 🔹 Lazy-loaded components
+  const currentUserInfo = useSelector(selectAuth);
+  const navigate = useNavigate();
 
   const [deptFilters, setDeptFilters] = React.useState<DeptFilterProps>({
     severity: [],
@@ -102,6 +107,10 @@ const DashboardPage: React.FC = () => {
 
   if (isLoadingAppsSummary || isLoadingDeptSummay) {
     return <PageLoader label="Loading Data. Please wait" />;
+  }
+
+  if (currentUserInfo?.role === "digital_head") {
+    navigate("/executive_dashboard");
   }
 
   return (

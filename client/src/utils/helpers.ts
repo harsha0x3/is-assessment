@@ -125,3 +125,24 @@ export const parseAppScope = (scope: string) => {
       return scope;
   }
 };
+
+export const shortenDept = (dept: string) => {
+  switch (dept) {
+    case "iam":
+      return "IAM";
+    case "tprm":
+      return "TPRM";
+    case "security controls":
+      return "Sec Controls";
+    case "web vapt":
+      return "Web VAPT";
+    case "mobile vapt":
+      return "Mobile VAPT";
+    case "soc integration":
+      return "SOC";
+    case "ai security":
+      return "AI";
+    default:
+      return dept;
+  }
+};

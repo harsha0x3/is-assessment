@@ -25,12 +25,12 @@ class Vertical(Base):
     applications = relationship("Application", back_populates="app_vertical")
     owner_links = relationship("VerticalOwnerMap", back_populates="vertical")
     owners = relationship(
-        "User", secondary="vertical_owner_map", overlaps="owner_links,vertical_links"
+        "User", secondary="digital_head_map", overlaps="owner_links,vertical_links"
     )
 
 
 class VerticalOwnerMap(Base):
-    __tablename__ = "vertical_owner_map"
+    __tablename__ = "digital_head_map"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     vertical_id: Mapped[int] = mapped_column(

@@ -7,7 +7,7 @@ export type RoleEnum =
   | "manager"
   | "moderator"
   | "user"
-  | "vertical_owner";
+  | "digital_head";
 
 // ---------- BASE MODELS ----------
 export interface AllUsersOut {

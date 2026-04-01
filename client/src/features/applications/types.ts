@@ -153,6 +153,10 @@ export interface AppQueryParams {
   app_age_from?: string;
   app_age_to?: string;
   scope?: string;
+
+  environment?: "internal" | "external" | string;
+
+  vertical_ids?: string;
 }
 
 export interface AppStatusSummary {
@@ -167,19 +171,22 @@ export interface AppStatusSummary {
   hold: number;
 }
 
-// ---------- OLD -----------
+export interface PriorityCounts {
+  "1": string;
+  "2": string;
+  "3": string;
+  "0": string;
+}
 
-// export interface ListApplicationsOut {
-//   id: string;
-//   name: string;
-//   description?: string | null;
-//   ticket_id?: string | null;
-//   is_completed: boolean;
-//   status: string;
-//   priority?: number;
-//   app_priority?: number | null;
-//   started_at?: string | null;
-//   completed_at?: string | null;
-//   due_date?: string | null;
-//   checklists?: ChecklistOut[] | null;
-// }
+export interface AppsSummary {
+  app_statuses: AppStatusSummary;
+  priority_counts: PriorityCounts;
+  total_apps: number;
+  ai_app_count: number;
+  privacy_app_count: number;
+  mobile_app_count: number;
+  web_app_count: number;
+  mobile_web_app_count: number;
+  internal_environment_count: number;
+  external_environment_count: number;
+}

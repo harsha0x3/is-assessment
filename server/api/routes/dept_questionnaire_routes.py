@@ -7,7 +7,7 @@ from api.controllers import dept_questionnaire_controller as dq_ctrl
 from db.connection import get_db_conn
 
 from services.auth.deps import get_current_user, require_manager
-from schemas.auth_schemas import UserOut
+from models import User  # avoid circular import, only import here where needed
 from schemas import dept_questionnaire_schemas as q_schemas
 
 
@@ -19,21 +19,36 @@ def create_dept_question_set(
     dept_id: Annotated[int, Path(..., description="The ID of the department")],
     payload: Annotated[q_schemas.NewDeptQuestionSet, ""],
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(require_manager),
+    current_user: User = Depends(require_manager),
 ):
     return dq_ctrl.create_dept_question_set(dept_id=dept_id, db=db, name=payload.name)
 
 
-@router.post("/department/{dept_id}/questions")
+@router.post("/department/{dept_id}/question")
 def create_dept_question(
     dept_id: Annotated[int, Path(..., description="The ID of the department")],
     payload: Annotated[q_schemas.NewDeptQuestion, ""],
     is_mandatory: bool = False,
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(require_manager),
+    current_user: User = Depends(require_manager),
 ):
     return dq_ctrl.create_dept_question(
         db, dept_id, payload.text, payload.sequence_number, is_mandatory
+    )
+
+
+@router.post("/question-set/{question_set_id}/questions/bulk")
+def create_bulk_questions(
+    payload: q_schemas.BulkDeptQuestionsPayload,
+    db: Session = Depends(get_db_conn),
+    current_user: User = Depends(require_manager),
+):
+    """
+    Create multiple questions for a department question set in bulk.
+    Skips duplicate questions.
+    """
+    return dq_ctrl.create_bulk_dept_questions(
+        db, payload.question_set_id, payload.questions
     )
 
 
@@ -42,7 +57,7 @@ def get_questionnaire(
     app_id: Annotated[str, Path(..., description="The ID of the application")],
     dept_id: Annotated[int, Path(..., description="The ID of the department")],
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return dq_ctrl.get_dept_questionnaire_with_answers(db, app_id, dept_id)
 
@@ -55,7 +70,7 @@ def answer_question(
     app_id: Annotated[str, Path(..., description="The ID of the application")],
     payload: Annotated[q_schemas.AnswerSubmit, ""],
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return dq_ctrl.answer_dept_question(
         db=db,

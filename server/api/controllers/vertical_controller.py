@@ -7,6 +7,7 @@ from schemas.vertical_schemas import (
     VerticalUpdateRequest,
     VerticalsWithUsers,
 )
+from models import User  # avoid circular import, only import here where needed
 
 from schemas.auth_schemas import UserOut  # now safe to import
 
@@ -37,13 +38,16 @@ def create_vertical(payload: VerticalCreateRequest, db: Session):
         )
 
 
-def get_all_verticals(db: Session):
+def get_all_verticals(db: Session, current_user: User):
     try:
         stmt = (
             select(Vertical)
             .where(Vertical.is_active)
             .options(selectinload(Vertical.owners))
         )
+        if current_user.role not in ["admin", "manager", "moderator"]:
+            stmt = stmt.where(Vertical.owners.any(User.id == current_user.id))
+
         verticals = db.scalars(stmt).all()
         return [VerticalsWithUsers.model_validate(v) for v in verticals]
 

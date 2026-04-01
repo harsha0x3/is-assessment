@@ -113,8 +113,8 @@ const AppStatusHeaderFilter: React.FC = () => {
                       <Loader className="animate-spin w-3 h-3" />
                     ) : appStatusSummary ? (
                       <span>
-                        {filteredAppsSummary?.[option.value] ?? 0} /{" "}
-                        {appStatusSummary[option.value]}
+                        {filteredAppsSummary?.app_statuses[option.value] ?? 0} /{" "}
+                        {appStatusSummary?.app_statuses[option.value]}
                       </span>
                     ) : (
                       "-"

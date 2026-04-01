@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, status, Path, UploadFile, File, Form
 from typing import Annotated
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from schemas.auth_schemas import UserOut
+from models import User
+
 from services.auth.deps import get_current_user, require_manager
 from services.auth.permissions import is_user_of_dept
 from api.controllers import evidence_controller as e_ctrl
@@ -21,7 +22,7 @@ async def add_department_evidences(
     app_id: Annotated[str, Path(...)],
     dept_id: Annotated[int, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     severity: Annotated[str | None, Form()] = None,
     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
 ):
@@ -83,7 +84,7 @@ async def add_department_evidences(
 async def add_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_manager)],
+    current_user: Annotated[User, Depends(require_manager)],
     severity: Annotated[str | None, Form()] = None,
     evidence_files: Annotated[list[UploadFile] | None, File()] = None,
 ):
@@ -144,7 +145,7 @@ async def get_department_evidences(
     app_id: Annotated[str, Path(...)],
     dept_id: Annotated[int, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     try:
         result = e_ctrl.get_department_evidences(app_id=app_id, db=db, dept_id=dept_id)
@@ -162,7 +163,7 @@ async def get_department_evidences(
 async def get_application_evidences(
     app_id: Annotated[str, Path(...)],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     try:
         result = e_ctrl.get_application_evidences(app_id=app_id, db=db)

@@ -746,28 +746,79 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                   <Controller
                     name="environment"
                     control={control}
-                    render={({ field, fieldState }) => (
-                      <Field
-                        data-invalid={fieldState.invalid}
-                        className="gap-2"
-                      >
-                        <FieldLabel className="text-bold" htmlFor="environment">
-                          Environment
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          value={field.value ?? ""}
-                          readOnly={!(isNew || isEditing)}
-                          id="environment"
-                          aria-invalid={fieldState.invalid}
-                          placeholder="Environment"
-                          autoComplete="off"
-                        />
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
+                    render={({ field, fieldState }) => {
+                      const fullValue = field.value || "";
+
+                      // Extract only the name (remove prefix)
+                      const namePart = fullValue.includes("-")
+                        ? fullValue.split("-").slice(1).join("-")
+                        : fullValue;
+
+                      // Determine select value dynamically
+                      const selectedType = namePart
+                        .toLowerCase()
+                        .includes("titan")
+                        ? "internal"
+                        : "external";
+
+                      return (
+                        <Field
+                          data-invalid={fieldState.invalid}
+                          className="gap-2"
+                        >
+                          <FieldLabel htmlFor="environment">
+                            Environment
+                          </FieldLabel>
+
+                          <div className="flex rounded-md shadow-xs">
+                            <Select
+                              value={selectedType}
+                              disabled={!(isNew || isEditing)}
+                            >
+                              <SelectTrigger className="rounded-r-none shadow-none">
+                                <SelectValue />
+                              </SelectTrigger>
+
+                              <SelectContent>
+                                <SelectItem value="internal">
+                                  Internal
+                                </SelectItem>
+                                <SelectItem value="external">
+                                  External
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Input
+                              value={namePart} // 👈 only show name
+                              onChange={(e) => {
+                                const newName = e.target.value;
+
+                                // Determine prefix based on new name
+                                const newType = newName
+                                  .toLowerCase()
+                                  .includes("titan")
+                                  ? "internal"
+                                  : "external";
+
+                                field.onChange(
+                                  newName
+                                    ? `${newType}-${newName}`
+                                    : `${newType}-`,
+                                );
+                              }}
+                              readOnly={!(isNew || isEditing)}
+                              placeholder="Environment"
+                              className="-me-px rounded-l-none shadow-none"
+                            />
+                          </div>
+
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </Field>
+                      );
+                    }}
                   />
                   {/* Region */}
                   <Controller

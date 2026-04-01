@@ -75,6 +75,62 @@ def create_dept_question(
         )
 
 
+def create_bulk_dept_questions(
+    db: Session, question_set_id: int, questions: list[q_schemas.NewDeptQuestion]
+):
+    try:
+        # Check if question set exists
+        q_set_id = db.scalar(
+            select(DeptQuestionSet.id).where(DeptQuestionSet.id == question_set_id)
+        )
+        if not q_set_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Question set {question_set_id} not found",
+            )
+
+        # Get existing questions for this set to check duplicates
+        existing_texts = set(
+            q.text
+            for q in db.scalars(
+                select(DeptQuestion).where(
+                    DeptQuestion.question_set_id == question_set_id
+                )
+            ).all()
+        )
+
+        inserted_questions = []
+        for q in questions:
+            if q.text in existing_texts:
+                # Skip duplicates
+                continue
+            new_question = DeptQuestion(
+                question_set_id=question_set_id,
+                text=q.text,
+                sequence_number=q.sequence_number,
+            )
+            db.add(new_question)
+            inserted_questions.append(new_question)
+
+        if inserted_questions:
+            db.commit()
+            for q in inserted_questions:
+                db.refresh(q)
+
+        return {
+            "inserted_count": len(inserted_questions),
+            "skipped_count": len(questions) - len(inserted_questions),
+            "inserted_questions": inserted_questions,
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating bulk questions: {str(e)}",
+        )
+
+
 def get_dept_questionnaire_with_answers(
     db: Session,
     app_id: str,

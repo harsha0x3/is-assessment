@@ -321,7 +321,10 @@ const DepartmentInfo: React.FC = () => {
                       size="icon"
                       variant="ghost"
                       className="text-red-500"
-                      onClick={() => setStartedAt(prevStartedAt)}
+                      onClick={() => {
+                        setStartedAt(prevStartedAt);
+                        setIsEditingStartedAt(false);
+                      }}
                     >
                       <X />
                     </Button>

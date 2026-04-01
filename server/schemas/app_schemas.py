@@ -5,6 +5,9 @@ from typing import Literal
 from datetime import datetime, date
 from .department_schemas import AppDepartmentOut, DepartmentOut
 from .checklist_schemas import ChecklistOut
+from api.controllers.comments_controller import get_latest_app_dept_comment
+from api.controllers.department_controller import get_departments_by_application
+from sqlalchemy.orm import Session
 from .comment_schemas import CommentOut
 
 
@@ -88,7 +91,7 @@ class ApplicationOut(BaseModel):
     is_privacy_applicable: bool | None
     requested_date: date | None = None
     severity: int | None
-    vertical_id: int | None = None
+    vertical_id: int | None
 
     app_vertical: VerticalOut | None
 
@@ -187,6 +190,42 @@ class NewAppListOut(BaseModel):
 
     severity: int | None
 
+    @classmethod
+    def from_application(cls, app, db: Session, dept_filter_id: int | None = None):
+        latest_comment = None
+        if dept_filter_id:
+            latest_comment = get_latest_app_dept_comment(
+                app_id=app.id, dept_id=dept_filter_id, db=db
+            )
+
+        depts_out = get_departments_by_application(app_id=app.id, db=db)
+
+        return cls(
+            id=app.id,
+            name=app.name,
+            description=app.description,
+            vertical=app.vertical,
+            imitra_ticket_id=app.imitra_ticket_id,
+            status=app.status,
+            app_priority=app.app_priority,
+            started_at=app.started_at,
+            completed_at=app.completed_at,
+            departments=depts_out,
+            vendor_company=app.vendor_company,
+            latest_comment=latest_comment,
+            due_date=app.due_date,
+            titan_spoc=app.titan_spoc,
+            environment=app.environment,
+            severity=app.severity,
+            is_app_ai=app.is_app_ai,
+            is_privacy_applicable=app.is_privacy_applicable,
+            app_type=app.app_type,
+            app_url=app.app_url,
+            app_vertical=VerticalOut.model_validate(app.app_vertical)
+            if app.app_vertical
+            else None,
+        )
+
 
 class AppQueryParams(BaseModel):
     sort_by: str = Field("started_at", description="Field to sort by")
@@ -200,7 +239,8 @@ class AppQueryParams(BaseModel):
         "vendor_company",
         "vertical",
         "ticket_id",
-    ] = Field("name", description="The field you want to search by")
+        None,
+    ] = Field(None, description="The field you want to search by")
     page: int = 1
     page_size: int = 15
     status: list[str] | None = None
@@ -215,6 +255,9 @@ class AppQueryParams(BaseModel):
     mobile_web_apps: str | None = None
     privacy_apps: str | None = None
     severity: list[int] | None
+    environment: Literal["external", "internal"] | None
+
+    vertical_ids: list[int] | None
 
     app_type: list[str] | None
     app_features: list[str] | None
@@ -241,3 +284,23 @@ class AppStatuses(BaseModel):
     new_request: int
     cancelled: int
     reopen: int
+    hold: int
+    go_live: int
+
+
+class EnvironmentCounts(BaseModel):
+    internal: int
+    external: int
+
+
+class AppsSummaryOut(BaseModel):
+    total_apps: int
+    app_statuses: AppStatuses
+    priority_counts: dict[int, int]
+    ai_app_count: int
+    privacy_app_count: int
+    mobile_app_count: int
+    web_app_count: int
+    mobile_web_app_count: int
+    internal_environment_count: int
+    external_environment_count: int

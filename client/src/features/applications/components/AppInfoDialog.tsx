@@ -40,9 +40,7 @@ const AppInfoDialog: React.FC = () => {
   );
   const userDepts = useSelector(selectUserDepts);
 
-  const [isOpen, setIsOpen] = useState(
-    location.pathname.startsWith("/applications/details"),
-  );
+  const [isOpen, setIsOpen] = useState(location.pathname.startsWith("details"));
 
   const tabs = [
     { name: "Overview", value: "overview" },
@@ -58,7 +56,7 @@ const AppInfoDialog: React.FC = () => {
 
   useEffect(() => {
     if (
-      location.pathname.startsWith("/applications/details") &&
+      location.pathname.startsWith("details") &&
       !location.pathname.match(/overview|departments|evidences|questionnaire/)
     ) {
       navigate(`overview?${searchParams.toString()}`);
@@ -76,7 +74,10 @@ const AppInfoDialog: React.FC = () => {
   }, [appDetails]);
 
   useEffect(() => {
-    setIsOpen(location.pathname.startsWith("/applications/details"));
+    setIsOpen(
+      location.pathname.startsWith("/applications/details") ||
+        location.pathname.startsWith("/executive_dashboard/details"),
+    );
   }, [location.pathname]);
 
   return (
@@ -84,7 +85,10 @@ const AppInfoDialog: React.FC = () => {
       open={isOpen}
       onOpenChange={() => {
         setIsOpen(false);
-        navigate(`/applications?${searchParams.toString()}`);
+        if (location.pathname.startsWith("details"))
+          navigate(`/applications?${searchParams.toString()}`);
+        else if (location.pathname.startsWith("/executive_dashboard/details"))
+          navigate(`/executive_dashboard?${searchParams.toString()}`);
       }}
     >
       <DialogContent
@@ -112,7 +116,7 @@ const AppInfoDialog: React.FC = () => {
                       value={tab.value}
                       onClick={() =>
                         navigate(
-                          `/applications/details/${appId}/${tab.value}?${searchParams.toString()}`,
+                          `details/${appId}/${tab.value}?${searchParams.toString()}`,
                         )
                       }
                       className="flex-1 rounded-none"
@@ -134,7 +138,7 @@ const AppInfoDialog: React.FC = () => {
                 <nav className="flex flex-col gap-1 text-sm">
                   {/* Overview */}
                   <NavLink
-                    to={`/applications/details/${appId}/overview?${searchParams.toString()}`}
+                    to={`details/${appId}/overview?${searchParams.toString()}`}
                     state={{ appName }}
                     className={({ isActive }) =>
                       cn(
@@ -151,7 +155,7 @@ const AppInfoDialog: React.FC = () => {
                   {/* Departments */}
                   <div>
                     <NavLink
-                      to={`/applications/details/${appId}/departments/${firstAllowedDept?.id}/comments?${searchParams.toString()}`}
+                      to={`details/${appId}/departments/${firstAllowedDept?.id}/comments?${searchParams.toString()}`}
                       state={{ appName }}
                       className={cn(
                         "px-4 py-2 rounded-md transition-colors flex items-center",
@@ -182,7 +186,7 @@ const AppInfoDialog: React.FC = () => {
                             side="right"
                           >
                             <NavLink
-                              to={`/applications/details/${appId}/departments/${dept.id}/comments?${searchParams.toString()}`}
+                              to={`details/${appId}/departments/${dept.id}/comments?${searchParams.toString()}`}
                               state={{ appName, department: dept }}
                               key={dept.id}
                               className={cn(
@@ -213,7 +217,7 @@ const AppInfoDialog: React.FC = () => {
 
                   {/* All Evidences */}
                   <NavLink
-                    to={`/applications/details/${appId}/evidences?${searchParams.toString()}`}
+                    to={`details/${appId}/evidences?${searchParams.toString()}`}
                     state={{ appName }}
                     className={({ isActive }) =>
                       cn(
@@ -229,7 +233,7 @@ const AppInfoDialog: React.FC = () => {
 
                   {/* Questionnaire */}
                   <NavLink
-                    to={`/applications/details/${appId}/questionnaire?${searchParams.toString()}`}
+                    to={`details/${appId}/questionnaire?${searchParams.toString()}`}
                     state={{ appName }}
                     className={({ isActive }) =>
                       cn(

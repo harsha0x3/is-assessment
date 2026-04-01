@@ -25,6 +25,7 @@ import {
   getSeverityLabel,
   parseDate,
   parseStatus,
+  shortenDept,
 } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
@@ -33,9 +34,9 @@ import Hint from "@/components/ui/hint";
 import {
   Bot,
   ClockAlert,
-  Dot,
   FlagTriangleRight,
   Info,
+  InfoIcon,
   Loader,
   ShieldPlus,
 } from "lucide-react";
@@ -48,6 +49,7 @@ import {
 } from "@/components/ui/hover-card";
 import AppTypeFilter from "./tableHeaders/AppTypeFilter";
 import AppSeverityHeaderFilter from "./tableHeaders/AppSeverityHeaderFilter";
+import { Separator } from "@/components/ui/separator";
 const VerticalSearchFilter = lazy(
   () => import("../components/tableHeaders/VerticalSearchFilter"),
 );
@@ -67,6 +69,7 @@ const AppsTable: React.FC = () => {
     data: appsData,
     isLoading: isAppsLoading,
     appStatus,
+    filteredAppsSummary,
   } = useApplicationsContext();
   // const { data: departments, isLoading: isLoadingDepts } =
   //   useGetAllDepartmentsQuery();
@@ -87,56 +90,53 @@ const AppsTable: React.FC = () => {
     depts: AppDepartmentOut[];
     appId: string;
   }> = ({ depts, appId }) => {
-    const shortenDept = (dept: string) => {
-      switch (dept) {
-        case "iam":
-          return "IAM";
-        case "tprm":
-          return "TPRM";
-        case "security controls":
-          return "Sec Controls";
-        case "web vapt":
-          return "Web VAPT";
-        case "mobile vapt":
-          return "Mobile VAPT";
-        case "soc integration":
-          return "SOC";
-        case "ai security":
-          return "AI";
-        default:
-          return dept;
-      }
-    };
-
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <div className="flex gap-2">
           {depts.map((d) => (
             <Hint
               key={d.id}
               label={
-                <div>
+                <div className="text-[12px] space-y-2">
                   <p>{d.name}</p>
-                  <p className="capitalize">{parseStatus(d.status)}</p>
+                  <p className="capitalize">
+                    Status:{" "}
+                    <span
+                      style={{
+                        color: STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                      }}
+                    >
+                      {parseStatus(d.status)}
+                    </span>
+                  </p>
+                  <Separator />
+                  <div className="">
+                    <p>Duration: </p>
+                    <p>
+                      {d?.started_at && <span>{parseDate(d.started_at)}</span>}{" "}
+                      {d?.ended_at && <span> - {parseDate(d.ended_at)}</span>}
+                    </p>
+                  </div>
                 </div>
               }
             >
               <div className="flex flex-col items-center cursor-default">
                 {appStatus === "go_live" ? (
                   <FlagTriangleRight
-                    className="w-4 h-4"
+                    className="w-3 h-3"
                     fill={
                       d.status === "go_live"
-                        ? STATUS_COLOR_MAP_FG[d.status]
+                        ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
                         : "none"
                     }
                   />
                 ) : (
-                  <Dot
+                  <span
                     key={d.id}
-                    className="h-2.5 w-2.5 rounded-full"
+                    className="h-3 w-3 rounded-md"
                     style={{
-                      backgroundColor: STATUS_COLOR_MAP_FG[d.status],
+                      backgroundColor:
+                        STATUS_COLOR_MAP_FG[d.status as AppStatuses],
                     }}
                   />
                 )}
@@ -423,7 +423,7 @@ const AppsTable: React.FC = () => {
             }),
           ]
         : []),
-      colHelper.accessor("vertical", {
+      colHelper.accessor("app_vertical.name", {
         header: () => (
           <Suspense fallback="Vertical">
             <VerticalSearchFilter />
@@ -489,7 +489,27 @@ const AppsTable: React.FC = () => {
         },
       }),
       colHelper.accessor("environment", {
-        header: "Environment",
+        header: () => (
+          <div className="flex items-center w-full space-x-2 gap-2">
+            <p className="m-0">Environment</p>
+            <Hint
+              label={
+                <div className="text-[12px]">
+                  <p className="m-0">
+                    <span>External Hosted: </span>
+                    {filteredAppsSummary?.external_environment_count}
+                  </p>
+                  <p className="m-0">
+                    <span>Internal Hosted: </span>
+                    {filteredAppsSummary?.internal_environment_count}
+                  </p>
+                </div>
+              }
+            >
+              <InfoIcon className="w-4 h-4" />
+            </Hint>
+          </div>
+        ),
         minSize: 120,
         maxSize: 160,
         cell: (info) => {
@@ -531,7 +551,7 @@ const AppsTable: React.FC = () => {
         },
       }),
     ];
-  }, [departmentView, searchParams]);
+  }, [departmentView, searchParams, filteredAppsSummary]);
 
   const departmentColumns: ColumnDef<NewAppListOut, any>[] = useMemo(() => {
     if (!departmentView)
@@ -544,6 +564,7 @@ const AppsTable: React.FC = () => {
           ),
         }),
       ];
+
     return DEPARTMENT_COLUMNS[departmentView as DeptKey] ?? [];
   }, [departmentView, appStatus, searchParams]);
 
@@ -625,7 +646,7 @@ const AppsTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-6"
+                  className="text-center py-6 capitalize"
                 >
                   <div>
                     <Loader className="animate-spin w-5 h-5" />
@@ -637,7 +658,7 @@ const AppsTable: React.FC = () => {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-6"
+                  className="text-center py-6 capitalize"
                 >
                   No data found.
                 </TableCell>
@@ -652,7 +673,7 @@ const AppsTable: React.FC = () => {
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={`whitespace-normal wrap-break-word`}
+                    className={`whitespace-normal wrap-break-word capitalize`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

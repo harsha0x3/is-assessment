@@ -5,10 +5,11 @@ from api.controllers import department_controller as dept_ctrl
 from db.connection import get_db_conn
 from schemas import department_schemas as d_schemas
 from services.auth.deps import require_moderator, require_admin, get_current_user
-from schemas.auth_schemas import UserOut
+
 from typing import Annotated
 from services.auth.permissions import is_user_of_dept
 from fastapi import HTTPException
+from models import User  # avoid circular import, only import here where needed
 
 
 router = APIRouter(prefix="/departments", tags=["departments"])
@@ -20,7 +21,7 @@ async def create_department(
         d_schemas.DepartmentCreate, "Request fields for creating a department"
     ],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[User, Depends(require_admin)],
 ):
     data = dept_ctrl.create_new_department(payload=payload, db=db)
     return {"msg": "Department created successfukky", "data": data}
@@ -35,7 +36,7 @@ async def add_departments_to_application(
     app_id: Annotated[str, Path(..., description="The ID of the application")],
     department_ids: Annotated[list[int], ""],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[User, Depends(require_admin)],
 ):
     data = dept_ctrl.add_departments_to_application(
         app_id=app_id, department_ids=department_ids, db=db
@@ -55,7 +56,7 @@ async def add_user_to_department(
         "Request fields for assigning user to department",
     ],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_admin)],
+    current_user: Annotated[User, Depends(require_admin)],
 ):
     data = dept_ctrl.add_user_to_department(
         payload=payload, department_id=department_id, db=db
@@ -66,7 +67,7 @@ async def add_user_to_department(
 @router.get("/all", summary="Get All Departments")
 async def get_all_departments(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     data = dept_ctrl.get_all_departments(db=db)
     return {"msg": "", "data": data}
@@ -80,7 +81,7 @@ async def get_all_departments(
 async def get_departments_by_application(
     app_id: Annotated[str, Path(..., description="The ID of the application")],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     data = dept_ctrl.get_departments_by_application(app_id=app_id, db=db)
     return {"msg": "", "data": data}
@@ -89,7 +90,7 @@ async def get_departments_by_application(
 @router.get("/{dept_id}/application/{app_id}/info")
 async def get_department_info(
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     app_id: Annotated[str, Path(..., description="The ID of the application")],
     dept_id: Annotated[int, Path(..., description="The ID of the department")],
 ):
@@ -106,7 +107,7 @@ def update_department_status(
     dept_id: Annotated[int, ""],
     payload: Annotated[d_schemas.DeptStatusPayload, ""],
     db: Annotated[Session, Depends(get_db_conn)],
-    current_user: Annotated[UserOut, Depends(require_moderator)],
+    current_user: Annotated[User, Depends(require_moderator)],
 ):
     try:
         if not is_user_of_dept(dept_id=dept_id, user_id=current_user.id, db=db):
@@ -139,23 +140,21 @@ async def create_department_control(
     dept_id: int,
     payload: d_schemas.DepartmentControlCreate,
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(require_admin),
+    current_user: User = Depends(require_admin),
 ):
-    data = dept_ctrl.create_department_control(
-        dept_id=dept_id,
-        payload=payload,
-        db=db
-    )
+    data = dept_ctrl.create_department_control(dept_id=dept_id, payload=payload, db=db)
     return {"msg": "Control created successfully", "data": data}
+
 
 @router.get("/{dept_id}/controls")
 async def get_department_controls(
     dept_id: int,
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     data = dept_ctrl.get_department_controls(dept_id=dept_id, db=db)
     return {"msg": "", "data": data}
+
 
 @router.patch(
     "/application/{app_id}/control/{control_id}",
@@ -166,14 +165,14 @@ async def update_control_result(
     control_id: int,
     payload: d_schemas.ControlStatusPayload,
     db: Session = Depends(get_db_conn),
-    current_user: UserOut = Depends(require_moderator),
+    current_user: User = Depends(require_moderator),
 ):
     data = dept_ctrl.update_control_result(
         app_id=app_id,
         control_id=control_id,
         control_status=payload.status,
         user_id=current_user.id,
-        db=db
+        db=db,
     )
 
     return {"msg": "Control result updated", "data": data}

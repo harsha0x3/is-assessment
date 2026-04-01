@@ -149,6 +149,7 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
                 <SelectItem value="manager">Manager</SelectItem>
                 <SelectItem value="moderator">Moderator</SelectItem>
                 <SelectItem value="user">User</SelectItem>
+                <SelectItem value="digital_head">Digital Head</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -176,7 +177,9 @@ const UserDetailsDialog: React.FC<Props> = ({ user, open, onOpenChange }) => {
             {editMode || isNew ? (
               <VerticalsMultiSelect
                 value={verticalIds}
-                onChange={setVerticalIds}
+                onChange={(val: number[] | number | null) => {
+                  setVerticalIds(Array.isArray(val) ? val : val ? [val] : []);
+                }}
                 canCreate={isAdminOrManager}
               />
             ) : (
