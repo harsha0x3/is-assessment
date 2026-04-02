@@ -11,7 +11,7 @@ export const verticalsApiSlice = rootApiSlice.injectEndpoints({
     // -------- GET ALL --------
     getAllVerticals: builder.query<VerticalItem[], void>({
       query: () => ({
-        url: "/verticals",
+        url: "/verticals/",
         method: "GET",
       }),
       providesTags: ["Verticals"],
@@ -20,7 +20,7 @@ export const verticalsApiSlice = rootApiSlice.injectEndpoints({
     // -------- CREATE --------
     createVertical: builder.mutation<VerticalItem, CreateVerticalPayload>({
       query: (body) => ({
-        url: "/verticals",
+        url: "/verticals/",
         method: "POST",
         body,
       }),
