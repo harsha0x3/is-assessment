@@ -17,9 +17,10 @@ import {
   BarChart3,
   ChevronRight,
   Laptop,
+  LayoutDashboard,
   LayoutGridIcon,
   Moon,
-  PieChart,
+  // PieChart,
   Sun,
   Users2Icon,
   type LucideIcon,
@@ -66,13 +67,13 @@ type SidebarData = {
 };
 
 const sidebarItems: SidebarData[] = [
-  {
-    title: "OverAll Dashboard",
-    isActive: false,
-    path: "/dashboard/primary",
-    icon: PieChart,
-    roles: ["admin", "moderator", "user", "manager"],
-  },
+  // {
+  //   title: "OverAll Dashboard",
+  //   isActive: false,
+  //   path: "/dashboard/primary",
+  //   icon: PieChart,
+  //   roles: ["admin", "moderator", "user", "manager"],
+  // },
   {
     title: "Priority Dashboard",
     isActive: false,
@@ -91,7 +92,7 @@ const sidebarItems: SidebarData[] = [
     title: "Executive Dashboard",
     isActive: false,
     path: "/executive_dashboard",
-    icon: BarChart3,
+    icon: LayoutDashboard,
     roles: ["admin", "moderator", "user", "manager", "digital_head"],
   },
   // {

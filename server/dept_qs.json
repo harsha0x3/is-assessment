@@ -1,0 +1,69 @@
+{
+  "question_set_id": ,
+  "questions": [
+    {
+      "text": "Is all data securely handled (encrypted, classified, and protected from public access)?",
+      "sequence_number": 1
+    },
+    {
+      "text": "Are strong access controls enforced (MFA, no root misuse, least privilege, and SSO)?",
+      "sequence_number": 2
+    },
+    {
+      "text": "Is access governance mature (JIT access, periodic reviews, and conditional policies)?",
+      "sequence_number": 3
+    },
+    {
+      "text": "Is the network securely designed (private resources, restricted access, and DDoS/WAF protection)?",
+      "sequence_number": 4
+    },
+    {
+      "text": "Is advanced network security in place (firewalling, monitoring, and zero trust principles)?",
+      "sequence_number": 5
+    },
+    {
+      "text": "Are applications secure throughout the lifecycle (VAPT, OWASP fixes, secure CI/CD)?",
+      "sequence_number": 6
+    },
+    {
+      "text": "Is advanced application security implemented (SAST, dependency scanning, runtime protection)?",
+      "sequence_number": 7
+    },
+    {
+      "text": "Are compliance and regulatory requirements continuously met and auditable?",
+      "sequence_number": 8
+    },
+    {
+      "text": "Are backup and disaster recovery capabilities defined, automated, and regularly tested?",
+      "sequence_number": 9
+    },
+    {
+      "text": "Are logging, monitoring, and threat detection centrally managed with alerting and SIEM integration?",
+      "sequence_number": 10
+    },
+    {
+      "text": "Is the shared responsibility model clearly understood and documented?",
+      "sequence_number": 11
+    },
+    {
+      "text": "Are APIs and secrets securely managed (authentication, rate limiting, secure storage, rotation)?",
+      "sequence_number": 12
+    },
+    {
+      "text": "Is third-party/vendor risk actively assessed and monitored?",
+      "sequence_number": 13
+    },
+    {
+      "text": "Is there a well-defined and tested incident response capability (including automation and playbooks)?",
+      "sequence_number": 14
+    },
+    {
+      "text": "Are endpoints and workloads protected (EDR and system hardening)?",
+      "sequence_number": 15
+    },
+    {
+      "text": "Is DevSecOps implemented with security embedded and enforced in the pipeline?",
+      "sequence_number": 16
+    }
+  ]
+}
