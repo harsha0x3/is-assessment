@@ -41,11 +41,9 @@ DEPARTMENT_RULES = {
     "iam": lambda app: app.scope == "is_assessment",
     "soc integration": lambda app: app.scope == "is_assessment",
     "security controls": lambda app: app.scope == "is_assessment",
-    "web vapt": lambda app: app.scope == "is_assessment" or app.scope == "vapt_only",
+    "web vapt": lambda app: app.app_type in ["web", "mobile_web", "api", "automation"],
     "tprm": lambda app: app.scope == "is_assessment",
-    "mobile vapt": lambda app: (
-        app.scope == "vapt_only" or app.app_type in ["mobile", "mobile_web"]
-    ),
+    "mobile vapt": lambda app: app.app_type in ["mobile", "mobile_web"],
     "ai security": lambda app: app.is_app_ai,
     "privacy": lambda app: app.is_privacy_applicable,
 }

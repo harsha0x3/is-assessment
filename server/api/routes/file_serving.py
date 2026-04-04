@@ -42,11 +42,12 @@ def serve_secure_file(
     if not safe_path.exists():
         raise HTTPException(404, "File not found")
 
-
     return {"url": f"/api/v1.0/secured_file/local?path={quote(path)}"}
+
 
 from mimetypes import guess_type
 from pathlib import Path
+
 
 @router.get("/local")
 def serve_local_file(
