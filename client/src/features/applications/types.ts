@@ -1,5 +1,8 @@
 import type { AppStatuses } from "@/utils/globalTypes";
-import type { AppDepartmentOut, DepartmentOut } from "../departments/types";
+import type {
+  AppDeptOutWithLatestComment,
+  DepartmentOut,
+} from "../departments/types";
 import type { CommentOut } from "../comments/types";
 import type { VerticalItem } from "../verticals/types";
 
@@ -113,7 +116,7 @@ export interface NewAppListOut {
   completed_at?: string | null;
   app_url?: string;
   vendor_company?: string;
-  departments?: AppDepartmentOut[] | null;
+  departments?: AppDeptOutWithLatestComment[] | null;
   latest_comment?: CommentOut;
   titan_spoc?: string | null;
   environment?: string;

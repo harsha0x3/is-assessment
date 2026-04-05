@@ -230,6 +230,7 @@ const DepartmentSummarySection: React.FC<Props> = ({
                   appAgeFrom={deptFilters?.app_age_from}
                   appAgeTo={deptFilters?.app_age_to}
                   assignedApps={dept?.total_apps}
+                  totalApps={data?.total_apps}
                 />
               ))}
             </Suspense>

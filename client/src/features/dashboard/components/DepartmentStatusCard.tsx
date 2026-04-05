@@ -44,6 +44,7 @@ interface Props {
   appAgeFrom?: string;
   appAgeTo?: string;
   assignedApps?: number;
+  totalApps?: number;
 }
 
 const DepartmentStatusCard: React.FC<Props> = ({
@@ -54,6 +55,7 @@ const DepartmentStatusCard: React.FC<Props> = ({
   appAgeFrom,
   appAgeTo,
   assignedApps,
+  // totalApps,
 }) => {
   const navigate = useNavigate();
   return (
@@ -90,7 +92,10 @@ const DepartmentStatusCard: React.FC<Props> = ({
                   angle={-20}
                   tickMargin={10}
                 />
-                <YAxis allowDecimals={false} domain={[0, "dataMax + 2"]} />
+                <YAxis
+                  allowDecimals={false}
+                  domain={[0, assignedApps ?? "dataMax + 2"]}
+                />
                 {/* <ChartTooltip content={<div>Show Details</div>} /> */}
 
                 <Bar

@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/table";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import Hint from "@/components/ui/hint";
 import {
   HoverCard,
@@ -28,7 +27,7 @@ import AppTypeFilter from "@/features/applications/components/tableHeaders/AppTy
 import { useApplicationsContext } from "@/features/applications/context/ApplicationsContext";
 import type { NewAppListOut } from "@/features/applications/types";
 // import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
-import type { AppDepartmentOut } from "@/features/departments/types";
+import type { AppDeptOutWithLatestComment } from "@/features/departments/types";
 import type {
   AppStatuses,
   // DeptStatuses
@@ -44,12 +43,12 @@ import {
   Bot,
   ClockAlert,
   FlagTriangleRight,
-  Info,
   Loader,
   ShieldPlus,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+
 const AppStatusHeaderFilter = lazy(
   () =>
     import("@/features/applications/components/tableHeaders/AppStatusHeaderFilter"),
@@ -73,71 +72,107 @@ const ExecDashboardTable: React.FC = () => {
   // const { data: allDepartments } = useGetAllDepartmentsQuery();
 
   const DepartmentsStatusCol: React.FC<{
-    depts: AppDepartmentOut[];
+    depts: AppDeptOutWithLatestComment[];
     appId: string;
-  }> = ({ depts, appId }) => {
+  }> = ({ depts }) => {
     return (
       <div className="flex items-center gap-4">
         <div className="flex gap-4">
           {depts.map((d) => (
-            <Hint
-              key={d.id}
-              label={
-                <div className="text-[12px] space-y-2">
-                  <p>{d.name}</p>
-                  <p className="capitalize">
-                    Status:{" "}
+            <HoverCard openDelay={100} closeDelay={200}>
+              <HoverCardTrigger>
+                <div className="flex flex-col items-center cursor-default">
+                  {appStatus === "go_live" ? (
+                    <FlagTriangleRight
+                      className="w-3 h-3"
+                      fill={
+                        d.status === "go_live"
+                          ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
+                          : "none"
+                      }
+                    />
+                  ) : (
                     <span
+                      key={d.id}
+                      className="h-4 w-4 rounded-md"
                       style={{
-                        color: STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                        backgroundColor:
+                          STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                      }}
+                    />
+                  )}
+                  <span className="whitespace-nowrap">
+                    {shortenDept(d.name.toLowerCase())}
+                  </span>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-lg p-4 text-black">
+                <div className="flex flex-col gap-2">
+                  {/* Department Name and Status */}
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">{d.name}</h3>
+                    <Badge
+                      className={`capitalize ${d.status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
+                      style={{
+                        backgroundColor: STATUS_COLOR_MAP_BG[d.status],
+                        color: STATUS_COLOR_MAP_FG[d.status],
                       }}
                     >
                       {parseStatus(d.status)}
-                    </span>
-                  </p>
-                  <Separator />
-                  <div className="">
-                    <p>Duration: </p>
-                    <p>
-                      {d?.started_at && <span>{parseDate(d.started_at)}</span>}{" "}
-                      {d?.ended_at && <span> - {parseDate(d.ended_at)}</span>}
-                    </p>
+                    </Badge>
                   </div>
+
+                  {/* Dates Section */}
+                  <div className="text-sm space-y-1">
+                    {d?.started_at && (
+                      <div>
+                        <span className="font-medium">Started:</span>{" "}
+                        {parseDate(d.started_at)}
+                      </div>
+                    )}
+                    {d?.ended_at && (
+                      <div>
+                        <span className="font-medium">Ended:</span>{" "}
+                        {parseDate(d.ended_at)}
+                      </div>
+                    )}
+                    {d?.go_live_at && (
+                      <div>
+                        <span className="font-medium">Go Live:</span>{" "}
+                        {parseDate(d.go_live_at)}
+                      </div>
+                    )}
+                  </div>
+
+                  {d?.latest_comment && (
+                    <>
+                      <Separator />
+                      {/* Latest Comment Section */}
+                      <div className="space-y-1">
+                        <div className="text-[14px]">
+                          <p className="font-bold">Comment: </p>{" "}
+                          <p className="text-[13px] whitespace-pre-line">
+                            {d.latest_comment.content}
+                          </p>
+                        </div>
+                        {d.latest_comment.author && (
+                          <div className="text-sm text-muted-foreground">
+                            <span className="font-medium">Author:</span>{" "}
+                            {d.latest_comment.author.full_name}
+                          </div>
+                        )}
+                        {d.latest_comment.updated_at && (
+                          <div className="text-sm text-muted-foreground">
+                            <span className="font-medium">Updated:</span>{" "}
+                            {parseDate(d.latest_comment.updated_at)}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              }
-            >
-              <div className="flex flex-col items-center cursor-default">
-                {appStatus === "go_live" ? (
-                  <FlagTriangleRight
-                    className="w-3 h-3"
-                    fill={
-                      d.status === "go_live"
-                        ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
-                        : "none"
-                    }
-                  />
-                ) : (
-                  <span
-                    key={d.id}
-                    className="h-4 w-4 rounded-md"
-                    style={{
-                      backgroundColor:
-                        STATUS_COLOR_MAP_FG[d.status as AppStatuses],
-                    }}
-                  />
-                )}
-                <span
-                  className="hover:underline hover:text-ring hover:cursor-pointer transition-all whitespace-nowrap"
-                  onClick={() =>
-                    navigate(
-                      `details/${appId}/departments/${d.id}/comments?${searchParams.toString()}`,
-                    )
-                  }
-                >
-                  {shortenDept(d.name.toLowerCase())}
-                </span>
-              </div>
-            </Hint>
+              </HoverCardContent>
+            </HoverCard>
           ))}
         </div>
       </div>
@@ -209,56 +244,30 @@ const ExecDashboardTable: React.FC = () => {
           const isAppPrivacy = row.original.is_privacy_applicable;
 
           return (
-            <Button
-              variant="link"
-              className="p-0 h-auto text-left text-primary"
-              onClick={() =>
-                navigate(
-                  `details/${row.original.id}/overview?${searchParams.toString()}`,
-                )
-              }
-            >
-              <span className="whitespace-normal wrap-break-word">
-                {Number(dueDays) > 0 && (
-                  <Hint label={`Overdue by ${dueDays} days`}>
-                    <ClockAlert className="inline mr-1 text-amber-500" />
-                  </Hint>
-                )}
-                {isAppAi && (
-                  <Hint label="AI Application">
-                    <Bot
-                      strokeWidth={3}
-                      className="inline mr-1 text-purple-500"
-                    />
-                  </Hint>
-                )}
-                {isAppPrivacy && (
-                  <Hint label="Privacy Application">
-                    <ShieldPlus
-                      strokeWidth={4}
-                      className="inline mr-1 text-indigo-400"
-                    />
-                  </Hint>
-                )}
-                {getValue()}
-              </span>
-
-              <HoverCard openDelay={10} closeDelay={100}>
-                <HoverCardTrigger asChild>
-                  <Info className="text-blue-500" />
-                </HoverCardTrigger>
-                <HoverCardContent className="w-fit" side="top" align="start">
-                  {row.original.departments?.length ? (
-                    <DepartmentsStatusCol
-                      depts={row.original.departments}
-                      appId={row.original.id}
-                    />
-                  ) : (
-                    <p>No Data to be shown</p>
-                  )}
-                </HoverCardContent>
-              </HoverCard>
-            </Button>
+            <span className="whitespace-normal wrap-break-word">
+              {Number(dueDays) > 0 && (
+                <Hint label={`Overdue by ${dueDays} days`}>
+                  <ClockAlert className="inline mr-1 text-amber-500 w-4" />
+                </Hint>
+              )}
+              {isAppAi && (
+                <Hint label="AI Application">
+                  <Bot
+                    strokeWidth={3}
+                    className="inline mr-1 text-purple-500 w-4"
+                  />
+                </Hint>
+              )}
+              {isAppPrivacy && (
+                <Hint label="Privacy Application">
+                  <ShieldPlus
+                    strokeWidth={4}
+                    className="inline mr-1 text-indigo-400 w-4"
+                  />
+                </Hint>
+              )}
+              {getValue()}
+            </span>
           );
         },
       }),

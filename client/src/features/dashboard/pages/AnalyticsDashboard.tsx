@@ -68,7 +68,7 @@ const AnalyticsDashboard: React.FC = () => {
           </Suspense>
         </div>
 
-        <div>
+        <div className="min-w-0 max-w-150">
           <Suspense fallback={<CardLoader />}>
             <AppCompletionChart />
           </Suspense>

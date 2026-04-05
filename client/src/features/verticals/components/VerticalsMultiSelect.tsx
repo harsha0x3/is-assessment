@@ -32,7 +32,7 @@ interface Props {
   canCreate?: boolean;
   isMultiSelect?: boolean;
   isDisabled?: boolean;
-
+  showNone?: boolean;
   orientation?: "horizontal" | "vertical";
 }
 
@@ -44,6 +44,7 @@ export const VerticalsMultiSelect = ({
   isMultiSelect = true,
   isDisabled = false,
   orientation = "vertical",
+  showNone = false,
 }: Props) => {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -83,9 +84,13 @@ export const VerticalsMultiSelect = ({
     } else {
       setSelectedValues([id]);
       onChange(id);
-      setOpen(false); // close popover after single select
+      // setOpen(false); // close popover after single select
     }
   };
+
+  useEffect(() => {
+    console.log("😍😍😍 Selected Verticles", selectedValues);
+  }, [selectedValues]);
 
   const handleCreate = async () => {
     if (!newVertical.trim()) return;
@@ -127,7 +132,7 @@ export const VerticalsMultiSelect = ({
             role="combobox"
             aria-expanded={open}
             disabled={isDisabled}
-            className={`h-auto min-h-9 w-full justify-between bg-transparent/90`}
+            className={`h-auto min-h-9 w-full justify-between bg-transparent/90 truncate`}
           >
             {selectedValues.length > 0 ? (
               isMultiSelect ? (
@@ -150,7 +155,7 @@ export const VerticalsMultiSelect = ({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-(--radix-popper-anchor-width) p-0">
+        <PopoverContent className="w-md p-0">
           <Command>
             <CommandInput
               placeholder="Search vertical..."
@@ -171,24 +176,38 @@ export const VerticalsMultiSelect = ({
               )}
 
               <CommandGroup>
+                {showNone && (
+                  <CommandItem
+                    value={undefined}
+                    onSelect={() => setSelectedValues([])}
+                  >
+                    <span>None</span>
+                    {selectedValues.length === 0 && (
+                      <CheckIcon size={16} className="ml-auto" />
+                    )}
+                  </CommandItem>
+                )}
                 {verticals
                   .filter((v) =>
                     v.name.toLowerCase().includes(search.toLowerCase()),
                   )
-                  .map((v) => (
-                    <CommandItem
-                      key={v.id}
-                      value={v.name}
-                      onSelect={() => toggleSelection(v.id)}
-                    >
-                      <span>{v.name}</span>
-                      {(isMultiSelect
-                        ? selectedValues.includes(v.id)
-                        : selectedValues[0] === v.id) && (
-                        <CheckIcon size={16} className="ml-auto" />
-                      )}
-                    </CommandItem>
-                  ))}
+                  .map((v) => {
+                    const isSelected = isMultiSelect
+                      ? selectedValues.includes(v.id)
+                      : selectedValues[0] === v.id;
+                    return (
+                      <CommandItem
+                        key={v.id}
+                        value={v.name}
+                        onSelect={() => toggleSelection(v.id)}
+                      >
+                        <span>{v.name}</span>
+                        {isSelected && (
+                          <CheckIcon size={16} className="ml-auto" />
+                        )}
+                      </CommandItem>
+                    );
+                  })}
               </CommandGroup>
 
               {canCreate && (

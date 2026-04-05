@@ -29,6 +29,33 @@ export interface AppDepartmentOut extends DepartmentOut {
   category_status?: string;
   controls: ControlResultOut[];
 }
+
+export interface CommentUserOut {
+  id: string;
+  full_name: string;
+}
+
+export interface DeptLatestComment {
+  id: string;
+  content: string;
+  author?: CommentUserOut | null;
+  status?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface AppDeptOutWithLatestComment {
+  id: number;
+  name: string;
+  description?: string | null;
+  status: DeptStatuses;
+  started_at?: string | null;
+  ended_at?: string | null;
+  go_live_at?: string | null;
+  app_category?: string | null;
+  category_status?: string | null;
+  latest_comment?: DeptLatestComment | null;
+}
 export interface NewUserDepartmentAssign {
   user_id: string;
   role?: string | null;
