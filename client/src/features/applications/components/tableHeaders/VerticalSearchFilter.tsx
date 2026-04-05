@@ -44,6 +44,7 @@ const VerticalSearchFilter: React.FC<Props> = ({
       value={selectedVerticals}
       label="Vertical"
       orientation={orientation}
+      showNone={true}
     />
   );
 };

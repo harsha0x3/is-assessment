@@ -29,7 +29,7 @@ import {
 } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
-import type { AppDepartmentOut } from "@/features/departments/types";
+import type { AppDeptOutWithLatestComment } from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
 import {
   Bot,
@@ -83,11 +83,12 @@ const AppsTable: React.FC = () => {
     | "security_controls"
     | "iam"
     | "soc_integration"
-    | "ai security"
-    | "mobile_vapt";
+    | "ai_security"
+    | "mobile_vapt"
+    | "privacy";
 
   const DepartmentsStatusCol: React.FC<{
-    depts: AppDepartmentOut[];
+    depts: AppDeptOutWithLatestComment[];
     appId: string;
   }> = ({ depts, appId }) => {
     return (
@@ -309,8 +310,35 @@ const AppsTable: React.FC = () => {
         },
       }),
     ],
-    "ai security": [
+    ai_security: [
       createDepartmentStatusColumn("ai security", "AI Security"),
+      colHelper.accessor("titan_spoc", {
+        header: "Titan SPOC",
+        cell: (info) => {
+          return (
+            <p className="whitespace-normal wrap-break-word">
+              {info.getValue()}
+            </p>
+          );
+        },
+      }),
+      colHelper.accessor("latest_comment", {
+        header: "Latest Comment",
+        minSize: 300,
+        maxSize: 400,
+        cell: (info) => {
+          const comment = info.getValue();
+          return (
+            <div>
+              <DescriptionCell content={comment?.content ?? ""} />
+            </div>
+          );
+        },
+      }),
+    ],
+
+    privacy: [
+      createDepartmentStatusColumn("privacy", "Privacy"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {

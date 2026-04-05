@@ -85,7 +85,7 @@ const AppInfoDialog: React.FC = () => {
       open={isOpen}
       onOpenChange={() => {
         setIsOpen(false);
-        if (location.pathname.startsWith("details"))
+        if (location.pathname.startsWith("/applications/details"))
           navigate(`/applications?${searchParams.toString()}`);
         else if (location.pathname.startsWith("/executive_dashboard/details"))
           navigate(`/executive_dashboard?${searchParams.toString()}`);
