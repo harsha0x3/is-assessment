@@ -32,7 +32,40 @@ class AppDepartmentOut(DepartmentOut):
     go_live_at: datetime | None
     app_category: str | None
     category_status: str | None
-    controls: list[ControlResultOut] = []
+
+
+class CommentUserOut(BaseModel):
+    id: str
+    full_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DeptLatestComment(BaseModel):
+    id: str
+    content: str
+    author: CommentUserOut | None = None
+    status: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppDeptOutWithLatestComment(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    status: str | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    go_live_at: datetime | None = None
+    app_category: str | None = None
+    category_status: str | None = None
+
+    latest_comment: DeptLatestComment | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NewUserDepartmentAssign(BaseModel):

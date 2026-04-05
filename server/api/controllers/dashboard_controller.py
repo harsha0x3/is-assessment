@@ -187,9 +187,15 @@ def get_department_status_summary(
             stmt = stmt.where(Application.started_at.is_not(None))
 
             stmt = stmt.where(and_(Application.started_at >= params.app_age_from))
+            total_apps_stmt = total_apps_stmt.where(
+                and_(Application.started_at >= params.app_age_from)
+            )
 
             if params.app_age_to:
                 stmt = stmt.where(Application.started_at <= params.app_age_to)
+                total_apps_stmt = total_apps_stmt.where(
+                    Application.started_at <= params.app_age_to
+                )
 
         rows = db.execute(stmt).all()
 

@@ -3,10 +3,17 @@ from pydantic import BaseModel, field_validator, Field, ConfigDict
 from typing import Literal
 
 from datetime import datetime, date
-from .department_schemas import AppDepartmentOut, DepartmentOut
+from .department_schemas import (
+    AppDepartmentOut,
+    DepartmentOut,
+    AppDeptOutWithLatestComment,
+)
 from .checklist_schemas import ChecklistOut
 from api.controllers.comments_controller import get_latest_app_dept_comment
-from api.controllers.department_controller import get_departments_by_application
+from api.controllers.department_controller import (
+    get_departments_by_application,
+    get_departments_with_latest_comment,
+)
 from sqlalchemy.orm import Session
 from .comment_schemas import CommentOut
 
@@ -183,7 +190,7 @@ class NewAppListOut(BaseModel):
 
     vendor_company: str | None = None
     titan_spoc: str | None
-    departments: list[AppDepartmentOut] | None = None
+    departments: list[AppDeptOutWithLatestComment] | None = None
     latest_comment: CommentOut | None
 
     app_url: str | None
@@ -191,14 +198,17 @@ class NewAppListOut(BaseModel):
     severity: int | None
 
     @classmethod
-    def from_application(cls, app, db: Session, dept_filter_id: int | None = None):
+    def from_application(
+        cls, app, db: Session, dept_filter_id: int | None = None, is_exec: bool = False
+    ):
         latest_comment = None
-        if dept_filter_id:
+
+        depts_out = get_departments_with_latest_comment(app_id=app.id, db=db)
+
+        if dept_filter_id and not is_exec:
             latest_comment = get_latest_app_dept_comment(
                 app_id=app.id, dept_id=dept_filter_id, db=db
             )
-
-        depts_out = get_departments_by_application(app_id=app.id, db=db)
 
         return cls(
             id=app.id,
@@ -289,8 +299,8 @@ class AppStatuses(BaseModel):
 
 
 class EnvironmentCounts(BaseModel):
-    internal: int
-    external: int
+    internal: int | None = 0
+    external: int | None = 0
 
 
 class AppsSummaryOut(BaseModel):
@@ -302,5 +312,5 @@ class AppsSummaryOut(BaseModel):
     mobile_app_count: int
     web_app_count: int
     mobile_web_app_count: int
-    internal_environment_count: int
-    external_environment_count: int
+    internal_environment_count: int | None = 0
+    external_environment_count: int | None = 0

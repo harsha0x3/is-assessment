@@ -1,7 +1,7 @@
 # controllers\department_controller.py
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import select, and_, or_, func
+from sqlalchemy.orm import Session, joinedload
 from models import (
     Application,
     Department,
@@ -138,26 +138,6 @@ def get_departments_by_application(app_id: str, db: Session):
         results: list[d_schemas.AppDepartmentOut] = []
 
         for dep, app_dept in departments:
-            controls = db.execute(
-                select(
-                    DepartmentControl.id,
-                    DepartmentControl.name,
-                    ApplicationControlResult.status,
-                )
-                .join(
-                    ApplicationControlResult,
-                    ApplicationControlResult.department_control_id
-                    == DepartmentControl.id,
-                )
-                .where(
-                    ApplicationControlResult.application_id == app_id,
-                    DepartmentControl.department_id == dep.id,
-                )
-            ).all()
-            controls_out = [
-                d_schemas.ControlResultOut.model_validate(c) for c in controls
-            ]
-
             results.append(
                 d_schemas.AppDepartmentOut(
                     id=dep.id,
@@ -166,7 +146,6 @@ def get_departments_by_application(app_id: str, db: Session):
                     status=app_dept.status,
                     started_at=app_dept.started_at,
                     ended_at=app_dept.ended_at,
-                    controls=controls_out,
                     app_category=app_dept.app_category,
                     category_status=app_dept.category_status,
                     go_live_at=app_dept.go_live_at,
@@ -178,6 +157,89 @@ def get_departments_by_application(app_id: str, db: Session):
         raise
     except Exception as e:
         raise HTTPException(500, f"Failed to load departments: {str(e)}")
+
+
+def get_departments_with_latest_comment(
+    app_id: str, db: Session
+) -> list[d_schemas.AppDeptOutWithLatestComment]:
+    print("APP ID", app_id)
+    # 1️⃣ Get assigned departments with ApplicationDepartments info
+    stmt = (
+        select(Department, ApplicationDepartments)
+        .join(
+            ApplicationDepartments,
+            Department.id == ApplicationDepartments.department_id,
+        )
+        .where(
+            and_(
+                ApplicationDepartments.application_id == app_id,
+                ApplicationDepartments.is_active,
+            )
+        )
+    )
+
+    departments = db.execute(stmt).all()
+
+    if not departments:
+        # Check if application exists
+        if not db.get(Application, app_id):
+            raise HTTPException(status_code=404, detail="Application not found")
+        return []
+
+    dept_ids = [dep.id for dep, _ in departments]
+
+    # 2️⃣ Load latest comment per department using a subquery
+    subq = (
+        select(
+            Comment.department_id,
+            Comment.application_id,
+            func.max(Comment.created_at).label("latest_created"),
+        )
+        .where(Comment.department_id.in_(dept_ids), Comment.application_id == app_id)
+        .group_by(Comment.department_id, Comment.application_id)
+        .subquery()
+    )
+
+    comments_stmt = (
+        select(Comment)
+        .join(
+            subq,
+            and_(
+                Comment.department_id == subq.c.department_id,
+                Comment.application_id == subq.c.application_id,
+                Comment.created_at == subq.c.latest_created,
+            ),
+        )
+        .options(joinedload(Comment.author))  # eager load author
+    )
+
+    latest_comments = db.execute(comments_stmt).scalars().all()
+    comment_map = {c.department_id: c for c in latest_comments}
+
+    # 3️⃣ Combine into Pydantic models
+    results: list[d_schemas.AppDeptOutWithLatestComment] = []
+    for dep, app_dept in departments:
+        latest_comment = comment_map.get(dep.id)
+        results.append(
+            d_schemas.AppDeptOutWithLatestComment(
+                id=dep.id,
+                name=dep.name,
+                description=dep.description,
+                status=app_dept.status,
+                started_at=app_dept.started_at,
+                ended_at=app_dept.ended_at,
+                app_category=app_dept.app_category,
+                category_status=app_dept.category_status,
+                go_live_at=app_dept.go_live_at,
+                latest_comment=d_schemas.DeptLatestComment.model_validate(
+                    latest_comment
+                )
+                if latest_comment
+                else None,
+            )
+        )
+
+    return results
 
 
 def add_user_to_department(
@@ -614,3 +676,36 @@ def get_department_controls(dept_id: int, db: Session):
 
     except Exception as e:
         raise HTTPException(500, str(e))
+
+
+def get_app_department_by_name(name: str, db: Session, app_id: str):
+    try:
+        app_dept = db.scalar(
+            select(ApplicationDepartments)
+            .join(Department, ApplicationDepartments.department_id == Department.id)
+            .where(
+                and_(
+                    ApplicationDepartments.application_id == app_id,
+                    func.lower(Department.name) == name,
+                )
+            )
+        )
+
+        return app_dept
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting deparment by name",
+        )
+
+
+def get_department_by_name(db, dept_name: str):
+    dept = db.scalar(
+        select(Department).where(func.lower(Department.name) == dept_name.lower())
+    )
+    if not dept:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"{dept_name} department not found",
+        )
+    return dept
