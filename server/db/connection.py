@@ -21,14 +21,18 @@ def create_db_engine():
     return engine
 
 
+engine = create_db_engine()
+
+
 def create_session_factory():
-    engine = create_db_engine()
     SessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=engine)
     return SessionLocal
 
 
+SessionLocal = create_session_factory()
+
+
 def get_db_conn() -> Generator:
-    SessionLocal = create_session_factory()
     db = SessionLocal()
     try:
         yield db
