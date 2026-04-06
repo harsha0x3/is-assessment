@@ -21,3 +21,4 @@ from .application_questions import (
 from .application_answers import ApplicationAnswer
 from .department_controls import DepartmentControl, ApplicationControlResult
 from .verticals import Vertical, VerticalOwnerMap
+from .user_sessions import UserSession

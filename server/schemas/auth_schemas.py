@@ -3,6 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 from .vertical_schemas import VerticalBase
+from models import UserSession
 
 
 class AllUsersOut(BaseModel):
@@ -98,6 +99,14 @@ class UserUpdateRequest(BaseModel):
     enable_mfa: bool = True
     department_ids: list[int] | None = None
     vertical_ids: list[int] | None = None
+
+
+class CreateSessionOut(BaseModel):
+    session: UserSession
+    access_token: str
+    refresh_token: str
+    csrf_token: str
+    model_config = {"arbitrary_types_allowed": True}
 
 
 class LoginRequest(BaseModel):

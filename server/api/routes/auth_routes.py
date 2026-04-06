@@ -1,29 +1,44 @@
+import os
+import urllib.parse
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from dotenv import load_dotenv
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.controllers.auth_controller import (
     clear_jwt_cookies,
     login_user,
-    refresh_access_token,
     request_for_passsword_reset,
     reset_password,
+    microsoft_callback_login,
+    logout,
 )
 from db.connection import get_db_conn
+from models import User, UserSession
 from schemas.auth_schemas import (
-    LoginRequest,
-    UserWithDepartmentInfo,
     DepartmentInAuth,
-    UserOut,
+    LoginRequest,
     PasswordResetRequest,
     ResetPasswordPayload,
+    UserOut,
+    UserWithDepartmentInfo,
 )
-from services.auth.deps import get_current_user
-from models import User
-
-from services.auth.csrf_handler import clear_csrf_cookie
 from schemas.vertical_schemas import VerticalBase
+from services.auth.csrf_handler import clear_csrf_cookie
+from services.auth.deps import get_current_user, refresh_tokens
+from services.auth.microsoft_oauth import (
+    AUTHORIZE_URL,
+    CLIENT_ID,
+    REDIRECT_URI,
+)
+
+
+load_dotenv()
+
+VALID_EMAIL_ORG = os.getenv("VALID_EMAIL_ORG")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,6 +47,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def login(
     db: Annotated[Session, Depends(get_db_conn)],
     response: Annotated[Response, "response to pass down to set cookies"],
+    request: Annotated[Request, "response to pass down to set cookies"],
     login_data: Annotated[
         LoginRequest, "Login form fields, including email and password"
     ],
@@ -42,33 +58,59 @@ async def login(
         mfa_code=login_data.mfa_code,
     )
 
-    data = login_user(log_user=log_user, db=db, response=response)
+    data = login_user(log_user=log_user, db=db, response=response, request=request)
     return {"msg": "Login Successfull", "data": data}
+
+
+@router.get("/microsoft/login")
+def microsoft_login():
+    params = {
+        "client_id": CLIENT_ID,
+        "response_type": "code",
+        "redirect_uri": REDIRECT_URI,
+        "response_mode": "query",
+        "scope": "openid profile email",
+    }
+    url = f"{AUTHORIZE_URL}?{urllib.parse.urlencode(params)}"
+    return RedirectResponse(url)
+
+
+@router.get("/microsoft/callback")
+def microsoft_callback(
+    code: Annotated[str, ""],
+    response: Annotated[Response, ""],
+    request: Annotated[Request, ""],
+    db: Annotated[Session, Depends(get_db_conn)],
+):
+    return microsoft_callback_login(
+        code=code, response=response, request=request, db=db
+    )
 
 
 @router.post("/refresh")
 async def refresh_auth_tokens(
     response: Annotated[Response, "response to pass down to set cookies"],
     db: Annotated[Session, Depends(get_db_conn)],
-    refresh_token: Annotated[str | None, ""] = Cookie(default=None),
-) -> Annotated[
-    dict[str, Any],
-    "Refreshes the access token before it expires and while the refresh token exists",
-]:
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token"
-        )
-    return refresh_access_token(refresh_token=refresh_token, db=db, response=response)
+):
+    res = refresh_tokens(db=db, response=response)
+    return True
 
 
 @router.post("/logout")
-def logout_user(response: Response):
+def logout_user(
+    response: Response,
+    request: Annotated[Request, ""],
+    db: Annotated[Session, Depends(get_db_conn)],
+    current_user: Annotated[
+        User, Depends(get_current_user), "Fetching logged in user details"
+    ],
+):
     """
     Logs out the user by clearing the JWT cookies.
     """
-    clear_jwt_cookies(response)
-    clear_csrf_cookie(response)
+    logout(request=request, response=response, db=db)
+    # clear_jwt_cookies(response)
+    # clear_csrf_cookie(response)
     return {"msg": "Logout Successful"}
 
 
@@ -95,7 +137,7 @@ def reset_password_route(
 @router.get("/me")
 def get_me(
     current_user: Annotated[
-        UserOut, Depends(get_current_user), "Fetching logged in user details"
+        User, Depends(get_current_user), "Fetching logged in user details"
     ],
     db: Annotated[Session, Depends(get_db_conn)],
 ):

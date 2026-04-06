@@ -5,6 +5,7 @@ import os
 import bcrypt
 import pyotp
 import qrcode
+import hashlib
 
 
 class PasswordConfig:
@@ -16,16 +17,6 @@ class PasswordConfig:
     REQUIRE_SPECIAL = True
 
 
-def hash_password(plain_password: str) -> str:
-    # if not _validate_password_strength(plain_password):
-    #     raise ValueError("Password doesn't meet requirements")
-    salt = bcrypt.gensalt(rounds=PasswordConfig.SALT_ROUNDS)
-    password_bytes = plain_password.encode("utf-8")
-    hashed = bcrypt.hashpw(password_bytes, salt)
-
-    return hashed.decode("utf-8")
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         password_bytes = plain_password.encode("utf-8")
@@ -33,6 +24,31 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(password_bytes, hashed_bytes)
     except Exception:
         return False
+
+
+def hash_password(plain_password: str) -> str:
+    # if not _validate_password_strength(plain_password):
+    #     raise ValueError("Password doesn't meet requirements")
+
+    salt = bcrypt.gensalt(rounds=PasswordConfig.SALT_ROUNDS)
+    password_bytes = plain_password.encode("utf-8")
+    hashed = bcrypt.hashpw(password_bytes, salt)
+
+    return hashed.decode("utf-8")
+
+
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def verify_token(token: str, hashed_token: str) -> bool:
+    """
+    Returns True if the token matches the stored hash.
+    """
+    # hash the incoming token
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    # compare with stored hash
+    return token_hash == hashed_token
 
 
 def generate_totp_secret() -> str:
