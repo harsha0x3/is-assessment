@@ -100,17 +100,8 @@ async def save_evidence_file_s3(file: UploadFile, app_name: str):
     except ClientError as e:
         raise HTTPException(500, f"Error uploading file to S3: {e}")
 
-VIEWABLE_TYPES = {
-    "pdf",
-    "png",
-    "jpg",
-    "jpeg",
-    "gif",
-    "webp",
-    "txt",
-    "mp4",
-    "webm"
-}
+
+VIEWABLE_TYPES = {"pdf", "png", "jpg", "jpeg", "gif", "webp", "txt", "mp4", "webm"}
 
 
 def validate_s3_key(file_key: str):
@@ -128,6 +119,7 @@ def validate_s3_key(file_key: str):
 
     return file_key
 
+
 def get_s3_presigned_url(file_key: str, expires_in: int = 300) -> str:
     try:
         valid_file_key = validate_s3_key(file_key)
@@ -136,10 +128,7 @@ def get_s3_presigned_url(file_key: str, expires_in: int = 300) -> str:
             raise HTTPException(403, "Invalid file path")
 
         # Fetch metadata
-        metadata = s3_client.head_object(
-            Bucket=S3_BUCKET,
-            Key=valid_file_key
-        )
+        metadata = s3_client.head_object(Bucket=S3_BUCKET, Key=valid_file_key)
 
         content_type = metadata.get("ContentType", "")
 
@@ -154,11 +143,7 @@ def get_s3_presigned_url(file_key: str, expires_in: int = 300) -> str:
             "video/webm",
         }
 
-        disposition = (
-            "inline"
-            if content_type in VIEWABLE_MIME_TYPES
-            else "attachment"
-        )
+        disposition = "inline" if content_type in VIEWABLE_MIME_TYPES else "attachment"
 
         filename = Path(valid_file_key).name
 

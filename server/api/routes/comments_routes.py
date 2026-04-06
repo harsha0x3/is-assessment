@@ -10,7 +10,7 @@ from fastapi import (
     Form,
 )
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+
 from typing import Annotated
 
 from api.controllers import comments_controller as comment_ctrl

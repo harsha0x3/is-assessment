@@ -1,52 +1,58 @@
-// components/comments/CommentItem.tsx
-
+import React, { useMemo } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useUpdateCommentMutation } from "../store/commentsApiSlice";
+
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/utils/handleApiError";
-import type { CommentOut } from "../types";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
-
-import { parseStatus } from "@/utils/helpers";
-import { Badge } from "@/components/ui/badge";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
 import { Pencil } from "lucide-react";
+import type { ExecSummaryOut } from "../types";
+import { useUpdateExecSummaryMutation } from "../store/execSummaryApiSlice";
 
-const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
+const ExecSummaryItem: React.FC<{ execSummary: ExecSummaryOut }> = ({
+  execSummary,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(comment.content);
-  const [saveEditComment] = useUpdateCommentMutation();
+  const [editContent, setEditContent] = useState(execSummary.content);
+  const [saveEditExecSummary] = useUpdateExecSummaryMutation();
   const currentUser = useSelector(selectAuth);
 
-  const handleEditComment = async (commentId: string) => {
-    try {
-      await saveEditComment({
-        commentId,
-        payload: { content: editContent },
-      }).unwrap();
-    } catch (err) {
-      const errMsg: string = getApiErrorMessage(err) ?? "Error editing comment";
-      toast.error(errMsg);
-    }
-  };
+  const created = new Date(execSummary.created_at + "Z").toLocaleString();
+  const updated = execSummary?.updated_at
+    ? new Date(execSummary.updated_at + "Z").toLocaleString()
+    : undefined;
 
-  const created = new Date(comment.created_at + "Z").toLocaleString();
-
-  const isWithin24Hours = (dateString?: string) => {
+  const isWithin8Days = (dateString?: string) => {
     if (!dateString) return false;
 
     const created = new Date(dateString + "Z").getTime();
     const now = Date.now();
 
-    return now - created <= 24 * 60 * 60 * 1000;
+    return now - created <= 8 * 24 * 60 * 60 * 1000;
   };
 
-  const isAuthor = currentUser?.id === comment.author_id;
-  const canEdit = isAuthor && isWithin24Hours(comment.created_at);
+  const canEdit = useMemo(
+    () =>
+      execSummary?.created_at &&
+      ["admin", "manager"].includes(currentUser.role) &&
+      isWithin8Days(execSummary?.created_at),
+    [currentUser, execSummary],
+  );
+
+  const handleEditExecSummary = async (summaryId: string) => {
+    try {
+      await saveEditExecSummary({
+        summaryId,
+        body: { content: editContent },
+      }).unwrap();
+    } catch (err) {
+      const errMsg: string = getApiErrorMessage(err) ?? "Error editing summary";
+      toast.error(errMsg);
+    }
+  };
 
   return (
     <div className="border rounded-lg px-2 py-3 shadow-sm bg-card">
@@ -59,8 +65,8 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
           {/* Content or Edit Mode */}
           {!isEditing ? (
             <div className="mt-2 text-[14px] overflow-auto pr-3">
-              <ScrollArea className="max-h-120">
-                <p className="whitespace-pre-line">{comment.content}</p>
+              <ScrollArea className="max-h-90">
+                <p className="whitespace-pre-line">{execSummary.content}</p>
               </ScrollArea>
             </div>
           ) : (
@@ -77,7 +83,7 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
                   variant="outline"
                   onClick={() => {
                     setIsEditing(false);
-                    setEditContent(comment.content);
+                    setEditContent(execSummary.content);
                   }}
                 >
                   Cancel
@@ -86,7 +92,7 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
                 <Button
                   onClick={() => {
                     setIsEditing(false);
-                    handleEditComment(comment.id);
+                    handleEditExecSummary(execSummary.id);
                   }}
                 >
                   Save
@@ -97,21 +103,11 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
           <div className="flex justify-between items-center gap-2">
             <div className="flex items-center justify-between w-full gap-2">
               <div className="flex items-center justify-between text-muted-foreground gap-2">
-                <p className="">{comment.author?.full_name}</p>
-                {comment?.status && (
-                  <Badge
-                    variant="outline"
-                    style={{
-                      color: STATUS_COLOR_MAP_FG[comment.status],
-                      backgroundColor: STATUS_COLOR_MAP_BG[comment.status],
-                    }}
-                    className="capitalize"
-                  >
-                    {parseStatus(comment.status)}
-                  </Badge>
-                )}
+                <p className="">{execSummary.author?.full_name}</p>
               </div>
-              <p className="text-xs text-muted-foreground">{created}</p>
+              <p className="text-xs text-muted-foreground">
+                {!!updated ? updated : created}
+              </p>
             </div>
 
             {/* Actions */}
@@ -124,14 +120,6 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
                 >
                   <Pencil size={16} />
                 </Button>
-
-                {/* <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(comment.id)}
-                >
-                  <Trash2 size={16} className="text-red-500" />
-                </Button> */}
               </div>
             )}
           </div>
@@ -141,4 +129,4 @@ const CommentItem: React.FC<{ comment: CommentOut }> = ({ comment }) => {
   );
 };
 
-export default CommentItem;
+export default ExecSummaryItem;

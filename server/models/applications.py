@@ -65,7 +65,9 @@ class Application(Base, BaseMixin):
     owner = relationship(
         "User", back_populates="owned_applications", foreign_keys=[owner_id]
     )
-    comments = relationship("Comment", back_populates="application")
+    comments = relationship(
+        "Comment", back_populates="application", order_by="desc(Comment.created_at)"
+    )
     departments = relationship(
         "Department", secondary="application_departments", back_populates="applications"
     )
@@ -83,6 +85,11 @@ class Application(Base, BaseMixin):
         "ApplicationControlResult",
         back_populates="application",
         cascade="all, delete-orphan",
+    )
+    executive_summaries = relationship(
+        "ExecutiveSummary",
+        back_populates="application",
+        order_by="desc(ExecutiveSummary.created_at)",
     )
 
     def __repr__(self) -> str:

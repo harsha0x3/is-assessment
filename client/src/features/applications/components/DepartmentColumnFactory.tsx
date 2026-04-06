@@ -4,6 +4,7 @@ import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import type { NewAppListOut } from "../types";
 import { lazy, Suspense } from "react";
+import DescriptionCell from "@/components/ui/description-cell";
 const DeptStatusHeaderFilter = lazy(
   () => import("../components/tableHeaders/DeptStatusHeaderFilter"),
 );
@@ -12,7 +13,7 @@ const colHelper = createColumnHelper<NewAppListOut>();
 export const createDepartmentStatusColumn = (
   deptKey: string,
   displayName: string,
-): ColumnDef<NewAppListOut> =>
+): ColumnDef<NewAppListOut>[] => [
   colHelper.display({
     id: `${deptKey}_status`,
     minSize: 140,
@@ -43,4 +44,22 @@ export const createDepartmentStatusColumn = (
         </div>
       );
     },
-  });
+  }),
+  colHelper.display({
+    id: `${deptKey}_status`,
+    header: "Latest Comment",
+    minSize: 300,
+    maxSize: 400,
+    cell: ({ row }) => {
+      const dept = row.original.departments?.find(
+        (d) => d.name.toLowerCase() === deptKey,
+      );
+      const latestComent = dept?.latest_comment?.content;
+      return (
+        <div>
+          <DescriptionCell content={latestComent ?? ""} />
+        </div>
+      );
+    },
+  }),
+];

@@ -50,6 +50,7 @@ import {
 import AppTypeFilter from "./tableHeaders/AppTypeFilter";
 import AppSeverityHeaderFilter from "./tableHeaders/AppSeverityHeaderFilter";
 import { Separator } from "@/components/ui/separator";
+import ExecSummaryItem from "@/features/exec_sumary/components/ExecSummaryItem";
 const VerticalSearchFilter = lazy(
   () => import("../components/tableHeaders/VerticalSearchFilter"),
 );
@@ -161,21 +162,7 @@ const AppsTable: React.FC = () => {
 
   const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
     web_vapt: [
-      createDepartmentStatusColumn("web_vapt", "Web VAPT"),
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
-          );
-        },
-      }),
-
+      ...createDepartmentStatusColumn("web_vapt", "Web VAPT"),
       colHelper.accessor("app_url", {
         header: "App URL",
         cell: (info) => {
@@ -184,21 +171,7 @@ const AppsTable: React.FC = () => {
       }),
     ],
     mobile_vapt: [
-      createDepartmentStatusColumn("mobile_vapt", "Mobile VAPT"),
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
-          );
-        },
-      }),
-
+      ...createDepartmentStatusColumn("mobile_vapt", "Mobile VAPT"),
       colHelper.accessor("app_url", {
         header: "App URL",
         cell: (info) => {
@@ -215,23 +188,11 @@ const AppsTable: React.FC = () => {
         },
       }),
 
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
-          );
-        },
-      }),
+      ...createDepartmentStatusColumn("tprm", "TPRM"),
     ],
 
     security_controls: [
-      createDepartmentStatusColumn("security controls", "Security Controls"),
+      ...createDepartmentStatusColumn("security controls", "Security Controls"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {
@@ -239,26 +200,12 @@ const AppsTable: React.FC = () => {
             <p className="whitespace-normal wrap-break-word">
               {info.getValue()}
             </p>
-          );
-        },
-      }),
-
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
           );
         },
       }),
     ],
     iam: [
-      createDepartmentStatusColumn("iam", "IAM"),
+      ...createDepartmentStatusColumn("iam", "IAM"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {
@@ -266,26 +213,12 @@ const AppsTable: React.FC = () => {
             <p className="whitespace-normal wrap-break-word">
               {info.getValue()}
             </p>
-          );
-        },
-      }),
-
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
           );
         },
       }),
     ],
     soc_integration: [
-      createDepartmentStatusColumn("soc integration", "SOC Integration"),
+      ...createDepartmentStatusColumn("soc integration", "SOC Integration"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {
@@ -293,25 +226,12 @@ const AppsTable: React.FC = () => {
             <p className="whitespace-normal wrap-break-word">
               {info.getValue()}
             </p>
-          );
-        },
-      }),
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
           );
         },
       }),
     ],
     ai_security: [
-      createDepartmentStatusColumn("ai security", "AI Security"),
+      ...createDepartmentStatusColumn("ai security", "AI Security"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {
@@ -319,26 +239,13 @@ const AppsTable: React.FC = () => {
             <p className="whitespace-normal wrap-break-word">
               {info.getValue()}
             </p>
-          );
-        },
-      }),
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
           );
         },
       }),
     ],
 
     privacy: [
-      createDepartmentStatusColumn("privacy", "Privacy"),
+      ...createDepartmentStatusColumn("privacy", "Privacy"),
       colHelper.accessor("titan_spoc", {
         header: "Titan SPOC",
         cell: (info) => {
@@ -346,19 +253,6 @@ const AppsTable: React.FC = () => {
             <p className="whitespace-normal wrap-break-word">
               {info.getValue()}
             </p>
-          );
-        },
-      }),
-      colHelper.accessor("latest_comment", {
-        header: "Latest Comment",
-        minSize: 300,
-        maxSize: 400,
-        cell: (info) => {
-          const comment = info.getValue();
-          return (
-            <div>
-              <DescriptionCell content={comment?.content ?? ""} />
-            </div>
           );
         },
       }),
@@ -502,17 +396,32 @@ const AppsTable: React.FC = () => {
         cell: (info) => {
           const status: AppStatuses = info.getValue();
           return (
-            <div className=" w-full pl-4">
-              <Badge
-                className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
-                style={{
-                  backgroundColor: STATUS_COLOR_MAP_BG[status],
-                  color: STATUS_COLOR_MAP_FG[status],
-                }}
-              >
-                {parseStatus(status)}
-              </Badge>
-            </div>
+            <HoverCard openDelay={100} closeDelay={200}>
+              <HoverCardTrigger asChild>
+                <div className=" w-full pl-4">
+                  <Badge
+                    className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
+                    style={{
+                      backgroundColor: STATUS_COLOR_MAP_BG[status],
+                      color: STATUS_COLOR_MAP_FG[status],
+                    }}
+                  >
+                    {parseStatus(status)}
+                  </Badge>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-lg space-y-2" side="top">
+                <h2 className="test-lg font-bold">Executive Summary</h2>
+                <Separator />
+                {info.row.original?.latest_executive_summary ? (
+                  <ExecSummaryItem
+                    execSummary={info.row.original.latest_executive_summary}
+                  />
+                ) : (
+                  "No Data Added"
+                )}
+              </HoverCardContent>
+            </HoverCard>
           );
         },
       }),

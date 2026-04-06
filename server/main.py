@@ -21,6 +21,7 @@ from api.routes import (
     dept_questionnaire_routes,
     app_questions_routes,
     vertical_routes,
+    exec_summary_routes,
 )
 
 
@@ -111,3 +112,4 @@ app.include_router(evidence_routes.router)
 app.include_router(dept_questionnaire_routes.router)
 app.include_router(app_questions_routes.router)
 app.include_router(vertical_routes.router)
+app.include_router(exec_summary_routes.router)

@@ -55,6 +55,7 @@ class User(Base, BaseMixin):
         "Department", secondary="department_users", back_populates="users"
     )
     comments = relationship("Comment", back_populates="author")
+    executive_summaries = relationship("ExecutiveSummary", back_populates="author")
     uploaded_evidences = relationship("ApplicationEvidence", back_populates="uploader")
 
     department_links = relationship(

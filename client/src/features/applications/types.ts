@@ -5,6 +5,7 @@ import type {
 } from "../departments/types";
 import type { CommentOut } from "../comments/types";
 import type { VerticalItem } from "../verticals/types";
+import type { ExecSummaryOut } from "../exec_sumary/types";
 
 // app_schemas.ts
 export interface ApplicationCreate {
@@ -126,6 +127,8 @@ export interface NewAppListOut {
   is_privacy_applicable?: boolean;
   app_type?: string;
   severity?: number;
+
+  latest_executive_summary: ExecSummaryOut;
 
   app_vertical?: VerticalItem;
 }

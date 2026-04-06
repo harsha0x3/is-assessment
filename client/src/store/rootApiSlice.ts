@@ -42,6 +42,7 @@ export const rootApiSlice = createApi({
     "AppQuestionnaire",
     "DepartmentControl",
     "Verticals",
+    "ExecSummary",
   ],
 
   endpoints: () => ({}),

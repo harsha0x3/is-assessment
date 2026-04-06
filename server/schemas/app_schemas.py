@@ -4,18 +4,17 @@ from typing import Literal
 
 from datetime import datetime, date
 from .department_schemas import (
-    AppDepartmentOut,
     DepartmentOut,
     AppDeptOutWithLatestComment,
 )
 from .checklist_schemas import ChecklistOut
 from api.controllers.comments_controller import get_latest_app_dept_comment
 from api.controllers.department_controller import (
-    get_departments_by_application,
     get_departments_with_latest_comment,
 )
 from sqlalchemy.orm import Session
 from .comment_schemas import CommentOut
+from .exec_summary_schemas import ExecSummaryOut
 
 
 class VerticalOut(BaseModel):
@@ -191,7 +190,8 @@ class NewAppListOut(BaseModel):
     vendor_company: str | None = None
     titan_spoc: str | None
     departments: list[AppDeptOutWithLatestComment] | None = None
-    latest_comment: CommentOut | None
+
+    latest_executive_summary: ExecSummaryOut | None
 
     app_url: str | None
 
@@ -201,14 +201,7 @@ class NewAppListOut(BaseModel):
     def from_application(
         cls, app, db: Session, dept_filter_id: int | None = None, is_exec: bool = False
     ):
-        latest_comment = None
-
         depts_out = get_departments_with_latest_comment(app_id=app.id, db=db)
-
-        if dept_filter_id and not is_exec:
-            latest_comment = get_latest_app_dept_comment(
-                app_id=app.id, dept_id=dept_filter_id, db=db
-            )
 
         return cls(
             id=app.id,
@@ -222,7 +215,6 @@ class NewAppListOut(BaseModel):
             completed_at=app.completed_at,
             departments=depts_out,
             vendor_company=app.vendor_company,
-            latest_comment=latest_comment,
             due_date=app.due_date,
             titan_spoc=app.titan_spoc,
             environment=app.environment,
@@ -233,6 +225,11 @@ class NewAppListOut(BaseModel):
             app_url=app.app_url,
             app_vertical=VerticalOut.model_validate(app.app_vertical)
             if app.app_vertical
+            else None,
+            latest_executive_summary=ExecSummaryOut.model_validate(
+                app.executive_summaries[0]
+            )
+            if app.executive_summaries
             else None,
         )
 

@@ -48,6 +48,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { VerticalsMultiSelect } from "@/features/verticals/components/VerticalsMultiSelect";
+import ExecSummaryList from "@/features/exec_sumary/components/ExecSummaryList";
 
 const applicationDefaultValues: ApplicationOut = {
   id: "",
@@ -1122,6 +1123,12 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                   />
                 </div>
               </section>
+
+              {!isNew && !isEditing && !isAdding && appId && (
+                <section>
+                  <ExecSummaryList appId={appId} />
+                </section>
+              )}
             </div>
           </ScrollArea>
           <div className="rounded-md bg-accent py-2 mx-1 flex items-center justify-between px-4">

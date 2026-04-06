@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, BackgroundTasks
 from sqlalchemy import select, and_, desc, asc, func, or_, case
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from models import (
     Application,
@@ -10,6 +10,7 @@ from models import (
     DepartmentControl,
     ApplicationControlResult,
     User,
+    ExecutiveSummary,
 )
 from schemas.app_schemas import (
     ApplicationCreate,
@@ -23,7 +24,7 @@ from schemas.app_schemas import (
     EnvironmentCounts,
 )
 from schemas.department_schemas import DepartmentOut
-
+from schemas.exec_summary_schemas import ExecSummaryOut
 from services.notifications.email_notify import send_new_app_mails_bg
 from schemas.notification_schemas import NewAppData
 import os
@@ -201,130 +202,6 @@ def apply_scope_filter(stmt, scope: str | None):
     return stmt
 
 
-def compute_app_statuses(db: Session, stmt) -> AppStatuses:
-    normalized_status = func.replace(
-        func.replace(func.lower(stmt.c.status), " ", "_"), "-", "_"
-    )
-
-    rows = db.execute(
-        select(normalized_status.label("status"), func.count().label("status_count"))
-        .select_from(stmt)
-        .group_by(normalized_status)
-    ).all()
-
-    app_statuses = {row.status: int(row.status_count) for row in rows}
-
-    return AppStatuses(
-        in_progress=app_statuses.get("in_progress", 0),
-        not_yet_started=app_statuses.get("not_yet_started", 0),
-        closed=app_statuses.get("closed", 0),
-        completed=app_statuses.get("completed", 0),
-        new_request=app_statuses.get("new_request", 0),
-        cancelled=app_statuses.get("cancelled", 0),
-        reopen=app_statuses.get("reopen", 0),
-        hold=app_statuses.get("hold", 0),
-        go_live=app_statuses.get("go_live", 0),
-    )
-
-
-# --------------------------
-# Helper: Compute environment counts
-# --------------------------
-def compute_environment_counts(db: Session, stmt) -> EnvironmentCounts:
-    env_counts = db.execute(
-        select(
-            func.sum(case((stmt.c.environment.ilike(r"%internal%"), 1), else_=0)).label(
-                "internal_count"
-            ),
-            func.sum(case((stmt.c.environment.ilike(r"%external%"), 1), else_=0)).label(
-                "external_count"
-            ),
-        )
-    ).first()
-
-    return EnvironmentCounts(
-        internal=env_counts.internal_count if env_counts else 0,
-        external=env_counts.external_count if env_counts else 0,
-    )
-
-
-# --------------------------
-# Helper: Compute app type & priority counts
-# --------------------------
-def compute_app_type_and_priority_counts(
-    db: Session, stmt
-) -> tuple[int, int, int, int, int, dict[int, int]]:
-    # Priority counts
-    priority_rows = db.execute(
-        select(stmt.c.app_priority, func.count().label("cnt")).group_by(
-            stmt.c.app_priority
-        )
-    ).all()
-    priority_counts = {row.app_priority: row.cnt for row in priority_rows}
-
-    # App type counts
-    type_counts = db.execute(
-        select(
-            func.sum(case((stmt.c.app_type.in_(["mobile"]), 1), else_=0)).label(
-                "mobile"
-            ),
-            func.sum(case((stmt.c.app_type.in_(["web"]), 1), else_=0)).label("web"),
-            func.sum(case((stmt.c.app_type.in_(["mobile_web"]), 1), else_=0)).label(
-                "mobile_web"
-            ),
-            func.sum(case((stmt.c.is_app_ai == True, 1), else_=0)).label("ai"),
-            func.sum(case((stmt.c.is_privacy_applicable == True, 1), else_=0)).label(
-                "privacy"
-            ),
-        )
-    ).first()
-
-    if not type_counts:
-        return 0, 0, 0, 0, 0, priority_counts
-
-    return (
-        type_counts.mobile or 0,
-        type_counts.web or 0,
-        type_counts.mobile_web or 0,
-        type_counts.ai or 0,
-        type_counts.privacy or 0,
-        priority_counts,
-    )
-
-
-# --------------------------
-# Main: Build apps summary
-# --------------------------
-def build_apps_summary(db: Session, stmt) -> AppsSummaryOut:
-    total_apps = db.scalar(select(func.count()).select_from(stmt))
-    app_statuses = compute_app_statuses(db, stmt)
-    internal_env, external_env = (
-        compute_environment_counts(db, stmt).internal,
-        compute_environment_counts(db, stmt).external,
-    )
-    (
-        mobile_count,
-        web_count,
-        mobile_web_count,
-        ai_count,
-        privacy_count,
-        priority_counts,
-    ) = compute_app_type_and_priority_counts(db, stmt)
-
-    return AppsSummaryOut(
-        total_apps=total_apps or 0,
-        app_statuses=app_statuses,
-        priority_counts=priority_counts,
-        ai_app_count=ai_count,
-        privacy_app_count=privacy_count,
-        mobile_app_count=mobile_count,
-        web_app_count=web_count,
-        mobile_web_app_count=mobile_web_count,
-        internal_environment_count=internal_env or 0,
-        external_environment_count=external_env or 0,
-    )
-
-
 def apply_filters(stmt, params: AppQueryParams, current_user: User, db: Session):
     """
     Apply filtering based on user role, department, verticals, status, type, priority, and search params.
@@ -490,11 +367,11 @@ def compute_apps_summary(db: Session, stmt) -> AppsSummaryOut:
                 "go_live"
             ),
             # Environment
-            func.sum(case((stmt.c.environment.ilike("%internal%"), 1), else_=0)).label(
-                "internal"
+            func.sum(case((stmt.c.environment.ilike(r"%internal%"), 1), else_=0)).label(
+                "internal_count"
             ),
-            func.sum(case((stmt.c.environment.ilike("%external%"), 1), else_=0)).label(
-                "external"
+            func.sum(case((stmt.c.environment.ilike(r"%external%"), 1), else_=0)).label(
+                "external_count"
             ),
             # App types
             func.sum(case((stmt.c.app_type == "mobile", 1), else_=0)).label("mobile"),
@@ -538,30 +415,29 @@ def compute_apps_summary(db: Session, stmt) -> AppsSummaryOut:
         mobile_app_count=agg_row.mobile if agg_row else 0 or 0,
         web_app_count=agg_row.web if agg_row else 0 or 0,
         mobile_web_app_count=agg_row.mobile_web if agg_row else 0 or 0,
-        internal_environment_count=agg_row.internal if agg_row else 0 or 0,
-        external_environment_count=agg_row.external if agg_row else 0 or 0,
+        internal_environment_count=agg_row.internal_count if agg_row else 0 or 0,
+        external_environment_count=agg_row.external_count if agg_row else 0 or 0,
     )
 
 
-# --------------------------
-# Example usage in list_all_apps
-# --------------------------
 def list_all_apps(db: Session, params: AppQueryParams, current_user: User):
     try:
-        # Build base query
         stmt = (
             select(Application)
             .where(Application.is_active)
-            .options(joinedload(Application.departments))
+            .options(
+                joinedload(Application.departments),
+                selectinload(Application.executive_summaries),
+            )
         )
-        apps_summary = build_apps_summary(db=db, stmt=stmt.subquery())
+        apps_summary = compute_apps_summary(db=db, stmt=stmt.subquery())
 
         # Apply filters (role, vertical, priority, type, search, etc.)
         stmt = apply_filters(stmt, params, current_user, db=db)
 
         filtered_subquery = stmt.subquery()
 
-        filtered_summary = build_apps_summary(db=db, stmt=filtered_subquery)
+        filtered_summary = compute_apps_summary(db=db, stmt=filtered_subquery)
 
         # Build summary
 
