@@ -50,9 +50,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
       const result = await login(data).unwrap();
       if (result?.data) {
         dispatch(loginSuccess(result.data));
+        if (result.data.role === "digital_head")
+          navigate("dashboard/executive_dashboard");
+        else navigate("dashboard/analytics");
         reset();
       }
-      navigate("dashboard/analytics");
+
       return;
     } catch (err: unknown) {
       const errMsg = getApiErrorMessage(err) ?? "Login Failed";
