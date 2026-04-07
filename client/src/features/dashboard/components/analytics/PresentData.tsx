@@ -5,6 +5,7 @@ import StatusBarChart from "./StatusBarChart";
 import PresentFilters from "./PresentFilters";
 import { getApiErrorMessage } from "@/utils/handleApiError";
 import type { FilterProps } from "../../pages/AnalyticsDashboard";
+import ExportAllApps from "../exportData/ExportAllApps";
 interface Props {
   filters: FilterProps;
   setFilters: React.Dispatch<React.SetStateAction<FilterProps>>;
@@ -57,12 +58,19 @@ const PresentData: React.FC<Props> = ({
               filters={filters}
             />
 
-            <PresentFilters
-              filters={filters}
-              setFilters={setFilters}
-              syncFilters={syncFilters}
-              setSyncFilters={setSyncFilters}
-            />
+            <div className="w-64 border-l pl-4 flex flex-col">
+              <div className="flex-1 min-h-0">
+                <PresentFilters
+                  filters={filters}
+                  setFilters={setFilters}
+                  syncFilters={syncFilters}
+                  setSyncFilters={setSyncFilters}
+                />
+              </div>
+              <div className="flex justify-end">
+                <ExportAllApps />
+              </div>
+            </div>
           </>
         )}
       </CardContent>

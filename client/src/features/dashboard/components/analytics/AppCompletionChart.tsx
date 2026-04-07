@@ -40,7 +40,7 @@ const AppCompletionChart: React.FC = () => {
   );
 
   return (
-    <Card className="max-w-150 min-w-100 h-150">
+    <Card className="max-w-200 min-w-100 h-150 w-130">
       <CardHeader>
         <CardTitle className="text-center">
           Application Completion Summary

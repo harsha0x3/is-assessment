@@ -284,15 +284,15 @@ class AppQueryParams(BaseModel):
 
 
 class AppStatuses(BaseModel):
-    in_progress: int
-    not_yet_started: int
-    closed: int
-    completed: int
-    new_request: int
-    cancelled: int
-    reopen: int
-    hold: int
-    go_live: int
+    in_progress: int | None = 0
+    not_yet_started: int | None = 0
+    closed: int | None = 0
+    completed: int | None = 0
+    new_request: int | None = 0
+    cancelled: int | None = 0
+    reopen: int | None = 0
+    hold: int | None = 0
+    go_live: int | None = 0
 
 
 class EnvironmentCounts(BaseModel):
@@ -301,13 +301,13 @@ class EnvironmentCounts(BaseModel):
 
 
 class AppsSummaryOut(BaseModel):
-    total_apps: int
+    total_apps: int | None = 0
     app_statuses: AppStatuses
-    priority_counts: dict[int, int]
-    ai_app_count: int
-    privacy_app_count: int
-    mobile_app_count: int
-    web_app_count: int
-    mobile_web_app_count: int
+    priority_counts: dict[int | None, int | None]
+    ai_app_count: int | None = 0
+    privacy_app_count: int | None = 0
+    mobile_app_count: int | None = 0
+    web_app_count: int | None = 0
+    mobile_web_app_count: int | None = 0
     internal_environment_count: int | None = 0
     external_environment_count: int | None = 0

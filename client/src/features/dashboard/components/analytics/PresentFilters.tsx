@@ -36,7 +36,7 @@ const PresentFilters: React.FC<Props> = ({
   const visibleSeverity = selectedSeverity.slice(0, 2);
   const remainingSeverityCount = selectedSeverity.length - 2;
   return (
-    <div className="w-64 flex flex-col gap-5 border-l pl-4">
+    <div className="w-full flex flex-col gap-5 ">
       <h3 className="font-semibold">Filters</h3>
 
       <div className="flex flex-col gap-1">

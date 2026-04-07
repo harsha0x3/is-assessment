@@ -75,17 +75,17 @@ const sidebarItems: SidebarData[] = [
   //   roles: ["admin", "moderator", "user", "manager"],
   // },
   {
-    title: "Priority Dashboard",
-    isActive: false,
-    path: "/dashboard/secondary",
-    icon: BarChart2,
-    roles: ["admin", "moderator", "user", "manager"],
-  },
-  {
     title: "Analytics",
     isActive: false,
     path: "/dashboard/analytics",
     icon: BarChart3,
+    roles: ["admin", "moderator", "user", "manager"],
+  },
+  {
+    title: "Priority Dashboard",
+    isActive: false,
+    path: "/dashboard/secondary",
+    icon: BarChart2,
     roles: ["admin", "moderator", "user", "manager"],
   },
   {

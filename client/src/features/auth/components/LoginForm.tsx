@@ -52,7 +52,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
         dispatch(loginSuccess(result.data));
         reset();
       }
-      navigate("/dashboard/primary");
+      navigate("dashboard/analytics");
       return;
     } catch (err: unknown) {
       const errMsg = getApiErrorMessage(err) ?? "Login Failed";

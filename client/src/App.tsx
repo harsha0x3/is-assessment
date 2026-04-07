@@ -63,7 +63,7 @@ function App() {
               userData && userData.data.role === "digital_head" ? (
                 <Navigate to="/executive_dashboard" replace />
               ) : (
-                <Navigate to="/dashboard/primary" replace />
+                <Navigate to="dashboard/analytics" replace />
               )
             }
           />
