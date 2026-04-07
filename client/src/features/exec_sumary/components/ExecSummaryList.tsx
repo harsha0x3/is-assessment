@@ -83,7 +83,7 @@ const ExecSummaryList: React.FC<{
   return (
     <div>
       <div className="flex w-full items-center gap-2 pb-2">
-        <h2 className="text-lg font-semibold px-3">ExecSummary</h2>
+        <h2 className="text-lg font-semibold px-3">Executive Summary</h2>
 
         {canAdd && !isNewExecSummary && (
           <Hint label="New ExecSummary">
@@ -134,7 +134,9 @@ const ExecSummaryList: React.FC<{
       )}
 
       {(!execSummaryToShow || execSummaryToShow.length === 0) && (
-        <p className="text-sm text-muted-foreground">No execSummary yet.</p>
+        <p className="text-sm text-muted-foreground">
+          No Executive Summary added yet.
+        </p>
       )}
 
       {/* ✅ First item always visible */}
