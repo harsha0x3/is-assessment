@@ -35,6 +35,7 @@ import type {
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import {
   daysBetweenDateAndToday,
+  daysBetweenDates,
   parseDate,
   parseStatus,
   shortenDept,
@@ -322,19 +323,32 @@ const ExecDashboardTable: React.FC = () => {
         ),
         maxSize: 150,
         minSize: 120,
-        cell: (info) => {
-          const rawDate = info.getValue(); // "2026-01-11"
+        cell: ({ row }) => {
+          const rawStartDate = row.original.started_at; // "2026-01-11"
+          const rawEndDate = row.original.completed_at;
 
-          return rawDate ? (
-            <div className="w-full">
-              <p>Started: {parseDate(rawDate)}</p>
-              <p className="text-muted-foreground">
-                {daysBetweenDateAndToday(rawDate)} Days ago
-              </p>
-            </div>
-          ) : (
-            "-"
-          );
+          if (rawStartDate && !rawEndDate) {
+            return (
+              <div className="w-full">
+                <p>Started: {parseDate(rawStartDate)}</p>
+                <p className="text-muted-foreground">
+                  {daysBetweenDateAndToday(rawStartDate)} Days ago
+                </p>
+              </div>
+            );
+          } else if (rawStartDate && rawEndDate) {
+            const duration = daysBetweenDates(rawStartDate, rawEndDate);
+            return (
+              <div className="w-full">
+                <p>
+                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
+                </p>
+                <p className="text-muted-foreground">{duration} Days</p>
+              </div>
+            );
+          } else {
+            return <span>-</span>;
+          }
         },
       }),
       colHelper.accessor("departments", {

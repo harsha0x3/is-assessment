@@ -22,6 +22,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import DescriptionCell from "@/components/ui/description-cell";
 import {
   daysBetweenDateAndToday,
+  daysBetweenDates,
   getSeverityLabel,
   parseDate,
   parseStatus,
@@ -332,19 +333,7 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
-      ...(!departmentView
-        ? [
-            colHelper.accessor("description", {
-              header: "Description",
-              maxSize: 400,
-              minSize: 220,
-              cell: (info) => {
-                const content: string = info.getValue() ?? "-";
-                return <DescriptionCell content={content} />;
-              },
-            }),
-          ]
-        : []),
+
       colHelper.accessor("app_vertical.name", {
         header: () => (
           <Suspense fallback="Vertical">
@@ -357,34 +346,42 @@ const AppsTable: React.FC = () => {
           return <span>{info.getValue()}</span>;
         },
       }),
+      colHelper.accessor("started_at", {
+        header: () => (
+          <Suspense fallback="Duration">
+            <SLAFilterHeader />
+          </Suspense>
+        ),
+        maxSize: 150,
+        minSize: 120,
+        cell: ({ row }) => {
+          const rawStartDate = row.original.started_at; // "2026-01-11"
+          const rawEndDate = row.original.completed_at;
 
-      ...(!departmentView
-        ? [
-            colHelper.accessor("started_at", {
-              header: () => (
-                <Suspense fallback="Duration">
-                  <SLAFilterHeader />
-                </Suspense>
-              ),
-              maxSize: 150,
-              minSize: 120,
-              cell: (info) => {
-                const rawDate = info.getValue(); // "2026-01-11"
-
-                return rawDate ? (
-                  <div className="w-full">
-                    <p>Started: {parseDate(rawDate)}</p>
-                    <p className="text-muted-foreground">
-                      {daysBetweenDateAndToday(rawDate)} Days ago
-                    </p>
-                  </div>
-                ) : (
-                  "-"
-                );
-              },
-            }),
-          ]
-        : []),
+          if (rawStartDate && !rawEndDate) {
+            return (
+              <div className="w-full">
+                <p>Started: {parseDate(rawStartDate)}</p>
+                <p className="text-muted-foreground">
+                  {daysBetweenDateAndToday(rawStartDate)} Days ago
+                </p>
+              </div>
+            );
+          } else if (rawStartDate && rawEndDate) {
+            const duration = daysBetweenDates(rawStartDate, rawEndDate);
+            return (
+              <div className="w-full">
+                <p>
+                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
+                </p>
+                <p className="text-muted-foreground">{duration} Days</p>
+              </div>
+            );
+          } else {
+            return <span>-</span>;
+          }
+        },
+      }),
       colHelper.accessor("status", {
         header: () => (
           <Suspense fallback={"Status"}>
@@ -425,6 +422,36 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
+      colHelper.accessor("severity", {
+        header: () => <AppSeverityHeaderFilter />,
+        minSize: 90,
+        maxSize: 120,
+        cell: (info) => {
+          const val = info.getValue();
+
+          return (
+            <Badge
+              className={`${val && val === 1 ? "bg-indigo-300" : val === 2 ? "bg-blue-400" : val === 3 ? "bg-red-300" : val === 4 ? "bg-amber-600" : "bg-muted"}`}
+            >
+              {val ? getSeverityLabel(val) : "-"}
+            </Badge>
+          );
+        },
+      }),
+      ...(!departmentView
+        ? [
+            colHelper.accessor("description", {
+              header: "Description",
+              maxSize: 400,
+              minSize: 220,
+              cell: (info) => {
+                const content: string = info.getValue() ?? "-";
+                return <DescriptionCell content={content} />;
+              },
+            }),
+          ]
+        : []),
+
       colHelper.accessor("environment", {
         header: () => (
           <div className="flex items-center w-full space-x-2 gap-2">
@@ -451,23 +478,6 @@ const AppsTable: React.FC = () => {
         maxSize: 160,
         cell: (info) => {
           return info.getValue();
-        },
-      }),
-
-      colHelper.accessor("severity", {
-        header: () => <AppSeverityHeaderFilter />,
-        minSize: 90,
-        maxSize: 120,
-        cell: (info) => {
-          const val = info.getValue();
-
-          return (
-            <Badge
-              className={`${val && val === 1 ? "bg-indigo-300" : val === 2 ? "bg-blue-400" : val === 3 ? "bg-red-300" : val === 4 ? "bg-amber-600" : "bg-muted"}`}
-            >
-              {val ? getSeverityLabel(val) : "-"}
-            </Badge>
-          );
         },
       }),
 

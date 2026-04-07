@@ -32,6 +32,22 @@ export const daysBetweenDateAndToday = (
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
 
+export const daysBetweenDates = (
+  startDateStr: string | null | undefined,
+  endDateStr: string | null | undefined,
+): number | "-" => {
+  if (!startDateStr || !endDateStr) return "-";
+
+  const startDate = new Date(startDateStr + "Z");
+  const endDate = new Date(endDateStr + "Z");
+
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(0, 0, 0, 0);
+
+  const diffMs = endDate.getTime() - startDate.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+};
+
 export const daysAfterDateAndToday = (
   date: string | null | undefined,
 ): number | "-" => {
