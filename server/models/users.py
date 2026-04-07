@@ -38,6 +38,8 @@ class User(Base, BaseMixin):
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     disabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    microsoft_id: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
+
     __table_args__ = (
         Index("ix_users_full_name", "full_name", unique=False),
         Index("ix_users_email", "email", unique=True),
@@ -72,6 +74,7 @@ class User(Base, BaseMixin):
 
     vertical_links = relationship("VerticalOwnerMap", back_populates="owner")
     verticals = association_proxy("vertical_links", "vertical")
+    sessions = relationship("UserSession", back_populates="user")
 
     # ----------------------Functions---------------------------------
     def set_password(self, plain_password: str) -> None:

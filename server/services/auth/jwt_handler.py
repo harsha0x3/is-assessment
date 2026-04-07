@@ -16,16 +16,19 @@ class JWTConfig:
     REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "your-refresh-secret")
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = int(
-        os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60")
+        os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "15")
     )
-    REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "15"))
+    REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "1"))
 
 
-def create_tokens(user_id: str, role: str, mfa_verified: bool) -> tuple[str, str]:
+def create_tokens(
+    user_id: str, role: str, sid: str, mfa_verified: bool
+) -> tuple[str, str]:
     now = datetime.now(timezone.utc)
     access_payload = {
         "sub": user_id,
         "role": role,
+        "sid": sid,
         "mfa_verified": mfa_verified,
         "iat": now,
         "exp": now + timedelta(minutes=JWTConfig.ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -33,6 +36,7 @@ def create_tokens(user_id: str, role: str, mfa_verified: bool) -> tuple[str, str
 
     refresh_payload = {
         "sub": user_id,
+        "sid": sid,
         "type": "refresh",
         "iat": now,
         "exp": now + timedelta(days=JWTConfig.REFRESH_TOKEN_EXPIRE_DAYS),
@@ -92,7 +96,13 @@ def verify_refresh_token(token: str) -> dict[str, Any] | None:
     return None
 
 
-def set_jwt_cookies(response: Response, access_token: str, refresh_token: str):
+def set_jwt_cookies(
+    response: Response,
+    access_token: str,
+    refresh_token: str,
+    csrf_token: str,
+    session_id: str,
+):
     try:
         access_exp = datetime.now(timezone.utc) + timedelta(
             minutes=JWTConfig.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -119,6 +129,24 @@ def set_jwt_cookies(response: Response, access_token: str, refresh_token: str):
             path="/",
             expires=int(refresh_exp.timestamp()),
         )
+        response.set_cookie(
+            key="session_id",
+            value=session_id,
+            httponly=True,
+            secure=True,
+            samesite="lax" if is_prod else "none",
+            path="/",
+            expires=int(refresh_exp.timestamp()),
+        )
+        response.set_cookie(
+            key="csrf_token",
+            value=csrf_token,
+            httponly=False,  # Allow JavaScript access
+            secure=True,  # Changed: secure in prod, not secure in dev
+            samesite="lax" if is_prod else "none",
+            path="/",
+        )
+
         return {"access_exp": access_exp}
     except Exception as e:
         print(f"Encountered Error in Setting cookies {str(e)}")

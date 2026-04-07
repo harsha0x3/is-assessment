@@ -1,6 +1,4 @@
-from typing import Annotated
-
-from fastapi import HTTPException, Response, status
+from fastapi import HTTPException, Response, status, Request, Cookie, Header
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,7 +7,6 @@ from models import User, PasswordResetOtp
 from services.auth.jwt_handler import (
     create_tokens,
     set_jwt_cookies,
-    verify_refresh_token,
 )
 from schemas.auth_schemas import (
     DepartmentInAuth,
@@ -17,21 +14,117 @@ from schemas.auth_schemas import (
     PasswordResetRequest,
     ResetPasswordPayload,
     OTPEmailPaylod,
+    CreateSessionOut,
 )
 from schemas.vertical_schemas import VerticalBase
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from services.notifications.password_reset_otp import send_email
-from services.auth.csrf_handler import set_csrf_cookie
+from services.auth.csrf_handler import generate_csrf_token
 from dotenv import load_dotenv
 import os
+import uuid
+from models import UserSession
+
+from services.auth.microsoft_oauth import (
+    exchange_code_for_token,
+    verify_id_token,
+)
+from services.auth.deps import get_current_session
+
+load_dotenv()
+
+VALID_EMAIL_ORG = os.getenv("VALID_EMAIL_ORG")
 
 is_prod = os.getenv("PROD_ENV", "false").lower() == "true"
 
 load_dotenv()
 
+# api/controllers/auth_controller.py
+
+
+def get_user_info(user: User):
+    try:
+        user_depts: list[DepartmentInAuth] = []
+        for usr_dept, dept in zip(user.department_links, user.departments):
+            user_dept_info = DepartmentInAuth(
+                user_dept_id=usr_dept.id,
+                department_role=usr_dept.role,
+                department_id=dept.id,
+                department_name=dept.name,
+                department_description=dept.description,
+            )
+            user_depts.append(user_dept_info)
+
+        verticals = [
+            VerticalBase(id=v.id, name=v.name, description=v.description)
+            for v in user.verticals
+        ]
+        result = UserWithDepartmentInfo(
+            id=user.id,
+            full_name=user.full_name,
+            email=user.email,
+            role=user.role,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            departments=user_depts,
+            verticals=verticals,
+        )
+
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting user info",
+        )
+
+
+def create_user_session(
+    user: User, db: Session, request: Request, mfa_verified: bool = True
+):
+    """
+    Handles session creation, token generation, and cookie setting.
+    Returns the access and refresh tokens along with the session.
+    """
+    sid = uuid.uuid4()
+    csrf_token = generate_csrf_token()
+
+    access, refresh = create_tokens(
+        user_id=user.id,
+        role=user.role,
+        mfa_verified=mfa_verified,
+        sid=str(sid),
+    )
+    try:
+        session = UserSession(
+            id=sid,
+            user_id=user.id,
+            csrf_token=csrf_token,
+            user_agent=request.headers.get("user-agent"),
+            ip_address=request.client.host if request.client else "0.0.0.0",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+        session.set_refresh_token(refresh)
+        session.set_access_token(access)
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+        return CreateSessionOut(
+            session=session,
+            access_token=access,
+            refresh_token=refresh,
+            csrf_token=csrf_token,
+        )
+
+    except Exception as e:
+        print("USer creation err", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Eror creating user session",
+        )
+
 
 def login_user(
-    log_user: LoginRequest, db: Session, response: Response
+    log_user: LoginRequest, db: Session, response: Response, request: Request
 ) -> UserWithDepartmentInfo:
     try:
         user = db.scalar(
@@ -67,41 +160,23 @@ def login_user(
         if user.must_change_password:
             raise HTTPException(status_code=403, detail="PASSWORD_RESET_REQUIRED")
 
-        user_depts: list[DepartmentInAuth] = []
-        for usr_dept, dept in zip(user.department_links, user.departments):
-            user_dept_info = DepartmentInAuth(
-                user_dept_id=usr_dept.id,
-                department_role=usr_dept.role,
-                department_id=dept.id,
-                department_name=dept.name,
-                department_description=dept.description,
-            )
-            user_depts.append(user_dept_info)
-
         mfa_verified = user.mfa_enabled
-        access, refresh = create_tokens(
-            user_id=user.id, role=user.role, mfa_verified=mfa_verified
-        )
-        _access_exp = set_jwt_cookies(
-            response=response, access_token=access, refresh_token=refresh
-        )
-        set_csrf_cookie(response)
-        verticals = [
-            VerticalBase(id=v.id, name=v.name, description=v.description)
-            for v in user.verticals
-        ]
-        result = UserWithDepartmentInfo(
-            id=user.id,
-            full_name=user.full_name,
-            email=user.email,
-            role=user.role,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            departments=user_depts,
-            verticals=verticals,
+
+        user_session = create_user_session(
+            user=user, db=db, request=request, mfa_verified=mfa_verified
         )
 
-        return result
+        _access_exp = set_jwt_cookies(
+            response=response,
+            access_token=user_session.access_token,
+            refresh_token=user_session.refresh_token,
+            csrf_token=user_session.csrf_token,
+            session_id=user_session.session.id,
+        )
+
+        user_info = get_user_info(user=user)
+
+        return user_info
     except HTTPException:
         raise
     except Exception as e:
@@ -109,6 +184,53 @@ def login_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "Error logging in", "err_stack": str(e)},
         )
+
+
+def microsoft_callback_login(
+    code: str, response: Response, request: Request, db: Session
+):
+    token_data = exchange_code_for_token(code=code)
+    id_token = token_data.get("id_token")
+    if not id_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Microsoft ID token"
+        )
+
+    # 2️⃣ Verify token and extract user info
+    payload = verify_id_token(id_token=id_token)
+
+    email = payload.get("preferred_username") or payload.get("email")
+    microsoft_id = payload.get("id")
+
+    if not email or not microsoft_id:
+        raise HTTPException(400, "Invalid Microsoft payload")
+
+    if not email.endswith(VALID_EMAIL_ORG):
+        raise HTTPException(403, "Unauthorized email domain")
+
+    user = db.scalar(select(User).where(User.email == email))
+    if not user or not user.is_active:
+        raise HTTPException(403, "User not registered or disabled")
+
+    if not user.microsoft_id:
+        user.microsoft_id = microsoft_id
+        db.commit()
+
+    user_session = create_user_session(
+        user=user, db=db, request=request, mfa_verified=True
+    )
+
+    _access_exp = set_jwt_cookies(
+        response=response,
+        access_token=user_session.access_token,
+        refresh_token=user_session.refresh_token,
+        csrf_token=user_session.csrf_token,
+        session_id=user_session.session.id,
+    )
+
+    user_info = get_user_info(user=user)
+
+    return user_info
 
 
 async def request_for_passsword_reset(db: Session, payload: PasswordResetRequest):
@@ -238,35 +360,6 @@ def reset_password(db: Session, payload: ResetPasswordPayload):
         )
 
 
-def refresh_access_token(
-    refresh_token: Annotated[str, "refresh token"],
-    db: Annotated[Session, "Getting db connectoion"],
-    response: Annotated[Response, ""],
-):
-    payload = verify_refresh_token(token=refresh_token)
-    if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or Expired Refresh Token",
-        )
-    user_id = payload.get("sub")
-    user = db.scalar(select(User).where(User.id == user_id))
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
-        )
-    access, refresh = create_tokens(
-        user_id=user.id, role=user.role, mfa_verified=user.mfa_enabled
-    )
-
-    access_exp = set_jwt_cookies(
-        response=response, access_token=access, refresh_token=refresh
-    )
-    set_csrf_cookie(response)
-
-    return {"user": user.to_dict_safe(), "access_exp": access_exp.get("access_exp")}
-
-
 def clear_jwt_cookies(response: Response):
     response.delete_cookie(
         key="access_token",
@@ -282,3 +375,58 @@ def clear_jwt_cookies(response: Response):
         samesite="lax" if is_prod else "none",
         path="/",
     )
+    response.delete_cookie(
+        key="session_id",
+        httponly=True,
+        secure=True,
+        samesite="lax" if is_prod else "none",
+        path="/",
+    )
+
+
+def logout(
+    request: Request,
+    response: Response,
+    db: Session,
+):
+    try:
+        csrf_token = request.cookies.get("csrf_token")
+        csrf_header = request.headers.get("X-CSRF-Token")
+
+        access_token = request.cookies.get("access_token")
+        refresh_token = request.cookies.get("refresh_token")
+        session_id = request.cookies.get("session_id")
+
+        session = get_current_session(
+            request=request,
+            response=response,
+            db=db,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            session_id=session_id,
+        )
+
+        if not csrf_header:
+            print(" NOPE NOT FOUND INSIDE NOT FOUND CSRF HEADER")
+
+        if csrf_token != csrf_header:
+            print(f"HEDER - {csrf_header} \n COOKIE - {csrf_token} \n INVLAID CSRFFFFF")
+
+        if (
+            not csrf_token
+            or not csrf_header
+            or csrf_token != csrf_header
+            or session.csrf_token != csrf_token
+        ):
+            print("No CSRF FOUND OR INVALID")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CSRF token missing or invalid",
+            )
+
+        db.delete(session)
+        db.commit()
+        return {"msg": "Logged out"}
+
+    except HTTPException:
+        raise

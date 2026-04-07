@@ -24,6 +24,7 @@ from models import (
     department_controls,
     verticals,
     exec_summary,
+    user_sessions,
 )
 
 
