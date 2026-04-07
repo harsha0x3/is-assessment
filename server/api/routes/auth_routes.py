@@ -90,9 +90,10 @@ def microsoft_callback(
 @router.post("/refresh")
 async def refresh_auth_tokens(
     response: Annotated[Response, "response to pass down to set cookies"],
+    request: Annotated[Request, ""],
     db: Annotated[Session, Depends(get_db_conn)],
 ):
-    res = refresh_tokens(db=db, response=response)
+    res = refresh_tokens(db=db, response=response, request=request)
     return True
 
 
