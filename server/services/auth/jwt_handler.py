@@ -37,6 +37,7 @@ def create_tokens(
     refresh_payload = {
         "sub": user_id,
         "sid": sid,
+        "role": role,
         "type": "refresh",
         "iat": now,
         "exp": now + timedelta(days=JWTConfig.REFRESH_TOKEN_EXPIRE_DAYS),

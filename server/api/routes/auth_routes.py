@@ -27,8 +27,7 @@ from schemas.auth_schemas import (
     UserWithDepartmentInfo,
 )
 from schemas.vertical_schemas import VerticalBase
-from services.auth.csrf_handler import clear_csrf_cookie
-from services.auth.deps import get_current_user, refresh_tokens
+from services.auth.deps import get_current_user
 from services.auth.microsoft_oauth import (
     AUTHORIZE_URL,
     CLIENT_ID,
@@ -85,16 +84,6 @@ def microsoft_callback(
     return microsoft_callback_login(
         code=code, response=response, request=request, db=db
     )
-
-
-@router.post("/refresh")
-async def refresh_auth_tokens(
-    response: Annotated[Response, "response to pass down to set cookies"],
-    request: Annotated[Request, ""],
-    db: Annotated[Session, Depends(get_db_conn)],
-):
-    res = refresh_tokens(db=db, response=response, request=request)
-    return True
 
 
 @router.post("/logout")
