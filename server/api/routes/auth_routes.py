@@ -17,6 +17,7 @@ from api.controllers.auth_controller import (
     logout,
 )
 from db.connection import get_db_conn
+from services.auth.csrf_handler import clear_csrf_cookie
 from models import User, UserSession
 from schemas.auth_schemas import (
     DepartmentInAuth,
@@ -99,8 +100,8 @@ def logout_user(
     Logs out the user by clearing the JWT cookies.
     """
     logout(request=request, response=response, db=db)
-    # clear_jwt_cookies(response)
-    # clear_csrf_cookie(response)
+    clear_jwt_cookies(response)
+    clear_csrf_cookie(response)
     return {"msg": "Logout Successful"}
 
 

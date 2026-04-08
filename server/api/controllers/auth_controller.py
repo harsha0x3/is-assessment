@@ -425,6 +425,7 @@ def logout(
             )
 
         db.delete(session)
+
         db.commit()
         return {"msg": "Logged out"}
 

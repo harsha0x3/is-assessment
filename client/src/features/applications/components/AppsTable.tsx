@@ -395,7 +395,7 @@ const AppsTable: React.FC = () => {
           return (
             <HoverCard openDelay={100} closeDelay={200}>
               <HoverCardTrigger asChild>
-                <div className=" w-full pl-4">
+                <span className="w-fit">
                   <Badge
                     className={`capitalize ${status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
                     style={{
@@ -405,7 +405,7 @@ const AppsTable: React.FC = () => {
                   >
                     {parseStatus(status)}
                   </Badge>
-                </div>
+                </span>
               </HoverCardTrigger>
               <HoverCardContent className="w-lg space-y-2" side="top">
                 <h2 className="test-lg font-bold">Executive Summary</h2>

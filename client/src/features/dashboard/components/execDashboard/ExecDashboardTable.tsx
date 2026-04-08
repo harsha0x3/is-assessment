@@ -286,19 +286,17 @@ const ExecDashboardTable: React.FC = () => {
           return (
             <HoverCard openDelay={100} closeDelay={200}>
               <HoverCardTrigger asChild>
-                <div className=" w-full pl-4  ">
-                  <span className="hover:cursor-default hover:border-gray-200 hover:border-3 border rounded-xl">
-                    <Badge
-                      className={`capitalize ${status === "go_live" ? "border-2  border-gray-500  rounded-xl" : ""}`}
-                      style={{
-                        backgroundColor: STATUS_COLOR_MAP_BG[status],
-                        color: STATUS_COLOR_MAP_FG[status],
-                      }}
-                    >
-                      {parseStatus(status)}
-                    </Badge>
-                  </span>
-                </div>
+                <span className="hover:cursor-default hover:border-gray-200 hover:border-3 border rounded-xl">
+                  <Badge
+                    className={`capitalize ${status === "go_live" ? "border-2  border-gray-500  rounded-xl" : ""}`}
+                    style={{
+                      backgroundColor: STATUS_COLOR_MAP_BG[status],
+                      color: STATUS_COLOR_MAP_FG[status],
+                    }}
+                  >
+                    {parseStatus(status)}
+                  </Badge>
+                </span>
               </HoverCardTrigger>
               <HoverCardContent className="w-lg space-y-2" side="top">
                 <h2 className="test-lg font-bold">Executive Summary</h2>
