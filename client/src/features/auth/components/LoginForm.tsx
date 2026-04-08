@@ -51,7 +51,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
       if (result?.data) {
         dispatch(loginSuccess(result.data));
         if (result.data.role === "digital_head")
-          navigate("/dashboard/executive_dashboard");
+          navigate("/executive_dashboard");
         else navigate("/dashboard/analytics");
         reset();
       }
