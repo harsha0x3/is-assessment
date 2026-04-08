@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import HTTPException, Response, status
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 
 from dotenv import load_dotenv
 
@@ -65,10 +65,13 @@ def create_challenge_token(user_id: str) -> str:
     return jwt.encode(payload, JWTConfig.SECRET_KEY, algorithm=JWTConfig.ALGORITHM)
 
 
-def decode_access_token(token: str) -> dict[str, Any]:
-    # print("SECRETE KEY FOR DECODING: ", JWTConfig.SECRET_KEY)
-    # print("RECIEVED EDCODE TOKEN: ", token)
-    return jwt.decode(token, JWTConfig.SECRET_KEY, algorithms=[JWTConfig.ALGORITHM])
+def decode_access_token(token: str) -> dict[str, Any] | None:
+    try:
+        return jwt.decode(token, JWTConfig.SECRET_KEY, algorithms=[JWTConfig.ALGORITHM])
+    except ExpiredSignatureError:
+        return None  # <-- important
+    except JWTError:
+        return None
 
 
 def verify_refresh_token(token: str) -> dict[str, Any] | None:
