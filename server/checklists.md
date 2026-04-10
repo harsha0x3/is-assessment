@@ -251,3 +251,13 @@ Date: 04, APr, 2026
   - [ ] IP (secondary)
 
 ---
+
+| Team                   | Members                                             |
+| ---------------------- | --------------------------------------------------- |
+| IAM                    | Chaitanya C, Manas Kumar Satpathy, Bharat Reddy     |
+| TRPM                   | Bhavnasi Ramchandra, C Chetan Kumar, Monesh G       |
+| Security Controls      | Suman Adhikary, Kedareeswari Guttala                |
+| VAPT                   | Saketh Kapuganti, Perikaruppan S, C G Harshavardhan |
+| SOC                    | Amit V Kulkarni                                     |
+| Data Privacy           | Judith Jhon                                         |
+| IS Assessment Handlers | Saketh Kapuganti, C G Harshavardhan                 |

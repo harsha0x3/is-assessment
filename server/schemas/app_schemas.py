@@ -48,7 +48,9 @@ class ApplicationCreate(BaseModel):
     user_type: str | None = None
     data_type: str | None = None
 
-    app_type: str | None = None
+    app_type: (
+        Literal["mobile", "web", "mobile_web", "api", "automation", "desktop"] | None
+    ) = None
     is_app_ai: bool | None = None
     is_privacy_applicable: bool | None = None
 
@@ -136,7 +138,9 @@ class ApplicationUpdate(BaseModel):
     user_type: str | None = None
     data_type: str | None = None
 
-    app_type: str | None = None
+    app_type: (
+        Literal["mobile", "web", "mobile_web", "api", "automation", "desktop"] | None
+    ) = None
     is_app_ai: bool | None = None
 
     requested_date: date | None = None

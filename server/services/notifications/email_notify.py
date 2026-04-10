@@ -4,7 +4,7 @@ import httpx
 from dotenv import load_dotenv
 import json
 from models import User
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 from schemas.notification_schemas import NewAppNotification, NewAppData
 from fastapi import HTTPException, status
@@ -147,7 +147,11 @@ async def send_new_app_mails_to_all(payload: NewAppData, db: Session):
             )
         access_token = token["token"]
 
-        all_usrs = db.scalars(select(User).where(User.is_active)).all()
+        all_usrs = db.scalars(
+            select(User).where(
+                and_(User.is_active, User.role.in_(["moderator", "manager", "admin"]))
+            )
+        ).all()
         tasks = [
             send_new_app_notif(
                 NewAppNotification(

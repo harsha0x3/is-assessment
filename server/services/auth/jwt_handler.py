@@ -15,10 +15,8 @@ class JWTConfig:
     SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key")
     REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "your-refresh-secret")
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(
-        os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "15")
-    )
-    REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "1"))
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "9"))
+    REFRESH_TOKEN_EXPIRE_HOURS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_HOURS", "5"))
 
 
 def create_tokens(
@@ -40,7 +38,7 @@ def create_tokens(
         "role": role,
         "type": "refresh",
         "iat": now,
-        "exp": now + timedelta(days=JWTConfig.REFRESH_TOKEN_EXPIRE_DAYS),
+        "exp": now + timedelta(hours=JWTConfig.REFRESH_TOKEN_EXPIRE_HOURS),
     }
 
     # print("SECRETE KEY FOR ENCODING: ", JWTConfig.SECRET_KEY)
@@ -112,7 +110,7 @@ def set_jwt_cookies(
             minutes=JWTConfig.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         refresh_exp = datetime.now(timezone.utc) + timedelta(
-            days=JWTConfig.REFRESH_TOKEN_EXPIRE_DAYS
+            hours=JWTConfig.REFRESH_TOKEN_EXPIRE_HOURS
         )
 
         response.set_cookie(
@@ -122,7 +120,7 @@ def set_jwt_cookies(
             secure=True,
             samesite="lax" if is_prod else "none",
             path="/",
-            expires=int(access_exp.timestamp()),
+            max_age=JWTConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60 + (2 * 60 * 60),
         )
         response.set_cookie(
             key="refresh_token",
@@ -131,7 +129,7 @@ def set_jwt_cookies(
             secure=True,
             samesite="lax" if is_prod else "none",
             path="/",
-            expires=int(refresh_exp.timestamp()),
+            max_age=JWTConfig.REFRESH_TOKEN_EXPIRE_HOURS * 60 * 60 + (3 * 60),
         )
         response.set_cookie(
             key="session_id",
@@ -140,7 +138,7 @@ def set_jwt_cookies(
             secure=True,
             samesite="lax" if is_prod else "none",
             path="/",
-            expires=int(refresh_exp.timestamp()),
+            max_age=JWTConfig.REFRESH_TOKEN_EXPIRE_HOURS * 60 * 60 + (3 * 60),
         )
         response.set_cookie(
             key="csrf_token",
@@ -149,6 +147,7 @@ def set_jwt_cookies(
             secure=True,  # Changed: secure in prod, not secure in dev
             samesite="lax" if is_prod else "none",
             path="/",
+            max_age=JWTConfig.REFRESH_TOKEN_EXPIRE_HOURS * 60 * 60 + (3 * 60),
         )
 
         return {"access_exp": access_exp}

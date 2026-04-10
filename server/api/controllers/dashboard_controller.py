@@ -36,7 +36,12 @@ def _apply_scope_filter(stmt, scope: str | None):
                 Department,
                 Department.id == ApplicationDepartments.department_id,
             )
-            .where(func.lower(Department.name).in_(["web vapt", "mobile vapt"]))
+            .where(
+                and_(
+                    func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+                    ApplicationDepartments.is_active,
+                )
+            )
         )
 
     elif scope == "is_assessment":
@@ -144,6 +149,7 @@ def get_department_status_summary(
                 ApplicationDepartments,
                 ApplicationDepartments.department_id == Department.id,
             )
+            .where(ApplicationDepartments.is_active)
             .group_by(
                 Department.id,
                 Department.name,
@@ -304,11 +310,15 @@ def get_priority_wise_grouped_summary(db: Session, status_filter: str | None):
 
 def get_vertical_wise_app_statuses(db: Session, params: ds.VerticalWiseSummaryParams):
     try:
-        stmt = select(
-            Application.vertical.label("vertical"),
-            Application.status.label("status"),
-            func.count().label("status_count"),
-        ).group_by(Application.vertical, Application.status)
+        stmt = (
+            select(
+                Application.vertical.label("vertical"),
+                Application.status.label("status"),
+                func.count().label("status_count"),
+            )
+            .group_by(Application.vertical, Application.status)
+            .where(Application.is_active)
+        )
 
         stmt = _apply_scope_filter(stmt=stmt, scope=params.scope)
         rows = db.execute(stmt)
@@ -365,6 +375,7 @@ def get_department_sub_category(
                 ApplicationDepartments.status == dept_status,
                 ApplicationDepartments.app_category.is_not(None),
                 ApplicationDepartments.category_status.is_not(None),
+                ApplicationDepartments.is_active,
             )
             .group_by(
                 ApplicationDepartments.app_category,
@@ -457,8 +468,11 @@ def get_statuses_per_dept(db: Session, params: ds.StatusPerDepartmentParams):
             .join(Application, Application.id == ApplicationDepartments.application_id)
             .join(Department, Department.id == ApplicationDepartments.department_id)
             .where(
-                Application.status == params.app_status,
-                ApplicationDepartments.status == params.dept_status,
+                and_(
+                    Application.status == params.app_status,
+                    ApplicationDepartments.status == params.dept_status,
+                    ApplicationDepartments.is_active,
+                )
             )
             .group_by(Department.id, Department.name)
         )
@@ -603,8 +617,11 @@ def get_vapt_summary(db: Session) -> ds.VAPTSummary:
                 Department.id == ApplicationDepartments.department_id,
             )
             .where(
-                Application.is_active,
-                func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+                and_(
+                    Application.is_active,
+                    func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+                    ApplicationDepartments.is_active,
+                )
             )
             .group_by(app_type_case, Application.status)
         )
@@ -662,8 +679,11 @@ def get_vapt_summary_per_status(db: Session):
                 Department.id == ApplicationDepartments.department_id,
             )
             .where(
-                Application.is_active,
-                func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+                and_(
+                    Application.is_active,
+                    func.lower(Department.name).in_(["web vapt", "mobile vapt"]),
+                    ApplicationDepartments.is_active,
+                )
             )
             .group_by(Application.status, Application.app_type)
         )

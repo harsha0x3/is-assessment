@@ -132,9 +132,6 @@ def login_user(
                 User.email == log_user.email,
             )
         )
-
-        print("LOGIN PASSWORD:", repr(log_user.password))
-
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

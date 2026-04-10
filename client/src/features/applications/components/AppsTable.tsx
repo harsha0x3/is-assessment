@@ -97,64 +97,107 @@ const AppsTable: React.FC = () => {
       <div className="flex items-center gap-4">
         <div className="flex gap-2">
           {depts.map((d) => (
-            <Hint
-              key={d.id}
-              label={
-                <div className="text-[12px] space-y-2">
-                  <p>{d.name}</p>
-                  <p className="capitalize">
-                    Status:{" "}
+            <HoverCard key={d.name} openDelay={100} closeDelay={200}>
+              <HoverCardTrigger asChild>
+                <div className="flex flex-col items-center cursor-default">
+                  {appStatus === "go_live" ? (
+                    <FlagTriangleRight
+                      className="w-3 h-3"
+                      fill={
+                        d.status === "go_live"
+                          ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
+                          : "none"
+                      }
+                    />
+                  ) : (
                     <span
+                      key={d.id}
+                      className="h-3 w-3 rounded-md"
                       style={{
-                        color: STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                        backgroundColor:
+                          STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                      }}
+                    />
+                  )}
+                  <span
+                    className="hover:underline hover:text-ring hover:cursor-pointer transition-all whitespace-nowrap"
+                    onClick={() =>
+                      navigate(
+                        `details/${appId}/departments/${d.id}/comments?${searchParams.toString()}`,
+                      )
+                    }
+                  >
+                    {shortenDept(d.name.toLowerCase())}
+                  </span>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-lg p-4 text-black" side="top">
+                <div className="flex flex-col gap-2">
+                  {/* Department Name and Status */}
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">{d.name}</h3>
+                    <Badge
+                      className={`capitalize ${d.status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
+                      style={{
+                        backgroundColor: STATUS_COLOR_MAP_BG[d.status],
+                        color: STATUS_COLOR_MAP_FG[d.status],
                       }}
                     >
                       {parseStatus(d.status)}
-                    </span>
-                  </p>
-                  <Separator />
-                  <div className="">
-                    <p>Duration: </p>
-                    <p>
-                      {d?.started_at && <span>{parseDate(d.started_at)}</span>}{" "}
-                      {d?.ended_at && <span> - {parseDate(d.ended_at)}</span>}
-                    </p>
+                    </Badge>
                   </div>
+
+                  {/* Dates Section */}
+                  <div className="text-sm space-y-1">
+                    {d?.started_at && (
+                      <div>
+                        <span className="font-medium">Started:</span>{" "}
+                        {parseDate(d.started_at)}
+                      </div>
+                    )}
+                    {d?.ended_at && (
+                      <div>
+                        <span className="font-medium">Ended:</span>{" "}
+                        {parseDate(d.ended_at)}
+                      </div>
+                    )}
+                    {d?.go_live_at && (
+                      <div>
+                        <span className="font-medium">Go Live:</span>{" "}
+                        {parseDate(d.go_live_at)}
+                      </div>
+                    )}
+                  </div>
+
+                  {d?.latest_comment && (
+                    <>
+                      <Separator />
+                      {/* Latest Comment Section */}
+                      <div className="space-y-1">
+                        <div className="text-[14px]">
+                          <p className="font-bold">Comment: </p>{" "}
+                          <p className="text-[13px] whitespace-pre-line">
+                            {d.latest_comment.content}
+                          </p>
+                        </div>
+                        {d.latest_comment.author && (
+                          <div className="text-sm text-muted-foreground">
+                            <span className="font-medium">Author:</span>{" "}
+                            {d.latest_comment.author.full_name}
+                          </div>
+                        )}
+                        {d.latest_comment.updated_at && (
+                          <div className="text-sm text-muted-foreground">
+                            <span className="font-medium">Updated:</span>{" "}
+                            {parseDate(d.latest_comment.updated_at)}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              }
-            >
-              <div className="flex flex-col items-center cursor-default">
-                {appStatus === "go_live" ? (
-                  <FlagTriangleRight
-                    className="w-3 h-3"
-                    fill={
-                      d.status === "go_live"
-                        ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
-                        : "none"
-                    }
-                  />
-                ) : (
-                  <span
-                    key={d.id}
-                    className="h-3 w-3 rounded-md"
-                    style={{
-                      backgroundColor:
-                        STATUS_COLOR_MAP_FG[d.status as AppStatuses],
-                    }}
-                  />
-                )}
-                <span
-                  className="hover:underline hover:text-ring hover:cursor-pointer transition-all whitespace-nowrap"
-                  onClick={() =>
-                    navigate(
-                      `details/${appId}/departments/${d.id}/comments?${searchParams.toString()}`,
-                    )
-                  }
-                >
-                  {shortenDept(d.name.toLowerCase())}
-                </span>
-              </div>
-            </Hint>
+              </HoverCardContent>
+            </HoverCard>
           ))}
         </div>
       </div>
@@ -334,54 +377,6 @@ const AppsTable: React.FC = () => {
         },
       }),
 
-      colHelper.accessor("app_vertical.name", {
-        header: () => (
-          <Suspense fallback="Vertical">
-            <VerticalSearchFilter />
-          </Suspense>
-        ),
-        maxSize: 180,
-        minSize: 120,
-        cell: (info) => {
-          return <span>{info.getValue()}</span>;
-        },
-      }),
-      colHelper.accessor("started_at", {
-        header: () => (
-          <Suspense fallback="Duration">
-            <SLAFilterHeader />
-          </Suspense>
-        ),
-        maxSize: 150,
-        minSize: 120,
-        cell: ({ row }) => {
-          const rawStartDate = row.original.started_at; // "2026-01-11"
-          const rawEndDate = row.original.completed_at;
-
-          if (rawStartDate && !rawEndDate) {
-            return (
-              <div className="w-full">
-                <p>Started: {parseDate(rawStartDate)}</p>
-                <p className="text-muted-foreground">
-                  {daysBetweenDateAndToday(rawStartDate)} Days ago
-                </p>
-              </div>
-            );
-          } else if (rawStartDate && rawEndDate) {
-            const duration = daysBetweenDates(rawStartDate, rawEndDate);
-            return (
-              <div className="w-full">
-                <p>
-                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
-                </p>
-                <p className="text-muted-foreground">{duration} Days</p>
-              </div>
-            );
-          } else {
-            return <span>-</span>;
-          }
-        },
-      }),
       colHelper.accessor("status", {
         header: () => (
           <Suspense fallback={"Status"}>
@@ -487,6 +482,55 @@ const AppsTable: React.FC = () => {
         maxSize: 160,
         cell: (info) => {
           return info.getValue();
+        },
+      }),
+
+      colHelper.accessor("app_vertical.name", {
+        header: () => (
+          <Suspense fallback="Vertical">
+            <VerticalSearchFilter />
+          </Suspense>
+        ),
+        maxSize: 180,
+        minSize: 120,
+        cell: (info) => {
+          return <span>{info.getValue()}</span>;
+        },
+      }),
+      colHelper.accessor("started_at", {
+        header: () => (
+          <Suspense fallback="Duration">
+            <SLAFilterHeader />
+          </Suspense>
+        ),
+        maxSize: 150,
+        minSize: 120,
+        cell: ({ row }) => {
+          const rawStartDate = row.original.started_at; // "2026-01-11"
+          const rawEndDate = row.original.completed_at;
+
+          if (rawStartDate && !rawEndDate) {
+            return (
+              <div className="w-full">
+                <p>Started: {parseDate(rawStartDate)}</p>
+                <p className="text-muted-foreground">
+                  {daysBetweenDateAndToday(rawStartDate)} Days ago
+                </p>
+              </div>
+            );
+          } else if (rawStartDate && rawEndDate) {
+            const duration = daysBetweenDates(rawStartDate, rawEndDate);
+            return (
+              <div className="w-full">
+                <p>
+                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
+                </p>
+                <p className="text-muted-foreground">{duration} Days</p>
+              </div>
+            );
+          } else {
+            return <span>-</span>;
+          }
         },
       }),
       colHelper.accessor("imitra_ticket_id", {

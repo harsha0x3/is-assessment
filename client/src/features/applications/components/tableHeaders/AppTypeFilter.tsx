@@ -67,6 +67,7 @@ const AppTypeFilter: React.FC = () => {
     { value: "mobile", label: "Mobile" },
     { value: "mobile_web", label: "Mobile & Web" },
     { value: "api", label: "API" },
+    { value: "desktop", label: "Desktop" },
   ];
 
   const appFeaturesValues: { value: string; label: string }[] = [

@@ -965,6 +965,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
                             <SelectItem value="mobile_web">
                               Mobile & Web
                             </SelectItem>
+                            <SelectItem value="desktop">Desktop</SelectItem>
                             <SelectItem value="api">API</SelectItem>
                             <SelectItem value="automation">
                               Automation

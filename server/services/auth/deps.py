@@ -55,11 +55,16 @@ def refresh_tokens(
     session_id: str | None = Cookie(default=None),
 ):
     try:
+        print("REFRESHING TOKENS...")
         if not refresh_token or not session_id:
+            print("NO REFRESH TOKEN OR SESSION ID IN COOKIE")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Refresh token or session missing. Login again.",
             )
+
+        print("REFRESH FOUND IN REFRESH FUNC TYPE=", type(refresh_token))
+        print("REFRESH TOKEN", refresh_token)
 
         payload = verify_refresh_token(refresh_token)
 
@@ -108,8 +113,13 @@ def refresh_tokens(
             session_id=session.id,
         )
 
+        return new_access, new_refresh
+
     except HTTPException:
         raise
+    except Exception as e:
+        print(f"Error in token refresh:", e)
+        return None, None
 
 
 def get_current_user(
@@ -138,15 +148,26 @@ def get_current_user(
 
         # Try decoding access token first
         payload = decode_access_token(access_token)
+        if payload is None:
+            print("NO ACCESS TOKEN OR EXPIRED")
 
         # If no valid access token, try refresh
         if not payload and refresh_token and session_id:
-            refresh_tokens(
-                response=response, db=db, request=request, refresh_token=refresh_token
+            print("REFRESH FOUND", type(refresh_token), type(session_id))
+            access_token, refresh_token = refresh_tokens(
+                response=response,
+                db=db,
+                request=request,
+                refresh_token=refresh_token,
+                session_id=session_id,
             )
-            access_token = request.cookies.get("access_token")
-            if access_token:
-                payload = decode_access_token(access_token)
+            if not access_token or not refresh_token:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Could not refresh tokens. Please log in again.",
+                )
+
+            payload = decode_access_token(access_token)
 
         if not payload:
             raise HTTPException(

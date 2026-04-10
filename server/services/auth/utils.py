@@ -47,6 +47,7 @@ def verify_token(token: str, hashed_token: str) -> bool:
     """
     # hash the incoming token
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    print(f"Verifying token. Incoming hash: {token_hash}, Stored hash: {hashed_token}")
     # compare with stored hash
     return token_hash == hashed_token
 
