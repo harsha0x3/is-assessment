@@ -30,7 +30,10 @@ import {
 } from "@/utils/helpers";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
 import type { AppStatuses } from "@/utils/globalTypes";
-import type { AppDeptOutWithLatestComment } from "@/features/departments/types";
+import type {
+  AppDeptOutWithLatestComment,
+  AppDeptWithLatestExecSummary,
+} from "@/features/departments/types";
 import Hint from "@/components/ui/hint";
 import {
   Bot,
@@ -90,7 +93,7 @@ const AppsTable: React.FC = () => {
     | "privacy";
 
   const DepartmentsStatusCol: React.FC<{
-    depts: AppDeptOutWithLatestComment[];
+    depts: AppDeptOutWithLatestComment[] | AppDeptWithLatestExecSummary[];
     appId: string;
   }> = ({ depts, appId }) => {
     return (
@@ -139,8 +142,9 @@ const AppsTable: React.FC = () => {
                     <Badge
                       className={`capitalize ${d.status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
                       style={{
-                        backgroundColor: STATUS_COLOR_MAP_BG[d.status],
-                        color: STATUS_COLOR_MAP_FG[d.status],
+                        backgroundColor:
+                          STATUS_COLOR_MAP_BG[d.status as AppStatuses],
+                        color: STATUS_COLOR_MAP_FG[d.status as AppStatuses],
                       }}
                     >
                       {parseStatus(d.status)}
@@ -169,7 +173,7 @@ const AppsTable: React.FC = () => {
                     )}
                   </div>
 
-                  {d?.latest_comment && (
+                  {"latest_comment" in d && d.latest_comment && (
                     <>
                       <Separator />
                       {/* Latest Comment Section */}
@@ -206,7 +210,7 @@ const AppsTable: React.FC = () => {
 
   const DEPARTMENT_COLUMNS: Record<DeptKey, ColumnDef<NewAppListOut, any>[]> = {
     web_vapt: [
-      ...createDepartmentStatusColumn("web_vapt", "Web VAPT"),
+      ...createDepartmentStatusColumn("web vapt", "Web VAPT"),
       colHelper.accessor("app_url", {
         header: "App URL",
         cell: (info) => {
@@ -215,7 +219,7 @@ const AppsTable: React.FC = () => {
       }),
     ],
     mobile_vapt: [
-      ...createDepartmentStatusColumn("mobile_vapt", "Mobile VAPT"),
+      ...createDepartmentStatusColumn("mobile vapt", "Mobile VAPT"),
       colHelper.accessor("app_url", {
         header: "App URL",
         cell: (info) => {
@@ -417,6 +421,42 @@ const AppsTable: React.FC = () => {
           );
         },
       }),
+      colHelper.accessor("started_at", {
+        header: () => (
+          <Suspense fallback="Duration">
+            <SLAFilterHeader />
+          </Suspense>
+        ),
+        maxSize: 150,
+        minSize: 120,
+        cell: ({ row }) => {
+          const rawStartDate = row.original.started_at; // "2026-01-11"
+          const rawEndDate = row.original.completed_at;
+
+          if (rawStartDate && !rawEndDate) {
+            return (
+              <div className="w-full">
+                <p>Started: {parseDate(rawStartDate)}</p>
+                <p className="text-muted-foreground">
+                  {daysBetweenDateAndToday(rawStartDate)} Days ago
+                </p>
+              </div>
+            );
+          } else if (rawStartDate && rawEndDate) {
+            const duration = daysBetweenDates(rawStartDate, rawEndDate);
+            return (
+              <div className="w-full">
+                <p>
+                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
+                </p>
+                <p className="text-muted-foreground">{duration} Days</p>
+              </div>
+            );
+          } else {
+            return <span>-</span>;
+          }
+        },
+      }),
       colHelper.accessor("severity", {
         header: () => <AppSeverityHeaderFilter />,
         minSize: 90,
@@ -497,42 +537,7 @@ const AppsTable: React.FC = () => {
           return <span>{info.getValue()}</span>;
         },
       }),
-      colHelper.accessor("started_at", {
-        header: () => (
-          <Suspense fallback="Duration">
-            <SLAFilterHeader />
-          </Suspense>
-        ),
-        maxSize: 150,
-        minSize: 120,
-        cell: ({ row }) => {
-          const rawStartDate = row.original.started_at; // "2026-01-11"
-          const rawEndDate = row.original.completed_at;
 
-          if (rawStartDate && !rawEndDate) {
-            return (
-              <div className="w-full">
-                <p>Started: {parseDate(rawStartDate)}</p>
-                <p className="text-muted-foreground">
-                  {daysBetweenDateAndToday(rawStartDate)} Days ago
-                </p>
-              </div>
-            );
-          } else if (rawStartDate && rawEndDate) {
-            const duration = daysBetweenDates(rawStartDate, rawEndDate);
-            return (
-              <div className="w-full">
-                <p>
-                  {parseDate(rawStartDate)} - {parseDate(rawEndDate)}
-                </p>
-                <p className="text-muted-foreground">{duration} Days</p>
-              </div>
-            );
-          } else {
-            return <span>-</span>;
-          }
-        },
-      }),
       colHelper.accessor("imitra_ticket_id", {
         header: "iMitra Ticket ID",
         minSize: 90,

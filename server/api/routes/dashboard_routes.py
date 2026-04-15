@@ -13,6 +13,7 @@ from schemas.dashboard_schemas import (
     DeptSummaryQueryParams,
     StatusPerDepartmentParams,
     AppTypeSummaryParams,
+    DateRangeParams,
     VerticalWiseSummaryParams,
 )
 from services.auth.deps import get_current_user
@@ -197,3 +198,12 @@ async def get_application_completion_stats(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     return dc.get_application_completion_stats(db=db)
+
+
+@router.get("/summary/dept_completions")
+async def get_department_completion_stats(
+    db: Annotated[Session, Depends(get_db_conn)],
+    params: Annotated[DateRangeParams, Query()],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return dc.get_dept_completion_stats(db=db, params=params)

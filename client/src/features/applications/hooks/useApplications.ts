@@ -37,6 +37,7 @@ export const useApplications = () => {
   const appAgeFromFilter = searchParams.get("appAgeFrom");
   const appAgeToFilter = searchParams.get("appAgeTo");
   const appEnvironment = searchParams.get("appEnvironment");
+  const appsMode = searchParams.get("appsMode");
 
   const appStatusList = useMemo(
     () => (appStatus ? appStatus.split(",").filter(Boolean) : undefined),
@@ -79,6 +80,7 @@ export const useApplications = () => {
           : undefined,
       scope: appScope ?? undefined,
       environment: appEnvironment ?? undefined,
+      mode: appsMode ?? undefined,
     });
 
   const totalApps = useMemo(

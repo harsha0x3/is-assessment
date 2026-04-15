@@ -3,7 +3,7 @@ import urllib.parse
 from typing import Annotated, Any
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -31,7 +31,7 @@ from schemas.vertical_schemas import VerticalBase
 from services.auth.deps import get_current_user
 from services.auth.microsoft_oauth import (
     AUTHORIZE_URL,
-    CLIENT_ID,
+    AUTH_CLIENT_ID,
     REDIRECT_URI,
 )
 
@@ -65,7 +65,7 @@ async def login(
 @router.get("/microsoft/login")
 def microsoft_login():
     params = {
-        "client_id": CLIENT_ID,
+        "client_id": AUTH_CLIENT_ID,
         "response_type": "code",
         "redirect_uri": REDIRECT_URI,
         "response_mode": "query",
@@ -77,13 +77,14 @@ def microsoft_login():
 
 @router.get("/microsoft/callback")
 def microsoft_callback(
-    code: Annotated[str, ""],
     response: Annotated[Response, ""],
     request: Annotated[Request, ""],
     db: Annotated[Session, Depends(get_db_conn)],
+    code: Annotated[str | None, Query(...)] = None,
+    error: Annotated[str | None, Query(...)] = None,
 ):
     return microsoft_callback_login(
-        code=code, response=response, request=request, db=db
+        code=code, response=response, request=request, db=db, error=error
     )
 
 

@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { PageLoader } from "@/components/loaders/PageLoader";
 import type { ExecSummaryOut } from "../types";
 import {
+  useCreateDeptExecSummaryMutation,
   useCreateExecSummaryMutation,
   useGetExecSummariesByAppQuery,
 } from "../store/execSummaryApiSlice";
@@ -26,20 +27,27 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const ExecSummaryList: React.FC<{
-  appId: string;
+  appId?: string;
+  deptId?: number;
+  defaultOpen?: boolean;
   execSummaryData?: ExecSummaryOut[];
-}> = ({ appId, execSummaryData = undefined }) => {
+}> = ({ appId, deptId, execSummaryData = undefined, defaultOpen = false }) => {
   const [isNewExecSummary, setIsNewExecSummary] = useState(false);
   const [newExecSummary, setNewExecSummary] = useState("");
-  const [accordionValue, setAccordionValue] = useState<string | undefined>();
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(
+    defaultOpen ? "all" : undefined,
+  );
 
   const { data: execSummary, isLoading: isLoadingExecSummary } =
-    useGetExecSummariesByAppQuery(appId, {
-      skip: execSummaryData !== undefined,
+    useGetExecSummariesByAppQuery(appId || "", {
+      skip: execSummaryData !== undefined || !appId,
     });
 
   const [addNewExecSummary, { isLoading: isCreating }] =
     useCreateExecSummaryMutation();
+
+  const [addNewDeptExecSummary, { isLoading: isCreatingDeptExec }] =
+    useCreateDeptExecSummaryMutation();
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -52,16 +60,34 @@ const ExecSummaryList: React.FC<{
   }, [isNewExecSummary]);
 
   const canAdd = useMemo(
-    () => ["admin", "manager"].includes(currentUser.role),
+    () => ["admin", "manager", "moderator"].includes(currentUser.role),
+    [currentUser],
+  );
+  const userDepts = currentUser.departments.map((dept) => dept.department_id);
+  const canAddDeptExec = useMemo(
+    () =>
+      ["admin", "manager", "moderator"].includes(currentUser.role) &&
+      userDepts.includes(deptId || -1),
     [currentUser],
   );
 
+  const isApp = appId && !deptId;
+  const isDept = appId && deptId;
   const handleAddNewExecSummary = async () => {
     try {
-      await addNewExecSummary({
-        appId,
-        body: { content: newExecSummary },
-      }).unwrap();
+      if (isApp) {
+        await addNewExecSummary({
+          appId,
+          body: { content: newExecSummary },
+        }).unwrap();
+      }
+      if (isDept) {
+        await addNewDeptExecSummary({
+          appId,
+          deptId,
+          body: { content: newExecSummary },
+        }).unwrap();
+      }
 
       setIsNewExecSummary(false);
       setNewExecSummary("");
@@ -85,7 +111,18 @@ const ExecSummaryList: React.FC<{
       <div className="flex w-full items-center gap-2 pb-2">
         <h2 className="text-lg font-semibold px-3">Executive Summary</h2>
 
-        {canAdd && !isNewExecSummary && (
+        {isApp && canAdd && !isNewExecSummary && (
+          <Hint label="New ExecSummary">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsNewExecSummary(true)}
+            >
+              <PlusIcon className="h-5 w-5" />
+            </Button>
+          </Hint>
+        )}
+        {isDept && canAddDeptExec && !isNewExecSummary && (
           <Hint label="New ExecSummary">
             <Button
               variant="outline"
@@ -109,8 +146,11 @@ const ExecSummaryList: React.FC<{
               Cancel
             </Button>
 
-            <Button onClick={handleAddNewExecSummary} disabled={isCreating}>
-              {isCreating ? (
+            <Button
+              onClick={handleAddNewExecSummary}
+              disabled={isCreating || isCreatingDeptExec}
+            >
+              {isCreating || isCreatingDeptExec ? (
                 <span className="flex gap-2 items-center">
                   <Loader className="animate-spin" />
                   Adding..

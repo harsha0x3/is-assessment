@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy import String, ForeignKey, Text, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped, mapped_column
 from db.base import Base, BaseMixin
@@ -19,6 +19,13 @@ class ExecutiveSummary(Base, BaseMixin):
         ForeignKey("applications.id", ondelete="cascade", onupdate="cascade"),
         nullable=False,
     )
+    department_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("departments.id", ondelete="cascade", onupdate="cascade"),
+        nullable=True,
+    )
+
+    scope: Mapped[str] = mapped_column(String(20), nullable=True, default="application")
 
     # -- Relationships --
 

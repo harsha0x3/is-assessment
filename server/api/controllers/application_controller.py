@@ -460,7 +460,10 @@ def list_all_apps(db: Session, params: AppQueryParams, current_user: User):
 
         apps_out = [
             NewAppListOut.from_application(
-                app, db, dept_filter_id=params.dept_filter_id
+                app,
+                db,
+                dept_filter_id=params.dept_filter_id,
+                is_exec=params.mode == "executive",
             )
             for app in apps
         ]

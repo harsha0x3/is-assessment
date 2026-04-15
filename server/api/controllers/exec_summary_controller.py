@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy import select, and_, desc
 from sqlalchemy.orm import Session, selectinload
-from models import ExecutiveSummary, Application
+from models import ExecutiveSummary, Application, ApplicationDepartments, User
 from schemas import exec_summary_schemas as exec_schemas
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone, timedelta
@@ -44,6 +44,7 @@ def get_application_exec_summary(app_id: str, db: Session):
                 and_(
                     ExecutiveSummary.application_id == app_id,
                     ExecutiveSummary.is_active,
+                    ExecutiveSummary.scope == "application",
                 )
             )
             .order_by(desc(ExecutiveSummary.created_at))
@@ -53,6 +54,53 @@ def get_application_exec_summary(app_id: str, db: Session):
 
         for datum in data:
             result.append(exec_schemas.ExecSummaryOut.model_validate(datum))
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("err in getting app's exec summary", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error getting application's executive summary",
+        )
+
+
+def get_dept_exec_summary(app_id: str, db: Session, dept_id: int):
+    try:
+        app_dept = db.scalar(
+            select(ApplicationDepartments).where(
+                and_(
+                    ApplicationDepartments.application_id == app_id,
+                    ApplicationDepartments.department_id == dept_id,
+                    ApplicationDepartments.is_active,
+                )
+            )
+        )
+
+        print("APP DEPT", app_dept)
+
+        if not app_dept:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Invalid request"
+            )
+        data = db.scalars(
+            select(ExecutiveSummary)
+            .where(
+                and_(
+                    ExecutiveSummary.application_id == app_id,
+                    ExecutiveSummary.department_id == dept_id,
+                    ExecutiveSummary.is_active,
+                    ExecutiveSummary.scope == "department",
+                )
+            )
+            .order_by(desc(ExecutiveSummary.created_at))
+            .options(selectinload(ExecutiveSummary.author))
+        )
+        result: list[exec_schemas.DeptExecSummaryOut] = []
+
+        for datum in data:
+            result.append(exec_schemas.DeptExecSummaryOut.model_validate(datum))
 
         return result
     except HTTPException:
@@ -104,7 +152,9 @@ def get_latest_exec_summary_by_app_name(app_id: str, db: Session):
         )
 
 
-def update_exec_summary(db: Session, payload: exec_schemas.ExecSummaryUpdate):
+def update_exec_summary(
+    db: Session, payload: exec_schemas.ExecSummaryUpdate, current_user: User
+):
     try:
         exec_summary = db.get(ExecutiveSummary, payload.id)
 
@@ -113,6 +163,24 @@ def update_exec_summary(db: Session, payload: exec_schemas.ExecSummaryUpdate):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Executive summary not found",
             )
+
+        if exec_summary.scope == "department":
+            user_depts = [
+                dept.department_id
+                for dept in current_user.departments
+                if dept.is_active
+            ]
+            if exec_summary.department_id not in user_depts:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to update this executive summary",
+                )
+        elif exec_summary.scope == "application":
+            if current_user.role not in ["admin", "manager"]:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to update this executive summary",
+                )
 
         exec_created_at = exec_summary.created_at
         if exec_created_at.tzinfo is None:  # naive datetime from DB

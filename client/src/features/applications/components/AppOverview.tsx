@@ -354,9 +354,7 @@ const AppOverview: React.FC<{ onNewAppSuccess?: () => void }> = ({
 
                     {/* Criticality */}
                     <div className="my-1 space-y-3">
-                      <Label htmlFor="criticality">
-                        Severity of Crown Jewel
-                      </Label>
+                      <Label htmlFor="criticality">Severity</Label>
                       <Badge
                         className={`${appDetails?.data?.severity && appDetails.data.severity === 1 ? "bg-indigo-300" : appDetails?.data?.severity === 2 ? "bg-blue-400" : appDetails?.data?.severity === 3 ? "bg-red-300" : appDetails?.data?.severity === 4 ? "bg-amber-600" : "bg-muted"}`}
                       >

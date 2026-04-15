@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import LoginForm from "../components/LoginForm";
 import ForgotPasswordForm from "../components/ForgotPasswordForm";
 import ResetPasswordForm from "../components/ResetPasswordForm";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../store/authSlice";
+import { toast } from "sonner";
 
 type AuthStep = "login" | "forgot-password" | "reset-password";
 
 const LoginPage: React.FC = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [searchParams] = useSearchParams();
+  const error = searchParams.get("error");
   const navigate = useNavigate();
   const location = useLocation();
   const fromPath = location.state?.from?.pathname || "/dashboard";
@@ -24,6 +27,14 @@ const LoginPage: React.FC = () => {
       navigate(from);
     }
   }, [isAuthenticated, navigate, from]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        position: "top-center",
+      });
+    }
+  }, [error]);
 
   const handleForgotPasswordClick = () => {
     setAuthStep("forgot-password");

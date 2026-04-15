@@ -1,8 +1,9 @@
-from sqlalchemy import ForeignKey, String, Text, Integer, DateTime, Boolean, Date
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, String, Text, Integer, DateTime, Boolean, Date, and_
+from sqlalchemy.orm import Mapped, mapped_column, relationship, foreign
 
 from datetime import datetime, date
 from db.base import Base, BaseMixin
+from .exec_summary import ExecutiveSummary
 
 
 class Application(Base, BaseMixin):
@@ -88,8 +89,12 @@ class Application(Base, BaseMixin):
     )
     executive_summaries = relationship(
         "ExecutiveSummary",
+        primaryjoin=lambda: and_(
+            Application.id == foreign(ExecutiveSummary.application_id),
+            ExecutiveSummary.scope == "application",
+        ),
         back_populates="application",
-        order_by="desc(ExecutiveSummary.created_at)",
+        order_by=lambda: ExecutiveSummary.created_at.desc(),
     )
 
     def __repr__(self) -> str:

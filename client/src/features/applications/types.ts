@@ -1,6 +1,7 @@
 import type { AppStatuses } from "@/utils/globalTypes";
 import type {
   AppDeptOutWithLatestComment,
+  AppDeptWithLatestExecSummary,
   DepartmentOut,
 } from "../departments/types";
 import type { CommentOut } from "../comments/types";
@@ -117,7 +118,10 @@ export interface NewAppListOut {
   completed_at?: string | null;
   app_url?: string;
   vendor_company?: string;
-  departments?: AppDeptOutWithLatestComment[] | null;
+  departments?:
+    | AppDeptOutWithLatestComment[]
+    | AppDeptWithLatestExecSummary[]
+    | null;
   latest_comment?: CommentOut;
   titan_spoc?: string | null;
   environment?: string;
@@ -161,6 +165,7 @@ export interface AppQueryParams {
   scope?: string;
 
   environment?: "internal" | "external" | string;
+  mode?: "default" | "executive" | string;
 
   vertical_ids?: string;
 }

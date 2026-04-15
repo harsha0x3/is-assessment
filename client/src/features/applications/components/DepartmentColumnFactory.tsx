@@ -5,6 +5,7 @@ import { type ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import type { NewAppListOut } from "../types";
 import { lazy, Suspense } from "react";
 import DescriptionCell from "@/components/ui/description-cell";
+import type { DeptStatuses } from "@/utils/globalTypes";
 const DeptStatusHeaderFilter = lazy(
   () => import("../components/tableHeaders/DeptStatusHeaderFilter"),
 );
@@ -28,6 +29,9 @@ export const createDepartmentStatusColumn = (
         (d) => d.name.toLowerCase() === deptKey,
       );
 
+      console.log("FOuND DEPT📱📱📱", dept);
+      console.log("FOuND DEPT KEY", deptKey);
+
       const status = dept?.status ?? "yet_to_connect";
 
       return (
@@ -35,8 +39,8 @@ export const createDepartmentStatusColumn = (
           <Badge
             className="capitalize"
             style={{
-              backgroundColor: STATUS_COLOR_MAP_BG[status],
-              color: STATUS_COLOR_MAP_FG[status],
+              backgroundColor: STATUS_COLOR_MAP_BG[status as DeptStatuses],
+              color: STATUS_COLOR_MAP_FG[status as DeptStatuses],
             }}
           >
             {parseStatus(status)}
@@ -54,7 +58,10 @@ export const createDepartmentStatusColumn = (
       const dept = row.original.departments?.find(
         (d) => d.name.toLowerCase() === deptKey,
       );
-      const latestComent = dept?.latest_comment?.content;
+      const latestComent =
+        dept && "latest_comment" in dept
+          ? dept.latest_comment?.content
+          : undefined;
       return (
         <div>
           <DescriptionCell content={latestComent ?? ""} />

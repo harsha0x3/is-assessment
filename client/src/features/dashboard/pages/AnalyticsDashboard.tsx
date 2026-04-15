@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/store/authSlice";
 import { useNavigate } from "react-router-dom";
+import DeptCompletionChart from "../components/analytics/DeptCompletionChart";
 
 const PresentData = lazy(() => import("../components/analytics/PresentData"));
 // const HistoricalData = lazy(
@@ -92,7 +93,9 @@ const AnalyticsDashboard: React.FC = () => {
             />
           </Suspense>
         </div>
-
+        <div className="min-w-0">
+          <DeptCompletionChart />
+        </div>
         {/* <div className="min-w-0">
           <Suspense fallback={<CardLoader />}>
             <HistoricalData />

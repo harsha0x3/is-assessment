@@ -93,3 +93,26 @@ export interface DepartmentStatusPayload {
   started_at?: string;
   ended_at?: string;
 }
+
+export interface DeptLatestExecSummary {
+  id: string;
+  content: string;
+  author?: CommentUserOut | null;
+  scope?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface AppDeptWithLatestExecSummary {
+  id: number;
+  name: string;
+  description?: string | null;
+  status: string;
+  started_at?: string | null;
+  ended_at?: string | null;
+  go_live_at?: string | null;
+  app_category?: string | null;
+  category_status?: string | null;
+
+  latest_exec_summary?: DeptLatestExecSummary | null;
+}

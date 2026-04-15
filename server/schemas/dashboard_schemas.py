@@ -135,3 +135,8 @@ class VAPTSummary(BaseModel):
 class ApplicationCompletionStats(BaseModel):
     bucket: str
     count: int
+
+
+class DateRangeParams(BaseModel):
+    from_date: date | None = None
+    to_date: date | None = None

@@ -47,7 +47,9 @@ const AppDepartments: React.FC = () => {
     ? "evidences"
     : location.pathname.includes("comments")
       ? "comments"
-      : "questionnaire";
+      : location.pathname.includes("exec_summary")
+        ? "exec_summary"
+        : "questionnaire";
 
   return (
     <div className="w-full h-full flex flex-col text-center">
@@ -87,6 +89,15 @@ const AppDepartments: React.FC = () => {
             className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
           >
             Comments
+          </TabsTrigger>
+          <TabsTrigger
+            value="exec_summary"
+            onClick={() =>
+              navigate(`${deptId}/exec_summary?${searchParams.toString()}`)
+            }
+            className="bg-background cursor-pointer data-[state=active]:border-primary dark:data-[state=active]:border-primary h-full rounded-none border-0 border-b-2 border-transparent data-[state=active]:shadow-none"
+          >
+            Executive Summary
           </TabsTrigger>
 
           <TabsTrigger

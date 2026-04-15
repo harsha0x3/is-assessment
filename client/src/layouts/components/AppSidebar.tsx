@@ -91,7 +91,7 @@ const sidebarItems: SidebarData[] = [
   {
     title: "Executive Dashboard",
     isActive: false,
-    path: "/executive_dashboard",
+    path: "/executive_dashboard?appsMode=executive",
     icon: LayoutDashboard,
     roles: ["admin", "moderator", "user", "manager", "digital_head"],
   },

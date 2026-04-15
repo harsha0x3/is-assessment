@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, case, func, select
+from sqlalchemy import and_, case, func, select, table
 from sqlalchemy.orm import Session
 
 from api.constants.priorities import PRIORITY_ID_TO_KEY
@@ -767,4 +767,51 @@ def get_application_completion_stats(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching application completion statistics",
+        )
+
+
+def get_dept_completion_stats(db: Session, params: ds.DateRangeParams | None):
+    try:
+        stmt = (
+            select(
+                Department.name.label("department"),
+                func.count(ApplicationDepartments.id).label("completed_count"),
+            )
+            .join(
+                ApplicationDepartments,
+                ApplicationDepartments.department_id == Department.id,
+            )
+            .where(
+                and_(
+                    ApplicationDepartments.is_active,
+                    ApplicationDepartments.status == "cleared",
+                )
+            )
+            .group_by(Department.name)
+        )
+        if params:
+            if params.from_date and params.to_date:
+                stmt = stmt.where(
+                    and_(
+                        ApplicationDepartments.ended_at.is_not(None),
+                        func.date(ApplicationDepartments.ended_at).between(
+                            params.from_date, params.to_date
+                        ),
+                    )
+                )
+
+            if params.to_date:
+                stmt = stmt.where(
+                    func.date(ApplicationDepartments.ended_at) <= params.to_date
+                )
+        rows = db.execute(stmt).all()
+
+        return [
+            {"department": row.department, "completed_count": row.completed_count}
+            for row in rows
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching department completion statistics",
         )

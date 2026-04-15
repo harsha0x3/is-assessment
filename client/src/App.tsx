@@ -8,6 +8,7 @@ import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
 import { useGetMeQuery } from "./features/auth/store/authApiSlice";
 import ExecDashboardLayout from "./features/dashboard/layouts/ExecDashboardLayout";
+import ExecSummaryinfo from "./features/exec_sumary/components/ExecSummaryinfo";
 const DashboardPage = lazy(
   () => import("./features/dashboard/pages/DashboardPage"),
 );
@@ -124,6 +125,14 @@ function App() {
                       element={
                         <LazyRoute fallbackLabel="Loading departments…">
                           <DepartmentInfo />
+                        </LazyRoute>
+                      }
+                    />
+                    <Route
+                      path=":deptId/exec_summary"
+                      element={
+                        <LazyRoute fallbackLabel="Loading departments…">
+                          <ExecSummaryinfo />
                         </LazyRoute>
                       }
                     />

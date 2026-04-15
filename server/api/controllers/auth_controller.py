@@ -1,4 +1,5 @@
-from fastapi import HTTPException, Response, status, Request, Cookie, Header
+from fastapi import HTTPException, Response, status, Request
+from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,6 +17,7 @@ from schemas.auth_schemas import (
     OTPEmailPaylod,
     CreateSessionOut,
 )
+from urllib.parse import urlencode
 from schemas.vertical_schemas import VerticalBase
 from datetime import datetime, timezone, timedelta
 from services.notifications.password_reset_otp import send_email
@@ -34,6 +36,7 @@ from services.auth.deps import get_current_session
 load_dotenv()
 
 VALID_EMAIL_ORG = os.getenv("VALID_EMAIL_ORG")
+FRONTEND_URI = os.getenv("FRONTEND_URI", "http://localhost:8057")
 
 is_prod = os.getenv("PROD_ENV", "false").lower() == "true"
 
@@ -184,50 +187,92 @@ def login_user(
 
 
 def microsoft_callback_login(
-    code: str, response: Response, request: Request, db: Session
+    code: str | None,
+    response: Response,
+    request: Request,
+    db: Session,
+    error: str | None = None,
 ):
-    token_data = exchange_code_for_token(code=code)
-    id_token = token_data.get("id_token")
-    if not id_token:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Microsoft ID token"
+    try:
+        if not code and error:
+            print("ERROR IN MICROSOFT CALLBACK: ", error)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Microsoft OAuth error: {error}",
+            )
+
+        elif not code:
+            print("ERROR IN MICROSOFT CALLBACK: ", error)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Authorization code missing from Microsoft callback.",
+            )
+
+        token_data = exchange_code_for_token(code=code)
+        id_token = token_data.get("id_token")
+        if not id_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing Microsoft ID token",
+            )
+
+        # 2️⃣ Verify token and extract user info
+        payload = verify_id_token(id_token=id_token)
+        print("MICROSOFT OAUTH PAYLOAD:", payload)
+        for k, v in payload.items():
+            print(f"{k}")
+
+        email = payload.get("preferred_username") or payload.get("email")
+        microsoft_id = payload.get("oid")
+
+        if not email or not microsoft_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Microsoft payload",
+            )
+
+        if not email.endswith(VALID_EMAIL_ORG):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Unauthorized email domain",
+            )
+
+        user = db.scalar(select(User).where(User.email == email))
+        if not user or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User not registered or disabled",
+            )
+
+        if not user.microsoft_id:
+            user.microsoft_id = microsoft_id
+            db.commit()
+
+        user_session = create_user_session(
+            user=user, db=db, request=request, mfa_verified=True
         )
 
-    # 2️⃣ Verify token and extract user info
-    payload = verify_id_token(id_token=id_token)
+        redirect = RedirectResponse(url=f"{FRONTEND_URI}")
 
-    email = payload.get("preferred_username") or payload.get("email")
-    microsoft_id = payload.get("id")
+        _access_exp = set_jwt_cookies(
+            response=redirect,
+            access_token=user_session.access_token,
+            refresh_token=user_session.refresh_token,
+            csrf_token=user_session.csrf_token,
+            session_id=user_session.session.id,
+        )
 
-    if not email or not microsoft_id:
-        raise HTTPException(400, "Invalid Microsoft payload")
+        return redirect
+    except HTTPException as he:
+        return RedirectResponse(
+            url=f"{FRONTEND_URI}/login?{urlencode({'error': f'{he.detail}'})}"
+        )
 
-    if not email.endswith(VALID_EMAIL_ORG):
-        raise HTTPException(403, "Unauthorized email domain")
-
-    user = db.scalar(select(User).where(User.email == email))
-    if not user or not user.is_active:
-        raise HTTPException(403, "User not registered or disabled")
-
-    if not user.microsoft_id:
-        user.microsoft_id = microsoft_id
-        db.commit()
-
-    user_session = create_user_session(
-        user=user, db=db, request=request, mfa_verified=True
-    )
-
-    _access_exp = set_jwt_cookies(
-        response=response,
-        access_token=user_session.access_token,
-        refresh_token=user_session.refresh_token,
-        csrf_token=user_session.csrf_token,
-        session_id=user_session.session.id,
-    )
-
-    user_info = get_user_info(user=user)
-
-    return user_info
+    except Exception as e:
+        print("Error in Microsoft login:", e)
+        return RedirectResponse(
+            url=f"{FRONTEND_URI}/login?{urlencode({'error': 'An error occurred during Microsoft login'})}"
+        )
 
 
 async def request_for_passsword_reset(db: Session, payload: PasswordResetRequest):

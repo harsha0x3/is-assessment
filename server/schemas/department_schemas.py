@@ -52,6 +52,17 @@ class DeptLatestComment(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DeptLatestExecSUmmary(BaseModel):
+    id: str
+    content: str
+    author: CommentUserOut | None = None
+    scope: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AppDeptOutWithLatestComment(BaseModel):
     id: int
     name: str
@@ -64,6 +75,22 @@ class AppDeptOutWithLatestComment(BaseModel):
     category_status: str | None = None
 
     latest_comment: DeptLatestComment | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppDeptWithLatestExecSummary(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    status: str | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    go_live_at: datetime | None = None
+    app_category: str | None = None
+    category_status: str | None = None
+
+    latest_exec_summary: DeptLatestExecSUmmary | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

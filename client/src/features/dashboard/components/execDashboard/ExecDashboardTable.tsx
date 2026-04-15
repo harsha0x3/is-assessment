@@ -27,9 +27,13 @@ import AppTypeFilter from "@/features/applications/components/tableHeaders/AppTy
 import { useApplicationsContext } from "@/features/applications/context/ApplicationsContext";
 import type { NewAppListOut } from "@/features/applications/types";
 // import { useGetAllDepartmentsQuery } from "@/features/departments/store/departmentsApiSlice";
-import type { AppDeptOutWithLatestComment } from "@/features/departments/types";
+import type {
+  AppDeptOutWithLatestComment,
+  AppDeptWithLatestExecSummary,
+} from "@/features/departments/types";
 import type {
   AppStatuses,
+  DeptStatuses,
   // DeptStatuses
 } from "@/utils/globalTypes";
 import { STATUS_COLOR_MAP_BG, STATUS_COLOR_MAP_FG } from "@/utils/globalValues";
@@ -74,108 +78,114 @@ const ExecDashboardTable: React.FC = () => {
   // const { data: allDepartments } = useGetAllDepartmentsQuery();
 
   const DepartmentsStatusCol: React.FC<{
-    depts: AppDeptOutWithLatestComment[];
+    depts: AppDeptOutWithLatestComment[] | AppDeptWithLatestExecSummary[];
     appId: string;
   }> = ({ depts }) => {
     return (
       <div className="flex items-center gap-4">
         <div className="flex gap-4">
-          {depts.map((d) => (
-            <HoverCard openDelay={100} closeDelay={200}>
-              <HoverCardTrigger>
-                <div className="flex flex-col items-center cursor-default">
-                  {appStatus === "go_live" ? (
-                    <FlagTriangleRight
-                      className="w-3 h-3"
-                      fill={
-                        d.status === "go_live"
-                          ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
-                          : "none"
-                      }
-                    />
-                  ) : (
-                    <span
-                      key={d.id}
-                      className="h-4 w-4 rounded-md"
-                      style={{
-                        backgroundColor:
-                          STATUS_COLOR_MAP_FG[d.status as AppStatuses],
-                      }}
-                    />
-                  )}
-                  <span className="whitespace-nowrap">
-                    {shortenDept(d.name.toLowerCase())}
-                  </span>
-                </div>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-lg p-4 text-black" side="top">
-                <div className="flex flex-col gap-2">
-                  {/* Department Name and Status */}
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">{d.name}</h3>
-                    <Badge
-                      className={`capitalize ${d.status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
-                      style={{
-                        backgroundColor: STATUS_COLOR_MAP_BG[d.status],
-                        color: STATUS_COLOR_MAP_FG[d.status],
-                      }}
-                    >
-                      {parseStatus(d.status)}
-                    </Badge>
-                  </div>
+          {depts.map((d) => {
+            const latestExecSummary =
+              "latest_exec_summary" in d ? d.latest_exec_summary : null;
 
-                  {/* Dates Section */}
-                  <div className="text-sm space-y-1">
-                    {d?.started_at && (
-                      <div>
-                        <span className="font-medium">Started:</span>{" "}
-                        {parseDate(d.started_at)}
-                      </div>
+            return (
+              <HoverCard key={d.id} openDelay={100} closeDelay={200}>
+                <HoverCardTrigger>
+                  <div className="flex flex-col items-center cursor-default">
+                    {appStatus === "go_live" ? (
+                      <FlagTriangleRight
+                        className="w-3 h-3"
+                        fill={
+                          d.status === "go_live"
+                            ? STATUS_COLOR_MAP_FG[d.status as AppStatuses]
+                            : "none"
+                        }
+                      />
+                    ) : (
+                      <span
+                        key={d.id}
+                        className="h-4 w-4 rounded-md"
+                        style={{
+                          backgroundColor:
+                            STATUS_COLOR_MAP_FG[d.status as AppStatuses],
+                        }}
+                      />
                     )}
-                    {d?.ended_at && (
-                      <div>
-                        <span className="font-medium">Ended:</span>{" "}
-                        {parseDate(d.ended_at)}
-                      </div>
-                    )}
-                    {d?.go_live_at && (
-                      <div>
-                        <span className="font-medium">Go Live:</span>{" "}
-                        {parseDate(d.go_live_at)}
-                      </div>
-                    )}
+                    <span className="whitespace-nowrap">
+                      {shortenDept(d.name.toLowerCase())}
+                    </span>
                   </div>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-lg p-4 text-black" side="top">
+                  <div className="flex flex-col gap-2">
+                    {/* Department Name and Status */}
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">{d.name}</h3>
+                      <Badge
+                        className={`capitalize ${d.status === "go_live" ? "border-2 border-gray-500 rounded-xl" : ""}`}
+                        style={{
+                          backgroundColor:
+                            STATUS_COLOR_MAP_BG[d.status as DeptStatuses],
+                          color: STATUS_COLOR_MAP_FG[d.status as DeptStatuses],
+                        }}
+                      >
+                        {parseStatus(d.status)}
+                      </Badge>
+                    </div>
 
-                  {d?.latest_comment && (
-                    <>
-                      <Separator />
-                      {/* Latest Comment Section */}
-                      <div className="space-y-1">
-                        <div className="text-[14px]">
-                          <p className="font-bold">Comment: </p>{" "}
-                          <p className="text-[13px] whitespace-pre-line">
-                            {d.latest_comment.content}
-                          </p>
+                    {/* Dates Section */}
+                    <div className="text-sm space-y-1">
+                      {d?.started_at && (
+                        <div>
+                          <span className="font-medium">Started:</span>{" "}
+                          {parseDate(d.started_at)}
                         </div>
-                        {d.latest_comment.author && (
-                          <div className="text-sm text-muted-foreground">
-                            <span className="font-medium">Author:</span>{" "}
-                            {d.latest_comment.author.full_name}
+                      )}
+                      {d?.ended_at && (
+                        <div>
+                          <span className="font-medium">Ended:</span>{" "}
+                          {parseDate(d.ended_at)}
+                        </div>
+                      )}
+                      {d?.go_live_at && (
+                        <div>
+                          <span className="font-medium">Go Live:</span>{" "}
+                          {parseDate(d.go_live_at)}
+                        </div>
+                      )}
+                    </div>
+
+                    {latestExecSummary && (
+                      <>
+                        <Separator />
+                        {/* Latest Comment Section */}
+                        <div className="space-y-1">
+                          <div className="text-[14px]">
+                            <p className="font-bold">Comment: </p>{" "}
+                            <p className="text-[13px] whitespace-pre-line">
+                              {latestExecSummary.content}
+                            </p>
                           </div>
-                        )}
-                        {d.latest_comment.updated_at && (
-                          <div className="text-sm text-muted-foreground">
-                            <span className="font-medium">Updated:</span>{" "}
-                            {parseDate(d.latest_comment.updated_at)}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </HoverCardContent>
-            </HoverCard>
-          ))}
+                          {latestExecSummary.author && (
+                            <div className="text-sm text-muted-foreground">
+                              <span className="font-medium">Author:</span>{" "}
+                              {latestExecSummary.author.full_name}
+                            </div>
+                          )}
+                          {latestExecSummary.updated_at && (
+                            <div className="text-sm text-muted-foreground">
+                              <span className="font-medium">Updated:</span>{" "}
+                              {parseDate(latestExecSummary.updated_at)}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            );
+          })}
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+from typing import Literal
 
 
 class NewExecSummaryRequest(BaseModel):
@@ -17,6 +18,8 @@ class Author(BaseModel):
 class ExecSummaryInput(NewExecSummaryRequest):
     author_id: str
     application_id: str
+    department_id: int | None = None
+    scope: Literal["application", "department"] = "application"
 
 
 class ExecSummaryUpdate(NewExecSummaryRequest):
@@ -28,6 +31,11 @@ class ExecSummaryOut(ExecSummaryUpdate):
     application_id: str
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    scope: str | None = "application"
     author: Author | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DeptExecSummaryOut(ExecSummaryOut):
+    department_id: int | None = None

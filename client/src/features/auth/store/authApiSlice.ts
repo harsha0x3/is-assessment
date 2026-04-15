@@ -126,6 +126,13 @@ export const authApiSlice = rootApiSlice.injectEndpoints({
         body: payload,
       }),
     }),
+
+    microsoftLogin: builder.mutation({
+      query: () => ({
+        url: "auth/microsoft/login",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -138,4 +145,5 @@ export const {
   useLogoutMutation,
   useRequestPasswordResetMutation,
   useResetPasswordMutation,
+  useMicrosoftLoginMutation,
 } = authApiSlice;

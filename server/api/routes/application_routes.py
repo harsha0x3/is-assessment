@@ -98,6 +98,7 @@ async def new_list_all_apps(
     severity: Annotated[str | None, Query()] = None,
     app_age_from: Annotated[date | None, Query()] = None,
     app_age_to: Annotated[date | None, Query()] = None,
+    mode: Annotated[Literal["default", "executive"], Query()] = "default",
     scope: Annotated[
         Literal["is_assessment", "vapt_only", "all"], Query()
     ] = "is_assessment",
@@ -190,6 +191,7 @@ async def new_list_all_apps(
         scope=scope,
         vertical_ids=[int(v) for v in vertical_ids_list],
         environment=environment,
+        mode=mode,
     )
     data = list_all_apps(db=db, params=params, current_user=current_user)
     return {"msg": "Applications fetched successfully", "data": data}

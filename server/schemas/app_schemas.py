@@ -6,11 +6,13 @@ from datetime import datetime, date
 from .department_schemas import (
     DepartmentOut,
     AppDeptOutWithLatestComment,
+    AppDeptWithLatestExecSummary,
 )
 from .checklist_schemas import ChecklistOut
-from api.controllers.comments_controller import get_latest_app_dept_comment
+
 from api.controllers.department_controller import (
     get_departments_with_latest_comment,
+    get_departments_with_latest_exec_sumary,
 )
 from sqlalchemy.orm import Session
 from .comment_schemas import CommentOut
@@ -193,7 +195,9 @@ class NewAppListOut(BaseModel):
 
     vendor_company: str | None = None
     titan_spoc: str | None
-    departments: list[AppDeptOutWithLatestComment] | None = None
+    departments: (
+        list[AppDeptOutWithLatestComment] | list[AppDeptWithLatestExecSummary] | None
+    ) = None
 
     latest_executive_summary: ExecSummaryOut | None
 
@@ -205,7 +209,11 @@ class NewAppListOut(BaseModel):
     def from_application(
         cls, app, db: Session, dept_filter_id: int | None = None, is_exec: bool = False
     ):
-        depts_out = get_departments_with_latest_comment(app_id=app.id, db=db)
+        depts_out = (
+            get_departments_with_latest_comment(app_id=app.id, db=db)
+            if not is_exec
+            else get_departments_with_latest_exec_sumary(app_id=app.id, db=db)
+        )
 
         return cls(
             id=app.id,
@@ -277,6 +285,7 @@ class AppQueryParams(BaseModel):
     app_age_to: date | None
 
     scope: Literal["is_assessment", "vapt_only", "all"] = "is_assessment"
+    mode: Literal["default", "executive"] = "default"
 
     @field_validator("sort_by")
     @classmethod

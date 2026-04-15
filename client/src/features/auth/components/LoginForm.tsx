@@ -62,6 +62,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
       dispatch(setError(errMsg));
     }
   };
+
   return (
     <Card className="w-full max-w-md mx-auto p-4 h-fit bg-transparent/30 backdrop-blur-xl">
       <CardHeader>
@@ -87,6 +88,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
                 {...register("email", { required: true })}
                 placeholder="Enter email or username"
                 className="pl-10"
+                autoComplete="email"
               />
             </div>
           </div>
@@ -106,11 +108,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
               )}
             </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-1" />
               <PasswordInput
                 {...register("password", { required: true })}
                 placeholder="Enter password"
                 className=""
+                autoComplete="off"
               />
             </div>
           </div>
@@ -184,6 +187,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
             )}
           </Button>
         </form>
+        <Button
+          className=""
+          onClick={() => {
+            window.location.href = `${import.meta.env.VITE_API_URL}/auth/microsoft/login`;
+          }}
+        >
+          MS Login
+        </Button>
       </CardContent>
     </Card>
   );

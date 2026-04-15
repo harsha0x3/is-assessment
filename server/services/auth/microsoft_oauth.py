@@ -7,13 +7,13 @@ from fastapi import HTTPException, status
 
 _jwks_cache = None
 
-TENANT_ID = os.getenv("TENANT_ID")
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+AUTH_TENANT_ID = os.getenv("AUTH_TENANT_ID")
+AUTH_CLIENT_ID = os.getenv("AUTH_CLIENT_ID")
+AUTH_CLIENT_SECRET = os.getenv("AUTH_CLIENT_SECRET")
 APPLICATION_URI = os.getenv("APPLICATION_URI")
 REDIRECT_URI = f"{APPLICATION_URI}/auth/microsoft/callback"
 
-AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
+AUTHORITY = f"https://login.microsoftonline.com/{AUTH_TENANT_ID}"
 AUTHORIZE_URL = f"{AUTHORITY}/oauth2/v2.0/authorize"
 TOKEN_URL = f"{AUTHORITY}/oauth2/v2.0/token"
 JWKS_URL = f"{AUTHORITY}/discovery/v2.0/keys"
@@ -21,8 +21,8 @@ JWKS_URL = f"{AUTHORITY}/discovery/v2.0/keys"
 
 def exchange_code_for_token(code: str) -> dict:
     data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
+        "client_id": AUTH_CLIENT_ID,
+        "client_secret": AUTH_CLIENT_SECRET,
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": REDIRECT_URI,
@@ -67,7 +67,7 @@ def verify_id_token(id_token: str) -> dict:
             token=id_token,
             key=key,
             algorithms=["RS256"],
-            audience=CLIENT_ID,
+            audience=AUTH_CLIENT_ID,
             issuer=f"{AUTHORITY}/v2.0",
         )
         return payload

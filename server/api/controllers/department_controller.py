@@ -10,6 +10,7 @@ from models import (
     Comment,
     DepartmentControl,
     ApplicationControlResult,
+    ExecutiveSummary,
 )
 from datetime import datetime, timezone
 from schemas import department_schemas as d_schemas
@@ -235,6 +236,93 @@ def get_departments_with_latest_comment(
                     latest_comment
                 )
                 if latest_comment
+                else None,
+            )
+        )
+
+    return results
+
+
+def get_departments_with_latest_exec_sumary(
+    app_id: str, db: Session
+) -> list[d_schemas.AppDeptWithLatestExecSummary]:
+
+    stmt = (
+        select(Department, ApplicationDepartments)
+        .join(
+            ApplicationDepartments,
+            Department.id == ApplicationDepartments.department_id,
+        )
+        .where(
+            and_(
+                ApplicationDepartments.application_id == app_id,
+                ApplicationDepartments.is_active,
+            )
+        )
+    )
+
+    departments = db.execute(stmt).all()
+
+    if not departments:
+        # Check if application exists
+        if not db.get(Application, app_id):
+            raise HTTPException(status_code=404, detail="Application not found")
+        return []
+
+    dept_ids = [dep.id for dep, _ in departments]
+
+    # 2️⃣ Load latest comment per department using a subquery
+    subq = (
+        select(
+            ExecutiveSummary.department_id,
+            ExecutiveSummary.application_id,
+            func.max(ExecutiveSummary.created_at).label("latest_created"),
+        )
+        .where(
+            ExecutiveSummary.department_id.in_(dept_ids),
+            ExecutiveSummary.application_id == app_id,
+            ExecutiveSummary.scope == "department",
+        )
+        .group_by(ExecutiveSummary.department_id, ExecutiveSummary.application_id)
+        .subquery()
+    )
+
+    exec_stmt = (
+        select(ExecutiveSummary)
+        .join(
+            subq,
+            and_(
+                ExecutiveSummary.department_id == subq.c.department_id,
+                ExecutiveSummary.application_id == subq.c.application_id,
+                ExecutiveSummary.created_at == subq.c.latest_created,
+                ExecutiveSummary.scope == "department",
+            ),
+        )
+        .options(joinedload(ExecutiveSummary.author))  # eager load author
+    )
+
+    latest_exec_summaries = db.execute(exec_stmt).scalars().all()
+    exec_summary_map = {c.department_id: c for c in latest_exec_summaries}
+
+    # 3️⃣ Combine into Pydantic models
+    results: list[d_schemas.AppDeptWithLatestExecSummary] = []
+    for dep, app_dept in departments:
+        latest_exec_summary = exec_summary_map.get(dep.id)
+        results.append(
+            d_schemas.AppDeptWithLatestExecSummary(
+                id=dep.id,
+                name=dep.name,
+                description=dep.description,
+                status=app_dept.status,
+                started_at=app_dept.started_at,
+                ended_at=app_dept.ended_at,
+                app_category=app_dept.app_category,
+                category_status=app_dept.category_status,
+                go_live_at=app_dept.go_live_at,
+                latest_exec_summary=d_schemas.DeptLatestExecSUmmary.model_validate(
+                    latest_exec_summary
+                )
+                if latest_exec_summary
                 else None,
             )
         )

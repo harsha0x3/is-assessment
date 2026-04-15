@@ -94,6 +94,12 @@ const dashboardApiSlice = rootApiSlice.injectEndpoints({
     getAppCompletionSummary: builder.query<AppCompletionSummary[], void>({
       query: () => `/dashboard/summary/completion`,
     }),
+    getDeptCompletionStats: builder.query({
+      query: (params: { from_date?: string; to_date?: string }) => ({
+        url: `/dashboard/summary/dept_completions`,
+        params,
+      }),
+    }),
   }),
 });
 export const {
@@ -107,4 +113,5 @@ export const {
   useGetApptypeSummaryQuery,
   useGetVAPTSummaryPerStatusQuery,
   useGetAppCompletionSummaryQuery,
+  useGetDeptCompletionStatsQuery,
 } = dashboardApiSlice;

@@ -12,6 +12,17 @@ export const execSummaryApiSlice = rootApiSlice.injectEndpoints({
       providesTags: ["ExecSummary"],
     }),
 
+    getExecSummariesByDept: builder.query<
+      ExecSummaryOut[],
+      { appId: string; deptId: number }
+    >({
+      query: ({ appId, deptId }) => ({
+        url: `/exec_summary/application/${appId}/department/${deptId}`,
+        method: "GET",
+      }),
+      providesTags: ["DeptExecSummary"],
+    }),
+
     // -------- GET LATEST BY APPLICATION --------
     getLatestExecSummary: builder.query<ExecSummaryOut, string>({
       query: (appId) => ({
@@ -34,6 +45,18 @@ export const execSummaryApiSlice = rootApiSlice.injectEndpoints({
       invalidatesTags: ["ExecSummary"],
     }),
 
+    createDeptExecSummary: builder.mutation<
+      ExecSummaryOut,
+      { appId: string; deptId: number; body: NewExecSummaryRequest }
+    >({
+      query: ({ appId, deptId, body }) => ({
+        url: `/exec_summary/application/${appId}/department/${deptId}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["DeptExecSummary"],
+    }),
+
     // -------- UPDATE --------
     updateExecSummary: builder.mutation<
       ExecSummaryOut,
@@ -54,4 +77,6 @@ export const {
   useGetLatestExecSummaryQuery,
   useCreateExecSummaryMutation,
   useUpdateExecSummaryMutation,
+  useGetExecSummariesByDeptQuery,
+  useCreateDeptExecSummaryMutation,
 } = execSummaryApiSlice;
