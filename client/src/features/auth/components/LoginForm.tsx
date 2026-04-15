@@ -187,13 +187,33 @@ const LoginForm: React.FC<LoginFormProps> = ({ onForgotPasswordClick }) => {
             )}
           </Button>
         </form>
+        <div className="relative my-4 flex items-center">
+          <div className="grow border-t border-border" />
+          <span className="mx-3 text-sm ">or</span>
+          <div className="grow border-t border-border" />
+        </div>
+
         <Button
-          className=""
+          variant="outline"
+          size="lg"
+          className="w-full flex items-center gap-3"
           onClick={() => {
             window.location.href = `${import.meta.env.VITE_API_URL}/auth/microsoft/login`;
           }}
         >
-          MS Login
+          {/* Microsoft logo */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 21 21"
+            className="w-4 h-4 shrink-0"
+            aria-hidden="true"
+          >
+            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+          </svg>
+          Continue with Microsoft
         </Button>
       </CardContent>
     </Card>
