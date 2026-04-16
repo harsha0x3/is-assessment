@@ -106,6 +106,7 @@ def set_jwt_cookies(
     session_id: str,
 ):
     try:
+        print("************Setting cookies with access token:******* ", access_token)
         access_exp = datetime.now(timezone.utc) + timedelta(
             minutes=JWTConfig.ACCESS_TOKEN_EXPIRE_MINUTES
         )

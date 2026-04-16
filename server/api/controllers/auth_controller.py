@@ -194,8 +194,9 @@ def microsoft_callback_login(
     error: str | None = None,
 ):
     try:
+        print("=========INSODE MS CALLBACK=========")
         if not code and error:
-            print("ERROR IN MICROSOFT CALLBACK: ", error)
+            print("=======ERROR IN MICROSOFT CALLBACK: ", error)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Microsoft OAuth error: {error}",
